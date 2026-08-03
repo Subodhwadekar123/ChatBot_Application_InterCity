@@ -2,26 +2,28 @@
 AI Data Analyst - Data Cleaning Service
 ==========================================
 Provides all data cleaning operations:
-- Handle missing values (drop, fill mean/median/mode/interpolation)
-- Remove duplicate rows
+- Handle missing values (drop, fill mean/median/mode/constant/interpolation/ffill/bfill)
+- Remove duplicate rows (all or subset)
 - Rename / drop columns
-- Convert data types
-- Outlier detection and removal
-- Normalization and standardization
+- Convert data types (numeric, integer, float, string, category, datetime, boolean)
+- Outlier detection and handling (IQR, Z-Score -> remove, cap, mean, median)
+- Normalization and standardization (MinMax, Z-Score, Robust)
 - Encoding (One-Hot, Label, Ordinal)
-- Handle skewness (log, sqrt, Box-Cox transforms)
-- Handle imbalanced data
+- Handle skewness (log, sqrt, Box-Cox, Yeo-Johnson transforms)
+- Remove constant features (zero-variance columns)
 """
 
+import os
 import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn.preprocessing import (
     MinMaxScaler, StandardScaler, RobustScaler,
-    LabelEncoder, OrdinalEncoder,
+    LabelEncoder, OrdinalEncoder, PowerTransformer
 )
 from typing import Dict, Any, List, Optional
 
+from app.config import settings
 from app.services.data_service import DataService
 from app.utils.logger import setup_logger
 
@@ -54,7 +56,10 @@ class CleaningService:
             Operation result with before/after counts
         """
         df = DataService.get_dataframe(dataset_id).copy()
-        target_cols = columns if columns else list(df.columns)
+        target_cols = [c for c in (columns or list(df.columns)) if c in df.columns]
+
+        if not target_cols:
+            raise ValueError("No valid columns specified for missing value handling")
 
         before_missing = int(df[target_cols].isnull().sum().sum())
         before_rows = len(df)
@@ -68,12 +73,16 @@ class CleaningService:
         elif strategy == "fill_mean":
             for col in target_cols:
                 if pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].fillna(df[col].mean())
+                    mean_val = df[col].mean()
+                    if not pd.isna(mean_val):
+                        df[col] = df[col].fillna(mean_val)
 
         elif strategy == "fill_median":
             for col in target_cols:
                 if pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].fillna(df[col].median())
+                    median_val = df[col].median()
+                    if not pd.isna(median_val):
+                        df[col] = df[col].fillna(median_val)
 
         elif strategy == "fill_mode":
             for col in target_cols:
@@ -91,15 +100,16 @@ class CleaningService:
                     df[col] = df[col].interpolate(method="linear", limit_direction="both")
 
         elif strategy == "ffill":
-            df[target_cols] = df[target_cols].fillna(method="ffill")
+            df[target_cols] = df[target_cols].ffill()
 
         elif strategy == "bfill":
-            df[target_cols] = df[target_cols].fillna(method="bfill")
+            df[target_cols] = df[target_cols].bfill()
 
         else:
             raise ValueError(f"Unknown missing value strategy: {strategy}")
 
-        after_missing = int(df[target_cols].isnull().sum().sum()) if target_cols[0] in df.columns else 0
+        remaining_cols = [c for c in target_cols if c in df.columns]
+        after_missing = int(df[remaining_cols].isnull().sum().sum()) if remaining_cols else 0
         after_rows = len(df)
 
         DataService.update_dataframe(dataset_id, df)
@@ -121,6 +131,10 @@ class CleaningService:
     def remove_duplicates(dataset_id: str, subset: Optional[List[str]] = None) -> Dict[str, Any]:
         """Remove duplicate rows from the dataset."""
         df = DataService.get_dataframe(dataset_id).copy()
+        if subset:
+            valid_subset = [c for c in subset if c in df.columns]
+            subset = valid_subset if valid_subset else None
+
         before = len(df)
         df = df.drop_duplicates(subset=subset)
         after = len(df)
@@ -139,11 +153,15 @@ class CleaningService:
     def rename_columns(dataset_id: str, rename_map: Dict[str, str]) -> Dict[str, Any]:
         """Rename specified columns."""
         df = DataService.get_dataframe(dataset_id).copy()
-        df = df.rename(columns=rename_map)
+        valid_map = {k: v for k, v in rename_map.items() if k in df.columns and str(v).strip()}
+        if not valid_map:
+            raise ValueError("No valid columns to rename")
+
+        df = df.rename(columns=valid_map)
         DataService.update_dataframe(dataset_id, df)
         return {
             "operation": "rename_columns",
-            "renamed": rename_map,
+            "renamed": valid_map,
             "shape": list(df.shape),
         }
 
@@ -152,6 +170,9 @@ class CleaningService:
         """Drop specified columns."""
         df = DataService.get_dataframe(dataset_id).copy()
         valid_cols = [c for c in columns if c in df.columns]
+        if not valid_cols:
+            raise ValueError("None of the specified columns exist in the dataset")
+
         df = df.drop(columns=valid_cols)
         DataService.update_dataframe(dataset_id, df)
         return {
@@ -182,7 +203,12 @@ class CleaningService:
             elif target_dtype == "float":
                 df[column] = pd.to_numeric(df[column], errors="coerce").astype(float)
             elif target_dtype == "boolean":
-                df[column] = df[column].map({"True": True, "False": False, "1": True, "0": False, True: True, False: False})
+                bool_map = {
+                    "True": True, "False": False, "true": True, "false": False,
+                    "1": True, "0": False, 1: True, 0: False, True: True, False: False,
+                    "yes": True, "no": False, "Yes": True, "No": False, "Y": True, "N": False, "t": True, "f": False
+                }
+                df[column] = df[column].map(bool_map)
             else:
                 raise ValueError(f"Unknown target dtype: {target_dtype}")
         except Exception as e:
@@ -219,22 +245,32 @@ class CleaningService:
         if column not in df.columns:
             raise ValueError(f"Column '{column}' not found")
 
+        if not pd.api.types.is_numeric_dtype(df[column]):
+            raise ValueError(f"Column '{column}' must be numeric to handle outliers")
+
         series = df[column]
         before_rows = len(df)
 
-        # Detect outlier mask
+        # Detect outlier mask & define boundaries
         if method == "iqr":
-            q1 = series.quantile(0.25)
-            q3 = series.quantile(0.75)
+            q1 = float(series.quantile(0.25))
+            q3 = float(series.quantile(0.75))
             iqr = q3 - q1
             lower = q1 - threshold * iqr
             upper = q3 + threshold * iqr
             outlier_mask = (series < lower) | (series > upper)
         elif method == "zscore":
-            z_scores = np.abs(stats.zscore(series.dropna()))
-            outlier_mask = pd.Series(False, index=series.index)
-            non_null_idx = series.dropna().index
-            outlier_mask.loc[non_null_idx] = z_scores > threshold
+            mean = float(series.mean())
+            std = float(series.std()) if float(series.std()) != 0 else 1.0
+            lower = mean - threshold * std
+            upper = mean + threshold * std
+            valid_series = series.dropna()
+            if len(valid_series) > 1 and series.std() > 0:
+                z_scores = np.abs(stats.zscore(valid_series))
+                outlier_mask = pd.Series(False, index=series.index)
+                outlier_mask.loc[valid_series.index] = z_scores > threshold
+            else:
+                outlier_mask = pd.Series(False, index=series.index)
         else:
             raise ValueError(f"Unknown outlier method: {method}")
 
@@ -244,8 +280,8 @@ class CleaningService:
         if strategy == "remove":
             df = df[~outlier_mask]
         elif strategy == "cap":
-            df.loc[series < lower, column] = lower if method == "iqr" else series.mean() - threshold * series.std()
-            df.loc[series > upper, column] = upper if method == "iqr" else series.mean() + threshold * series.std()
+            df.loc[series < lower, column] = lower
+            df.loc[series > upper, column] = upper
         elif strategy == "replace_mean":
             df.loc[outlier_mask, column] = series.mean()
         elif strategy == "replace_median":
@@ -333,7 +369,7 @@ class CleaningService:
             new_columns = [f"{column}_encoded"]
 
         elif method == "onehot":
-            dummies = pd.get_dummies(df[column], prefix=column, drop_first=False)
+            dummies = pd.get_dummies(df[column], prefix=column, drop_first=False, dtype=int)
             df = pd.concat([df, dummies], axis=1)
             new_columns = list(dummies.columns)
 
@@ -374,13 +410,20 @@ class CleaningService:
         if column not in df.columns:
             raise ValueError(f"Column '{column}' not found")
 
+        if not pd.api.types.is_numeric_dtype(df[column]):
+            raise ValueError(f"Column '{column}' must be numeric to handle skewness")
+
         series = df[column].dropna()
+        if len(series) == 0:
+            raise ValueError(f"Column '{column}' has no valid numeric data")
+
         before_skew = float(series.skew())
 
         if method == "log":
             if (series <= 0).any():
-                # Shift to positive
-                df[column] = np.log1p(df[column] - df[column].min() + 1)
+                # Shift to strictly positive before log1p
+                shift = abs(float(series.min())) + 1.0
+                df[column] = np.log1p(df[column] + shift)
             else:
                 df[column] = np.log(df[column])
 
@@ -391,26 +434,26 @@ class CleaningService:
             positive_series = series[series > 0]
             if len(positive_series) < len(series):
                 raise ValueError("Box-Cox requires strictly positive values")
-            transformed, _ = stats.boxcox(series)
-            df.loc[series.index, column] = transformed
+            transformed, _ = stats.boxcox(positive_series)
+            df.loc[positive_series.index, column] = transformed
 
         elif method == "yeo_johnson":
-            from sklearn.preprocessing import PowerTransformer
             pt = PowerTransformer(method="yeo-johnson")
-            df[[column]] = pt.fit_transform(df[[column]])
+            non_null_idx = df[column].dropna().index
+            df.loc[non_null_idx, column] = pt.fit_transform(df.loc[non_null_idx, [column]]).flatten()
 
         else:
             raise ValueError(f"Unknown skewness method: {method}")
 
-        after_skew = float(df[column].dropna().skew())
+        after_skew = float(df[column].dropna().skew()) if len(df[column].dropna()) > 0 else 0.0
         DataService.update_dataframe(dataset_id, df)
 
         return {
             "operation": "handle_skewness",
             "column": column,
             "method": method,
-            "before_skewness": before_skew,
-            "after_skewness": after_skew,
+            "before_skewness": round(before_skew, 4),
+            "after_skewness": round(after_skew, 4),
             "improvement": round(abs(before_skew) - abs(after_skew), 4),
             "shape": list(df.shape),
         }
@@ -421,9 +464,11 @@ class CleaningService:
     def remove_constant_features(dataset_id: str) -> Dict[str, Any]:
         """Remove columns with only one unique value (no information)."""
         df = DataService.get_dataframe(dataset_id).copy()
-        constant_cols = [col for col in df.columns if df[col].nunique() <= 1]
-        df = df.drop(columns=constant_cols)
-        DataService.update_dataframe(dataset_id, df)
+        constant_cols = [col for col in df.columns if df[col].nunique(dropna=False) <= 1]
+        if constant_cols:
+            df = df.drop(columns=constant_cols)
+            DataService.update_dataframe(dataset_id, df)
+
         return {
             "operation": "remove_constant_features",
             "removed_columns": constant_cols,
@@ -435,10 +480,8 @@ class CleaningService:
     @staticmethod
     def export_cleaned(dataset_id: str, format: str = "csv") -> str:
         """Save cleaned dataset to disk and return file path."""
-        import os
-        from app.config import settings
-
         df = DataService.get_dataframe(dataset_id)
+        os.makedirs(settings.REPORTS_DIR, exist_ok=True)
         filename = f"{dataset_id}_cleaned.{format}"
         file_path = os.path.join(settings.REPORTS_DIR, filename)
 

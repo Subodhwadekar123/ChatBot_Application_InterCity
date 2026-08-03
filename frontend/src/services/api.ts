@@ -5,8 +5,10 @@
 
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: API_BASE,
   timeout: 120000, // 2 minutes for large dataset processing
   headers: {
     'Content-Type': 'application/json',
@@ -129,7 +131,7 @@ export const handleSkewness = (id: string, body: object) =>
 export const removeConstants = (id: string) =>
   api.post(`/cleaning/${id}/remove-constants`);
 export const exportCleaned = (id: string, format = 'csv') =>
-  `/api/v1/cleaning/${id}/export?format=${format}`;
+  `${API_BASE}/cleaning/${id}/export?format=${format}`;
 
 // ── Machine Learning ──────────────────────────────────────────────────────
 
@@ -192,7 +194,7 @@ export const healthCheck = () => api.get('/health') as Promise<any>;
 export const reportIssue = (body: { title: string; category: string; description: string; email?: string }) =>
   api.post('/issues', body) as Promise<any>;
 export const listIssues = () => api.get('/issues') as Promise<any>;
-export const downloadIssuesCSV = () => '/api/v1/issues/download';
+export const downloadIssuesCSV = () => `${API_BASE}/issues/download`;
 
 // ── Authentication ─────────────────────────────────────────────────────────
 
