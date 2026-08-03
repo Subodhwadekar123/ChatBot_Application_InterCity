@@ -234,7 +234,94 @@ class MLService:
         except Exception as e:
             logger.warning(f"CV failed: {e}")
 
+        # Calculate predictions preview (up to 20 samples from test set)
+        predictions_preview = []
+        n_preview = min(20, len(y_test))
+        
+        y_test_arr = np.array(y_test)
+        y_pred_arr = np.array(y_pred)
+        X_test_reset = X_test.reset_index(drop=True)
+        
+        if problem_type == "classification":
+            for i in range(n_preview):
+                act_val = label_mapping.get(int(y_test_arr[i]), str(y_test_arr[i])) if label_mapping else str(y_test_arr[i])
+                pred_val = label_mapping.get(int(y_pred_arr[i]), str(y_pred_arr[i])) if label_mapping else str(y_pred_arr[i])
+                is_match = (y_test_arr[i] == y_pred_arr[i])
+                predictions_preview.append({
+                    "row_id": i + 1,
+                    "actual": act_val,
+                    "predicted": pred_val,
+                    "is_correct": bool(is_match),
+                    "status": "Match" if is_match else "Mismatch",
+                    "features": {k: round(float(v), 2) if isinstance(v, (int, float, np.number)) else str(v) for k, v in X_test_reset.iloc[i].to_dict().items()}
+                })
+        else:
+            # Regression preview
+            for i in range(n_preview):
+                act = float(y_test_arr[i])
+                pred = float(y_pred_arr[i])
+                diff = pred - act
+                denom = abs(act) if abs(act) > 1e-6 else 1.0
+                err_pct = abs(diff) / denom * 100.0
+                is_close = (err_pct <= 15.0)
+                predictions_preview.append({
+                    "row_id": i + 1,
+                    "actual": round(act, 4),
+                    "predicted": round(pred, 4),
+                    "difference": round(diff, 4),
+                    "error_pct": round(err_pct, 2),
+                    "is_correct": bool(is_close),
+                    "status": f"{err_pct:.1f}% error",
+                    "features": {k: round(float(v), 2) if isinstance(v, (int, float, np.number)) else str(v) for k, v in X_test_reset.iloc[i].to_dict().items()}
+                })
+
+        # Calculate high-level accuracy rates in percentage
+        if problem_type == "classification":
+            acc_pct = round(metrics.get("accuracy", 0.0) * 100.0, 2)
+            prec_pct = round(metrics.get("precision", 0.0) * 100.0, 2)
+            rec_pct = round(metrics.get("recall", 0.0) * 100.0, 2)
+            f1_pct = round(metrics.get("f1_score", 0.0) * 100.0, 2)
+            rating = "Outstanding" if acc_pct >= 90 else ("Good" if acc_pct >= 75 else ("Moderate" if acc_pct >= 60 else "Needs Tuning"))
+            accuracy_summary = {
+                "overall_accuracy_pct": acc_pct,
+                "precision_pct": prec_pct,
+                "recall_pct": rec_pct,
+                "f1_pct": f1_pct,
+                "rating": rating,
+                "headline": f"{acc_pct}% Overall Classification Accuracy"
+            }
+        else:
+            r2_val = metrics.get("r2_score", 0.0)
+            r2_pct = round(max(0.0, r2_val * 100.0), 2)
+            # % of test samples within ±15% error
+            acts = np.array(y_test)
+            preds = np.array(y_pred)
+            rel_errors = np.abs(preds - acts) / np.maximum(np.abs(acts), 1e-6)
+            within_10_pct = round(float(np.mean(rel_errors <= 0.10) * 100.0), 2)
+            within_20_pct = round(float(np.mean(rel_errors <= 0.20) * 100.0), 2)
+            mape_pct = round(float(np.mean(rel_errors) * 100.0), 2)
+            rating = "Outstanding" if r2_pct >= 85 else ("Good" if r2_pct >= 70 else ("Moderate" if r2_pct >= 50 else "Needs Tuning"))
+            accuracy_summary = {
+                "overall_accuracy_pct": r2_pct,
+                "r2_variance_explained_pct": r2_pct,
+                "within_10pct_accuracy": within_10_pct,
+                "within_20pct_accuracy": within_20_pct,
+                "mape_pct": mape_pct,
+                "rating": rating,
+                "headline": f"{r2_pct}% Fit Rate (R² Variance Explained)"
+            }
+
         experiment_id = str(uuid.uuid4())
+
+        # Cache trained model for interactive live prediction
+        if not hasattr(MLService, "_trained_models"):
+            MLService._trained_models = {}
+        MLService._trained_models[experiment_id] = {
+            "model": model,
+            "feature_columns": X_cols,
+            "problem_type": problem_type,
+            "label_mapping": label_mapping,
+        }
 
         return {
             "experiment_id": experiment_id,
@@ -244,6 +331,8 @@ class MLService:
             "feature_columns": X_cols,
             "n_samples_train": int(len(X_train)),
             "n_samples_test": int(len(X_test)),
+            "accuracy_summary": accuracy_summary,
+            "predictions_preview": predictions_preview,
             "metrics": metrics,
             "feature_importances": importances,
             "cross_validation": {
@@ -421,6 +510,7 @@ class MLService:
                 result = MLService.train_model(dataset_id, target_column, algo, test_size=test_size)
                 results.append({
                     "algorithm": algo,
+                    "accuracy_summary": result.get("accuracy_summary"),
                     "metrics": result["metrics"],
                     "cv_mean": result["cross_validation"]["mean"],
                 })
