@@ -22,6 +22,9 @@ logger = setup_logger(__name__)
 # In-memory DataFrame store: {dataset_id: pd.DataFrame}
 _dataframe_store: Dict[str, pd.DataFrame] = {}
 
+# In-memory DataFrame history stack: {dataset_id: [pd.DataFrame, pd.DataFrame, ...]}
+_history_store: Dict[str, List[pd.DataFrame]] = {}
+
 # In-memory Action Ledger: {dataset_id: [{"action": "drop_columns", "params": {...}}]}
 _action_ledger_store: Dict[str, List[Dict[str, Any]]] = {}
 
@@ -98,16 +101,84 @@ class DataService:
         return _dataframe_store[dataset_id]
 
     @staticmethod
-    def update_dataframe(dataset_id: str, df: pd.DataFrame) -> None:
-        """Update the in-memory DataFrame after cleaning operations."""
+    def update_dataframe(dataset_id: str, df: pd.DataFrame, push_history: bool = True) -> None:
+        """Update the in-memory DataFrame after cleaning operations and record history."""
+        if push_history and dataset_id in _dataframe_store:
+            if dataset_id not in _history_store:
+                _history_store[dataset_id] = []
+            # Keep up to 20 states in memory for undo capability
+            _history_store[dataset_id].append(_dataframe_store[dataset_id].copy())
+            if len(_history_store[dataset_id]) > 20:
+                _history_store[dataset_id].pop(0)
+
         _dataframe_store[dataset_id] = df
         analysis_cache.clear_dataset(dataset_id)
-        logger.info(f"Dataset {dataset_id} updated: {df.shape[0]} rows × {df.shape[1]} cols")
+        logger.info(f"Dataset {dataset_id} updated: {df.shape[0]} rows × {df.shape[1]} cols (Undo steps: {len(_history_store.get(dataset_id, []))})")
+
+    @staticmethod
+    def undo_dataframe(dataset_id: str) -> Dict[str, Any]:
+        """Revert DataFrame to previous state in history."""
+        if dataset_id not in _history_store or not _history_store[dataset_id]:
+            raise ValueError("No changes available to undo.")
+
+        prev_df = _history_store[dataset_id].pop()
+        _dataframe_store[dataset_id] = prev_df
+        analysis_cache.clear_dataset(dataset_id)
+
+        last_action = None
+        if dataset_id in _action_ledger_store and _action_ledger_store[dataset_id]:
+            last_action = _action_ledger_store[dataset_id].pop()
+
+        logger.info(f"Dataset {dataset_id} reverted via undo. Remaining history states: {len(_history_store.get(dataset_id, []))}")
+        return {
+            "operation": "undo",
+            "success": True,
+            "reverted_action": last_action,
+            "remaining_undo_steps": len(_history_store.get(dataset_id, [])),
+            "shape": list(prev_df.shape),
+        }
+
+    @staticmethod
+    def get_history_status(dataset_id: str) -> Dict[str, Any]:
+        """Check undo capability and action history."""
+        undo_count = len(_history_store.get(dataset_id, []))
+        ledger = _action_ledger_store.get(dataset_id, [])
+        last_action = ledger[-1] if ledger else None
+        return {
+            "can_undo": undo_count > 0,
+            "undo_count": undo_count,
+            "last_action": last_action,
+            "total_actions": len(ledger),
+        }
+
+    @staticmethod
+    def reset_to_original(dataset_id: str) -> Dict[str, Any]:
+        """Reset dataset to its original uploaded file from disk."""
+        from app.database import SessionLocal, DatasetRecord
+        db = SessionLocal()
+        try:
+            record = db.query(DatasetRecord).filter(DatasetRecord.id == dataset_id).first()
+            if not record or not os.path.exists(record.file_path):
+                raise FileNotFoundError(f"Original file for dataset {dataset_id} not found on disk.")
+            
+            df = DataService.load_dataset(record.file_path, record.file_type, dataset_id)
+            _history_store[dataset_id] = []
+            _action_ledger_store[dataset_id] = []
+            analysis_cache.clear_dataset(dataset_id)
+            logger.info(f"Dataset {dataset_id} reset to original from {record.file_path}")
+            return {
+                "operation": "reset",
+                "success": True,
+                "shape": list(df.shape),
+            }
+        finally:
+            db.close()
 
     @staticmethod
     def remove_dataframe(dataset_id: str) -> None:
         """Remove a dataset from memory."""
         _dataframe_store.pop(dataset_id, None)
+        _history_store.pop(dataset_id, None)
         _action_ledger_store.pop(dataset_id, None)
         analysis_cache.clear_dataset(dataset_id)
 

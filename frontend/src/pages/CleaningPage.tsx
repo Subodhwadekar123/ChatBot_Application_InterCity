@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import SectionHeader from '../components/ui/SectionHeader';
 import EmptyState from '../components/ui/EmptyState';
@@ -14,13 +14,17 @@ import {
   handleSkewness,
   removeConstants,
   exportCleaned,
-  getDataset
+  getDataset,
+  undoCleaning,
+  getCleaningHistory,
+  resetDataset
 } from '../services/api';
 import toast from 'react-hot-toast';
 import { 
   Brush, Download, Trash2, Edit3, Settings2, 
   ShieldAlert, Activity, Sliders, 
-  Sparkles, Layers, Type, AlertCircle
+  Sparkles, Layers, Type, AlertCircle,
+  Undo2, RotateCcw
 } from 'lucide-react';
 import DataTable from '../components/ui/DataTable';
 
@@ -39,6 +43,11 @@ type CleanTab =
 export default function CleaningPage() {
   const { activeDataset, setActiveDataset } = useStore();
   const [loading, setLoading] = useState(false);
+  const [undoing, setUndoing] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [undoCount, setUndoCount] = useState<number>(0);
+  const [lastActionDesc, setLastActionDesc] = useState<string | null>(null);
+
   const [activeTab, setActiveTab] = useState<CleanTab>('missing');
   const [selectedCol, setSelectedCol] = useState('');
   
@@ -65,6 +74,30 @@ export default function CleaningPage() {
 
   const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx' | 'json'>('csv');
 
+  // Fetch undo and history state
+  const fetchHistory = async () => {
+    const currentId = activeDataset?.id;
+    if (!currentId) return;
+    try {
+      const res = await getCleaningHistory(currentId);
+      if (res && res.data) {
+        setUndoCount(res.data.undo_count || 0);
+        if (res.data.last_action) {
+          const act = res.data.last_action;
+          setLastActionDesc(String(act.action).replace(/_/g, ' '));
+        } else {
+          setLastActionDesc(null);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [activeDataset?.id]);
+
   // Refresh dataset data after cleaning
   const refreshDataset = async () => {
     const currentId = activeDataset?.id;
@@ -78,6 +111,7 @@ export default function CleaningPage() {
           id: data.id || data.dataset_id || currentId,
         });
       }
+      await fetchHistory();
     } catch (err) {
       console.error("Failed to refresh dataset after cleaning:", err);
     }
@@ -107,6 +141,39 @@ export default function CleaningPage() {
     }
   };
 
+  const handleUndo = async () => {
+    const currentId = activeDataset?.id;
+    if (!currentId || undoCount === 0 || undoing || loading) return;
+    try {
+      setUndoing(true);
+      const res = await undoCleaning(currentId);
+      const reverted = res.data?.reverted_action?.action;
+      const label = reverted ? reverted.replace(/_/g, ' ') : 'last cleaning operation';
+      toast.success(`Successfully reverted ${label}`);
+      await refreshDataset();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || err.message || 'Failed to undo change');
+    } finally {
+      setUndoing(false);
+    }
+  };
+
+  const handleReset = async () => {
+    const currentId = activeDataset?.id;
+    if (!currentId || undoCount === 0 || resetting || loading) return;
+    if (!window.confirm("Are you sure you want to reset all cleaning changes back to the original uploaded dataset?")) return;
+    try {
+      setResetting(true);
+      await resetDataset(currentId);
+      toast.success("Dataset successfully reset to original state");
+      await refreshDataset();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || err.message || 'Failed to reset dataset');
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const handleExport = () => {
     window.open(exportCleaned(activeDataset.id, exportFormat), '_blank');
   };
@@ -126,13 +193,84 @@ export default function CleaningPage() {
 
   return (
     <div style={{ paddingBottom: '40px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <SectionHeader 
           title="Data Cleaning & Preprocessing" 
           subtitle="Clean, transform, normalize, encode, and prepare your dataset for machine learning."
           icon={<Brush />}
         />
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        
+        {/* Action Controls Bar */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Undo Button */}
+          <button
+            onClick={handleUndo}
+            disabled={undoCount === 0 || undoing || loading}
+            title={undoCount > 0 ? `Undo last operation (${lastActionDesc || `${undoCount} steps available`})` : "No changes to undo"}
+            style={{
+              height: '40px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0 14px',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: undoCount === 0 || undoing || loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              border: undoCount > 0 ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid rgba(255,255,255,0.08)',
+              background: undoCount > 0 ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255,255,255,0.03)',
+              color: undoCount > 0 ? '#a5b4fc' : '#64748b',
+              opacity: undoCount === 0 ? 0.5 : 1,
+              boxShadow: undoCount > 0 ? '0 0 12px rgba(99, 102, 241, 0.15)' : 'none'
+            }}
+          >
+            <Undo2 size={16} style={{ transform: undoing ? 'rotate(-180deg)' : 'none', transition: 'transform 0.3s ease' }} />
+            <span>{undoing ? 'Undoing...' : 'Undo'}</span>
+            {undoCount > 0 && (
+              <span style={{
+                background: '#6366f1',
+                color: '#ffffff',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '2px 7px',
+                borderRadius: '10px',
+                lineHeight: 1
+              }}>
+                {undoCount}
+              </span>
+            )}
+          </button>
+
+          {/* Reset to Original Button */}
+          {undoCount > 0 && (
+            <button
+              onClick={handleReset}
+              disabled={resetting || loading || undoing}
+              title="Revert all changes back to original uploaded file"
+              style={{
+                height: '40px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '0 12px',
+                borderRadius: '8px',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                cursor: resetting ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#f87171'
+              }}
+            >
+              <RotateCcw size={15} style={{ animation: resetting ? 'spin 1s linear infinite' : 'none' }} />
+              <span>{resetting ? 'Resetting...' : 'Reset'}</span>
+            </button>
+          )}
+
+          <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+
           <select 
             className="input" 
             style={{ width: '100px', height: '40px', padding: '0 8px' }}

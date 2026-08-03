@@ -224,3 +224,42 @@ def export_cleaned(dataset_id: str, format: str = "csv"):
     except Exception as e:
         logger.error(f"Error exporting cleaned dataset: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to export cleaned dataset: {str(e)}")
+
+
+@router.post("/cleaning/{dataset_id}/undo")
+def undo_cleaning_action(dataset_id: str):
+    """Reverts the last data cleaning operation applied to the dataset."""
+    _validate_dataset_id(dataset_id)
+    try:
+        res = DataService.undo_dataframe(dataset_id)
+        return res
+    except (ValueError, FileNotFoundError, KeyError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error undoing cleaning action: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to undo cleaning action: {str(e)}")
+
+
+@router.get("/cleaning/{dataset_id}/history-status")
+def get_cleaning_history_status(dataset_id: str):
+    """Returns the undo availability, action ledger, and history depth."""
+    _validate_dataset_id(dataset_id)
+    try:
+        return DataService.get_history_status(dataset_id)
+    except Exception as e:
+        logger.error(f"Error fetching history status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch history status: {str(e)}")
+
+
+@router.post("/cleaning/{dataset_id}/reset")
+def reset_dataset_to_original(dataset_id: str):
+    """Resets the dataset to its initial uploaded state from disk."""
+    _validate_dataset_id(dataset_id)
+    try:
+        res = DataService.reset_to_original(dataset_id)
+        return res
+    except (ValueError, FileNotFoundError, KeyError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error resetting dataset: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to reset dataset: {str(e)}")

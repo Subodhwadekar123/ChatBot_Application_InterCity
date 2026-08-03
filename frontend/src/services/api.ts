@@ -130,6 +130,12 @@ export const handleSkewness = (id: string, body: object) =>
   api.post(`/cleaning/${id}/handle-skewness`, body);
 export const removeConstants = (id: string) =>
   api.post(`/cleaning/${id}/remove-constants`);
+export const undoCleaning = (id: string) =>
+  api.post(`/cleaning/${id}/undo`) as Promise<any>;
+export const getCleaningHistory = (id: string) =>
+  api.get(`/cleaning/${id}/history-status`) as Promise<any>;
+export const resetDataset = (id: string) =>
+  api.post(`/cleaning/${id}/reset`) as Promise<any>;
 export const exportCleaned = (id: string, format = 'csv') =>
   `${API_BASE}/cleaning/${id}/export?format=${format}`;
 
