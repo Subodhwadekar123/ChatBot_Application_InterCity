@@ -79,18 +79,18 @@ export default function CleaningPage() {
     const currentId = activeDataset?.id;
     if (!currentId) return;
     try {
-      const res = await getCleaningHistory(currentId);
-      if (res && res.data) {
-        setUndoCount(res.data.undo_count || 0);
-        if (res.data.last_action) {
-          const act = res.data.last_action;
-          setLastActionDesc(String(act.action).replace(/_/g, ' '));
+      const res: any = await getCleaningHistory(currentId);
+      const data = res?.data || res;
+      if (data) {
+        setUndoCount(typeof data.undo_count === 'number' ? data.undo_count : 0);
+        if (data.last_action && data.last_action.action) {
+          setLastActionDesc(String(data.last_action.action).replace(/_/g, ' '));
         } else {
           setLastActionDesc(null);
         }
       }
     } catch (e) {
-      // ignore
+      console.error("Failed to fetch cleaning history:", e);
     }
   };
 
@@ -103,12 +103,13 @@ export default function CleaningPage() {
     const currentId = activeDataset?.id;
     if (!currentId) return;
     try {
-      const data = await getDataset(currentId);
-      if (data) {
+      const data: any = await getDataset(currentId);
+      const payload = data?.data || data;
+      if (payload) {
         setActiveDataset({
           ...activeDataset,
-          ...data,
-          id: data.id || data.dataset_id || currentId,
+          ...payload,
+          id: payload.id || payload.dataset_id || currentId,
         });
       }
       await fetchHistory();
@@ -128,11 +129,55 @@ export default function CleaningPage() {
     ...(activeDataset.dataset_info.column_types.boolean || [])
   ];
 
+  const handleUndo = async () => {
+    const currentId = activeDataset?.id;
+    if (!currentId || undoCount === 0 || undoing || loading) return;
+    try {
+      setUndoing(true);
+      const res: any = await undoCleaning(currentId);
+      const payload = res?.data || res;
+      const reverted = payload?.reverted_action?.action;
+      const label = reverted ? String(reverted).replace(/_/g, ' ') : 'last cleaning operation';
+      toast.success(`Successfully reverted ${label}`);
+      await refreshDataset();
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || err.message || 'Failed to undo change';
+      toast.error(msg);
+    } finally {
+      setUndoing(false);
+    }
+  };
+
   const handleCleanAction = async (action: () => Promise<any>, successMsg: string) => {
     try {
       setLoading(true);
       await action();
-      toast.success(successMsg);
+      toast.success(
+        (t) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span>{successMsg}</span>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                await handleUndo();
+              }}
+              style={{
+                background: '#4f46e5',
+                color: '#fff',
+                border: 'none',
+                padding: '3px 8px',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Undo
+            </button>
+          </div>
+        ),
+        { duration: 4500 }
+      );
       await refreshDataset();
     } catch (err: any) {
       toast.error(err.response?.data?.detail || err.message || 'Operation failed');
@@ -141,22 +186,22 @@ export default function CleaningPage() {
     }
   };
 
-  const handleUndo = async () => {
-    const currentId = activeDataset?.id;
-    if (!currentId || undoCount === 0 || undoing || loading) return;
-    try {
-      setUndoing(true);
-      const res = await undoCleaning(currentId);
-      const reverted = res.data?.reverted_action?.action;
-      const label = reverted ? reverted.replace(/_/g, ' ') : 'last cleaning operation';
-      toast.success(`Successfully reverted ${label}`);
-      await refreshDataset();
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || err.message || 'Failed to undo change');
-    } finally {
-      setUndoing(false);
-    }
-  };
+  // Keyboard shortcut: Ctrl+Z / Cmd+Z to undo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        if (undoCount > 0 && !undoing && !loading) {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undoCount, undoing, loading, activeDataset?.id]);
 
   const handleReset = async () => {
     const currentId = activeDataset?.id;
@@ -168,7 +213,8 @@ export default function CleaningPage() {
       toast.success("Dataset successfully reset to original state");
       await refreshDataset();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || err.message || 'Failed to reset dataset');
+      const msg = err.response?.data?.detail || err.message || 'Failed to reset dataset';
+      toast.error(msg);
     } finally {
       setResetting(false);
     }
@@ -806,6 +852,72 @@ export default function CleaningPage() {
                 {activeDataset.dataset_info.rows} rows × {activeDataset.dataset_info.columns} columns
               </span>
             </div>
+
+            {/* Modifications & Undo Status Banner */}
+            {undoCount > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08))',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '8px',
+                padding: '10px 16px',
+                marginBottom: '16px',
+                fontSize: '0.875rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c7d2fe' }}>
+                  <Sparkles size={16} color="#818cf8" />
+                  <span>
+                    <strong>{undoCount} change{undoCount > 1 ? 's' : ''}</strong> applied to this dataset.
+                    {lastActionDesc && <span style={{ opacity: 0.85, marginLeft: '6px' }}>(Last: <em>{lastActionDesc}</em>)</span>}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    onClick={handleUndo}
+                    disabled={undoing || loading}
+                    className="btn-secondary"
+                    style={{
+                      height: '32px',
+                      padding: '0 12px',
+                      fontSize: '0.8rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(99, 102, 241, 0.25)',
+                      color: '#e0e7ff',
+                      borderColor: 'rgba(99, 102, 241, 0.45)',
+                      cursor: undoing || loading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <Undo2 size={13} /> Revert Last Step (Ctrl+Z)
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={resetting || loading}
+                    style={{
+                      height: '32px',
+                      padding: '0 10px',
+                      fontSize: '0.8rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: 'transparent',
+                      color: '#f87171',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '6px',
+                      cursor: resetting || loading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <RotateCcw size={13} /> Reset All
+                  </button>
+                </div>
+              </div>
+            )}
+
             <DataTable columns={activeDataset.preview.columns} data={activeDataset.preview.records} />
           </div>
 
