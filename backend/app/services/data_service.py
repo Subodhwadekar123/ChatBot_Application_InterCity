@@ -138,7 +138,7 @@ class DataService:
             date_keywords = ["date", "time", "timestamp", "created", "updated", "at", "on"]
             if any(kw in col_lower for kw in date_keywords):
                 try:
-                    converted = pd.to_datetime(df[col], infer_datetime_format=True, errors="coerce")
+                    converted = pd.to_datetime(df[col], errors="coerce", format="mixed")
                     # Only convert if at least 70% of non-null values parsed successfully
                     if converted.notna().sum() / max(df[col].notna().sum(), 1) >= 0.7:
                         df[col] = converted

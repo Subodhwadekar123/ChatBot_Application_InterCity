@@ -211,11 +211,14 @@ def get_dataset(
     info = DataService.get_dataset_info(dataset_id)
     preview = DataService.get_preview(dataset_id, rows=20)
     return {
+        "id": dataset_id,
         "dataset_id": dataset_id,
         "filename": record.original_filename,
+        "file_size_mb": round(record.file_size_bytes / 1024 / 1024, 2) if record.file_size_bytes else 0.0,
         "file_type": record.file_type,
         "status": record.status,
         "created_at": record.created_at.isoformat(),
+        "uploaded_at": record.created_at.isoformat(),
         "dataset_info": info,
         "preview": preview,
     }

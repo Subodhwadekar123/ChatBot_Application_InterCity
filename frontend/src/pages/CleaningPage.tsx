@@ -67,11 +67,19 @@ export default function CleaningPage() {
 
   // Refresh dataset data after cleaning
   const refreshDataset = async () => {
+    const currentId = activeDataset?.id;
+    if (!currentId) return;
     try {
-      const data = await getDataset(activeDataset!.id);
-      setActiveDataset(data);
+      const data = await getDataset(currentId);
+      if (data) {
+        setActiveDataset({
+          ...activeDataset,
+          ...data,
+          id: data.id || data.dataset_id || currentId,
+        });
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to refresh dataset after cleaning:", err);
     }
   };
 

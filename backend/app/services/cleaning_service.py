@@ -199,7 +199,8 @@ class CleaningService:
             elif target_dtype == "category":
                 df[column] = df[column].astype("category")
             elif target_dtype == "integer":
-                df[column] = pd.to_numeric(df[column], errors="coerce").astype("Int64")
+                num_series = pd.to_numeric(df[column], errors="coerce")
+                df[column] = num_series.round().astype("Int64")
             elif target_dtype == "float":
                 df[column] = pd.to_numeric(df[column], errors="coerce").astype(float)
             elif target_dtype == "boolean":
@@ -280,12 +281,18 @@ class CleaningService:
         if strategy == "remove":
             df = df[~outlier_mask]
         elif strategy == "cap":
-            df.loc[series < lower, column] = lower
-            df.loc[series > upper, column] = upper
+            if not pd.api.types.is_float_dtype(df[column]):
+                df[column] = df[column].astype(float)
+            df.loc[series < lower, column] = float(lower)
+            df.loc[series > upper, column] = float(upper)
         elif strategy == "replace_mean":
-            df.loc[outlier_mask, column] = series.mean()
+            if not pd.api.types.is_float_dtype(df[column]):
+                df[column] = df[column].astype(float)
+            df.loc[outlier_mask, column] = float(series.mean())
         elif strategy == "replace_median":
-            df.loc[outlier_mask, column] = series.median()
+            if not pd.api.types.is_float_dtype(df[column]):
+                df[column] = df[column].astype(float)
+            df.loc[outlier_mask, column] = float(series.median())
         else:
             raise ValueError(f"Unknown outlier strategy: {strategy}")
 
@@ -331,6 +338,10 @@ class CleaningService:
         else:
             raise ValueError(f"Unknown normalization method: {method}")
 
+        for col in target_cols:
+            if not pd.api.types.is_float_dtype(df[col]):
+                df[col] = df[col].astype(float)
+
         df[target_cols] = scaler.fit_transform(df[target_cols])
         DataService.update_dataframe(dataset_id, df)
 
@@ -361,34 +372,45 @@ class CleaningService:
         if column not in df.columns:
             raise ValueError(f"Column '{column}' not found")
 
-        new_columns = []
+        # Convert to string/category first to avoid type issues
+        df[column] = df[column].astype(str)
 
         if method == "label":
             le = LabelEncoder()
-            df[f"{column}_encoded"] = le.fit_transform(df[column].astype(str))
-            new_columns = [f"{column}_encoded"]
+            # Retain NaN positions
+            non_null = df[column].dropna()
+            df.loc[non_null.index, column] = le.fit_transform(non_null)
+            mapping = {str(cls): int(idx) for idx, cls in enumerate(le.classes_)}
+            df[column] = pd.to_numeric(df[column], errors="coerce")
 
         elif method == "onehot":
+            # Limit number of categories to prevent explosive column creation
+            n_unique = df[column].nunique()
+            if n_unique > 50:
+                raise ValueError(f"Column '{column}' has {n_unique} unique values. One-hot encoding is limited to 50 categories to prevent memory exhaustion.")
             dummies = pd.get_dummies(df[column], prefix=column, drop_first=False, dtype=int)
-            df = pd.concat([df, dummies], axis=1)
-            new_columns = list(dummies.columns)
+            df = pd.concat([df.drop(columns=[column]), dummies], axis=1)
+            mapping = {col: f"dummy for {column}" for col in dummies.columns}
 
         elif method == "ordinal":
             if not categories:
-                raise ValueError("categories list is required for ordinal encoding")
+                # Infer order alphabetically if not provided
+                categories = sorted(df[column].dropna().unique().tolist())
             oe = OrdinalEncoder(categories=[categories], handle_unknown="use_encoded_value", unknown_value=-1)
-            df[f"{column}_ordinal"] = oe.fit_transform(df[[column]])
-            new_columns = [f"{column}_ordinal"]
+            non_null = df[[column]].dropna()
+            df.loc[non_null.index, column] = oe.fit_transform(non_null)
+            mapping = {cat: idx for idx, cat in enumerate(categories)}
+            df[column] = pd.to_numeric(df[column], errors="coerce")
 
         else:
             raise ValueError(f"Unknown encoding method: {method}")
 
         DataService.update_dataframe(dataset_id, df)
         return {
-            "operation": "encode_column",
+            "operation": "encode",
             "column": column,
             "method": method,
-            "new_columns": new_columns,
+            "mapping": mapping,
             "shape": list(df.shape),
         }
 
@@ -412,6 +434,9 @@ class CleaningService:
 
         if not pd.api.types.is_numeric_dtype(df[column]):
             raise ValueError(f"Column '{column}' must be numeric to handle skewness")
+
+        if not pd.api.types.is_float_dtype(df[column]):
+            df[column] = df[column].astype(float)
 
         series = df[column].dropna()
         if len(series) == 0:
