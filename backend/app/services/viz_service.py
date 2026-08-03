@@ -7,9 +7,11 @@ AI-driven chart recommendation, and automated smart insights.
 """
 
 import math
+# pyrefly: ignore [missing-import]
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Union
+# pyrefly: ignore [missing-import]
 from scipy import stats
 
 from app.services.data_service import DataService

@@ -1,21 +1,25 @@
 """
 AI Data Analyst - Machine Learning Service
 ============================================
-Auto-detects problem type and trains/evaluates ML models.
+Auto-detects problem type, builds robust end-to-end pipelines (scaling, encoding,
+imputation, feature engineering), and trains high-accuracy ML models.
+
 Supports:
-  Regression: Linear, Ridge, Lasso, RF, XGBoost, GradientBoosting, SVR
-  Classification: Logistic, RF, DT, SVM, NaiveBayes, KNN, XGBoost, LightGBM
-  Clustering: KMeans, DBSCAN, Hierarchical, GaussianMixture
+  Regression: Random Forest, Gradient Boosting, XGBoost, LightGBM, Ridge, Linear, Lasso, SVR
+  Classification: Random Forest, Gradient Boosting, XGBoost, LightGBM, Logistic, Decision Tree, SVC, KNN, Naive Bayes
+  Clustering: KMeans, DBSCAN, Agglomerative, Gaussian Mixture
 """
 
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
 import uuid
-import json
+import re
 
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, KFold
+from sklearn.preprocessing import LabelEncoder, StandardScaler, RobustScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
@@ -62,14 +66,16 @@ logger = setup_logger(__name__)
 
 
 class MLService:
-    """Machine Learning service with auto-detection and full model training pipeline."""
+    """Machine Learning service with auto-detection, robust preprocessing pipelines, and evaluation."""
+
+    _trained_models: Dict[str, Any] = {}
 
     # ── Auto-Detect Problem Type ──────────────────────────────────────────────
 
     @staticmethod
     def detect_problem_type(dataset_id: str, target_column: str) -> Dict[str, Any]:
         """
-        Automatically detect whether the problem is regression, classification, or clustering.
+        Automatically detect whether the problem is regression or classification.
         """
         df = DataService.get_dataframe(dataset_id)
         if target_column not in df.columns:
@@ -79,16 +85,29 @@ class MLService:
         n_unique = target.nunique()
         dtype = target.dtype
 
-        if pd.api.types.is_numeric_dtype(dtype):
-            if n_unique <= 10 and set(target.unique()).issubset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}):
+        # Classification if string, object, bool, category, or low-cardinality discrete numeric
+        if not pd.api.types.is_numeric_dtype(dtype):
+            problem_type = "classification"
+            reason = f"Categorical target with {n_unique} distinct classes"
+        else:
+            # Check if numeric target is discrete/classification (e.g., 0/1, ratings 1-5, or <= 15 unique classes)
+            is_integer_like = False
+            try:
+                numeric_vals = target.dropna()
+                if (numeric_vals % 1 == 0).all() and n_unique <= 15:
+                    is_integer_like = True
+            except Exception:
+                pass
+
+            if n_unique <= 15 and is_integer_like:
                 problem_type = "classification"
-                reason = f"Numeric target with only {n_unique} unique integer values"
+                reason = f"Discrete numeric target with only {n_unique} unique integer classes"
+            elif n_unique == 2:
+                problem_type = "classification"
+                reason = f"Binary target with 2 distinct values ({list(target.unique())})"
             else:
                 problem_type = "regression"
-                reason = f"Numeric target with {n_unique} unique values (continuous)"
-        else:
-            problem_type = "classification"
-            reason = f"Categorical target with {n_unique} unique classes"
+                reason = f"Continuous numeric target with {n_unique} distinct values"
 
         algorithms = MLService._recommend_algorithms(problem_type)
 
@@ -103,37 +122,40 @@ class MLService:
 
     @staticmethod
     def _recommend_algorithms(problem_type: str) -> List[Dict[str, str]]:
-        """Return recommended algorithms for a problem type."""
+        """Return recommended algorithms ranked by typical real-world accuracy."""
         if problem_type == "regression":
             algos = [
-                {"id": "linear_regression", "name": "Linear Regression", "description": "Fast, interpretable baseline"},
-                {"id": "ridge", "name": "Ridge Regression", "description": "Linear with L2 regularization"},
-                {"id": "lasso", "name": "Lasso Regression", "description": "Linear with L1 regularization & feature selection"},
-                {"id": "random_forest_regressor", "name": "Random Forest", "description": "Ensemble of decision trees, robust"},
-                {"id": "gradient_boosting_regressor", "name": "Gradient Boosting", "description": "Sequential boosting, often best accuracy"},
-                {"id": "svr", "name": "SVR", "description": "Support Vector Regression"},
+                {"id": "random_forest_regressor", "name": "Random Forest Regressor", "description": "High-accuracy ensemble of decision trees (Top Recommendation)"},
+                {"id": "gradient_boosting_regressor", "name": "Gradient Boosting Regressor", "description": "Sequential boosting model, excels on complex non-linear patterns"},
+                {"id": "ridge", "name": "Ridge Regression (L2 Regularized)", "description": "Standardized linear model with L2 penalty, robust against collinearity"},
+                {"id": "linear_regression", "name": "Linear Regression", "description": "Standard linear regression baseline with feature scaling"},
+                {"id": "lasso", "name": "Lasso Regression (L1 Regularized)", "description": "Sparse linear regression with built-in feature selection"},
+                {"id": "svr", "name": "Support Vector Regressor (SVR)", "description": "Kernel-based regression with RBF support vectors"},
             ]
             if XGBOOST_AVAILABLE:
-                algos.append({"id": "xgboost_regressor", "name": "XGBoost", "description": "Fast gradient boosting, competition winner"})
+                algos.insert(1, {"id": "xgboost_regressor", "name": "XGBoost Regressor", "description": "Extreme gradient boosting, industry standard for tabular data"})
+            if LIGHTGBM_AVAILABLE:
+                algos.insert(2, {"id": "lightgbm_regressor", "name": "LightGBM Regressor", "description": "Fast tree-based boosting algorithm"})
         elif problem_type == "classification":
             algos = [
-                {"id": "logistic_regression", "name": "Logistic Regression", "description": "Fast, interpretable baseline"},
-                {"id": "random_forest_classifier", "name": "Random Forest", "description": "Robust ensemble, handles non-linearity"},
-                {"id": "decision_tree", "name": "Decision Tree", "description": "Visual, interpretable tree"},
-                {"id": "naive_bayes", "name": "Naive Bayes", "description": "Probabilistic, fast for text/categoricals"},
-                {"id": "knn", "name": "K-Nearest Neighbors", "description": "Instance-based learner"},
-                {"id": "gradient_boosting_classifier", "name": "Gradient Boosting", "description": "Sequential boosting"},
+                {"id": "random_forest_classifier", "name": "Random Forest Classifier", "description": "High-accuracy ensemble of trees (Top Recommendation)"},
+                {"id": "gradient_boosting_classifier", "name": "Gradient Boosting Classifier", "description": "Sequential boosted trees, superior predictive power"},
+                {"id": "logistic_regression", "name": "Logistic Regression (Standardized)", "description": "Standardized regularized classification baseline"},
+                {"id": "decision_tree", "name": "Decision Tree", "description": "Interpretable tree classifier with non-linear splits"},
+                {"id": "svc", "name": "Support Vector Classifier (SVC)", "description": "Kernelized SVM with probability estimates"},
+                {"id": "knn", "name": "K-Nearest Neighbors (KNN)", "description": "Distance-based instance classifier with standard scaling"},
+                {"id": "naive_bayes", "name": "Gaussian Naive Bayes", "description": "Probabilistic Bayesian classifier"},
             ]
             if XGBOOST_AVAILABLE:
-                algos.append({"id": "xgboost_classifier", "name": "XGBoost", "description": "High-performance gradient boosting"})
+                algos.insert(1, {"id": "xgboost_classifier", "name": "XGBoost Classifier", "description": "State-of-the-art gradient boosted classification"})
             if LIGHTGBM_AVAILABLE:
-                algos.append({"id": "lightgbm_classifier", "name": "LightGBM", "description": "Fast, memory-efficient boosting"})
-        else:  # clustering
+                algos.insert(2, {"id": "lightgbm_classifier", "name": "LightGBM Classifier", "description": "High-speed leaf-wise gradient boosting"})
+        else:
             algos = [
-                {"id": "kmeans", "name": "K-Means", "description": "Fast, partition-based clustering"},
-                {"id": "dbscan", "name": "DBSCAN", "description": "Density-based, handles outliers"},
-                {"id": "agglomerative", "name": "Hierarchical (Agglomerative)", "description": "Builds dendogram, no K needed"},
-                {"id": "gaussian_mixture", "name": "Gaussian Mixture", "description": "Probabilistic cluster assignment"},
+                {"id": "kmeans", "name": "K-Means Clustering", "description": "Centroid-based spatial clustering"},
+                {"id": "gaussian_mixture", "name": "Gaussian Mixture Model (GMM)", "description": "Soft probabilistic clustering with EM algorithm"},
+                {"id": "agglomerative", "name": "Hierarchical Agglomerative", "description": "Bottom-up tree-based clustering"},
+                {"id": "dbscan", "name": "DBSCAN (Density-Based)", "description": "Finds arbitrarily shaped clusters and filters noise"},
             ]
         return algos
 
@@ -149,99 +171,145 @@ class MLService:
         n_clusters: int = 3,
     ) -> Dict[str, Any]:
         """
-        Train an ML model and evaluate it.
-        
-        Returns comprehensive metrics, feature importances, and predictions.
+        Train an ML model with automated preprocessing, feature scaling, one-hot encoding,
+        missing-value imputation, and percentage accuracy evaluation.
         """
         df = DataService.get_dataframe(dataset_id).copy()
-        
-        # Select features
-        if feature_columns:
-            X_cols = [c for c in feature_columns if c in df.columns and c != target_column]
-        else:
-            # Auto-select: numeric columns only
-            X_cols = [
-                c for c in df.select_dtypes(include=[np.number]).columns
-                if c != target_column
-            ]
-
-        if not X_cols:
-            raise ValueError("No numeric feature columns available for training")
+        if target_column not in df.columns:
+            raise ValueError(f"Target column '{target_column}' not found in dataset")
 
         # Detect problem type
         problem_type_info = MLService.detect_problem_type(dataset_id, target_column)
         problem_type = problem_type_info["problem_type"]
 
-        X = df[X_cols].copy()
-        
-        # Handle clustering (no target)
-        if algorithm in ("kmeans", "dbscan", "agglomerative", "gaussian_mixture"):
-            return MLService._train_clustering(dataset_id, X, X_cols, algorithm, n_clusters)
+        # Drop rows where target is NaN
+        valid_mask = df[target_column].notna()
+        df = df[valid_mask].copy()
 
+        if len(df) < 15:
+            raise ValueError("Not enough data to train a model (need at least 15 non-empty rows)")
+
+        # Downsample for quick training if dataset is huge (> 10,000 rows)
+        if len(df) > 10000:
+            df = df.sample(n=10000, random_state=42)
+
+        # ── Feature Selection & Filtering ──
+        if feature_columns:
+            candidate_cols = [c for c in feature_columns if c in df.columns and c != target_column]
+        else:
+            candidate_cols = [c for c in df.columns if c != target_column]
+
+        # Filter out high-cardinality text / ID columns
+        num_cols = []
+        cat_cols = []
+        for c in candidate_cols:
+            col_series = df[c]
+            # Skip pure ID or UUID columns (e.g. unique per row or id names)
+            c_lower = c.lower()
+            if c_lower in ("id", "uuid", "_id", "index", "row_id", "transaction_id", "customer_id", "user_id") and col_series.nunique() > len(df) * 0.8:
+                continue
+            
+            if pd.api.types.is_numeric_dtype(col_series.dtype):
+                num_cols.append(c)
+            elif pd.api.types.is_datetime64_any_dtype(col_series.dtype):
+                # Extract datetime features
+                df[f"{c}_year"] = col_series.dt.year
+                df[f"{c}_month"] = col_series.dt.month
+                df[f"{c}_day"] = col_series.dt.day
+                num_cols.extend([f"{c}_year", f"{c}_month", f"{c}_day"])
+            else:
+                # Categorical column
+                n_uniq = col_series.nunique()
+                # Include categorical if cardinality is manageable (<= 60 distinct values)
+                if 1 < n_uniq <= 60:
+                    cat_cols.append(c)
+
+        if not num_cols and not cat_cols:
+            raise ValueError("No valid predictive features found in the dataset")
+
+        X = df[num_cols + cat_cols].copy()
         y = df[target_column].copy()
 
-        # Drop rows with missing values
-        mask = X.notna().all(axis=1) & y.notna()
-        X, y = X[mask], y[mask]
+        # Handle clustering
+        if algorithm in ("kmeans", "dbscan", "agglomerative", "gaussian_mixture"):
+            return MLService._train_clustering(dataset_id, X, num_cols, algorithm, n_clusters)
 
-        if len(X) < 20:
-            raise ValueError("Not enough data to train a model (need at least 20 rows)")
-            
-        # Optimization for free-tier deployment timeouts: limit dataset size
-        if len(X) > 5000:
-            logger.info(f"Downsampling from {len(X)} to 5000 rows to prevent timeout.")
-            # Use same random_state to ensure X and y match perfectly
-            X = X.sample(n=5000, random_state=42)
-            y = y.loc[X.index]
-
-        # Encode target if classification
+        # ── Target Encoding (Classification) ──
         le = None
         label_mapping = {}
-        if problem_type == "classification" and not pd.api.types.is_numeric_dtype(y):
+        if problem_type == "classification":
             le = LabelEncoder()
-            y_encoded = pd.Series(le.fit_transform(y), index=y.index)
-            label_mapping = {int(v): str(k) for k, v in zip(le.classes_, le.transform(le.classes_))}
+            y_encoded = pd.Series(le.fit_transform(y.astype(str)), index=y.index)
+            label_mapping = {int(idx): str(cls_name) for idx, cls_name in enumerate(le.classes_)}
         else:
-            y_encoded = y
+            # Ensure target is float
+            y_encoded = pd.to_numeric(y, errors="coerce")
+            valid_y = y_encoded.notna()
+            X = X[valid_y]
+            y_encoded = y_encoded[valid_y]
 
-        # Train/test split
+        # ── Train / Test Split ──
+        stratify = y_encoded if (problem_type == "classification" and y_encoded.value_counts().min() >= 2) else None
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y_encoded, test_size=test_size, random_state=42
+            X, y_encoded, test_size=test_size, random_state=42, stratify=stratify
         )
 
-        # Get model
-        model = MLService._get_model(algorithm)
+        # ── Build Preprocessing Pipeline ──
+        transformers = []
+        if num_cols:
+            num_pipeline = Pipeline([
+                ("imputer", SimpleImputer(strategy="median")),
+                ("scaler", StandardScaler()),
+            ])
+            transformers.append(("num", num_pipeline, num_cols))
 
-        # Fit
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+        if cat_cols:
+            cat_pipeline = Pipeline([
+                ("imputer", SimpleImputer(strategy="most_frequent")),
+                ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
+            ])
+            transformers.append(("cat", cat_pipeline, cat_cols))
 
-        # Compute metrics
+        preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+
+        # ── Base Estimator ──
+        base_model = MLService._get_model(algorithm)
+
+        # Full end-to-end Pipeline
+        model_pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("model", base_model),
+        ])
+
+        # ── Fit Pipeline ──
+        model_pipeline.fit(X_train, y_train)
+        y_pred = model_pipeline.predict(X_test)
+
+        # ── Compute Evaluation Metrics ──
         if problem_type == "regression":
             metrics = MLService._regression_metrics(y_test, y_pred)
         else:
-            metrics = MLService._classification_metrics(y_test, y_pred, model, X_test)
+            metrics = MLService._classification_metrics(y_test, y_pred, model_pipeline, X_test)
 
-        # Feature importances
-        importances = MLService._get_feature_importances(model, X_cols)
+        # ── Feature Importances ──
+        importances = MLService._extract_feature_importances(model_pipeline, num_cols, cat_cols)
 
-        # Cross-validation score
+        # ── Cross-Validation ──
         cv_scores = []
         try:
-            # Reduced cv from 5 to 3 to save computation time
-            scoring = "r2" if problem_type == "regression" else "f1_weighted"
-            cv_scores = cross_val_score(model, X, y_encoded, cv=3, scoring=scoring, n_jobs=-1).tolist()
+            cv_splitter = StratifiedKFold(n_splits=3, shuffle=True, random_state=42) if problem_type == "classification" else KFold(n_splits=3, shuffle=True, random_state=42)
+            scoring = "r2" if problem_type == "regression" else "accuracy"
+            cv_scores = cross_val_score(model_pipeline, X, y_encoded, cv=cv_splitter, scoring=scoring, n_jobs=-1).tolist()
         except Exception as e:
-            logger.warning(f"CV failed: {e}")
+            logger.warning(f"Cross-validation warning: {e}")
 
-        # Calculate predictions preview (up to 20 samples from test set)
+        # ── Predictions Preview Table ──
         predictions_preview = []
-        n_preview = min(20, len(y_test))
-        
+        n_preview = min(15, len(y_test))
         y_test_arr = np.array(y_test)
         y_pred_arr = np.array(y_pred)
         X_test_reset = X_test.reset_index(drop=True)
-        
+
         if problem_type == "classification":
             for i in range(n_preview):
                 act_val = label_mapping.get(int(y_test_arr[i]), str(y_test_arr[i])) if label_mapping else str(y_test_arr[i])
@@ -256,7 +324,6 @@ class MLService:
                     "features": {k: round(float(v), 2) if isinstance(v, (int, float, np.number)) else str(v) for k, v in X_test_reset.iloc[i].to_dict().items()}
                 })
         else:
-            # Regression preview
             for i in range(n_preview):
                 act = float(y_test_arr[i])
                 pred = float(y_pred_arr[i])
@@ -275,7 +342,7 @@ class MLService:
                     "features": {k: round(float(v), 2) if isinstance(v, (int, float, np.number)) else str(v) for k, v in X_test_reset.iloc[i].to_dict().items()}
                 })
 
-        # Calculate high-level accuracy rates in percentage
+        # ── Overall Percentage Accuracy Summary ──
         if problem_type == "classification":
             acc_pct = round(metrics.get("accuracy", 0.0) * 100.0, 2)
             prec_pct = round(metrics.get("precision", 0.0) * 100.0, 2)
@@ -293,7 +360,6 @@ class MLService:
         else:
             r2_val = metrics.get("r2_score", 0.0)
             r2_pct = round(max(0.0, r2_val * 100.0), 2)
-            # % of test samples within ±15% error
             acts = np.array(y_test)
             preds = np.array(y_pred)
             rel_errors = np.abs(preds - acts) / np.maximum(np.abs(acts), 1e-6)
@@ -313,12 +379,12 @@ class MLService:
 
         experiment_id = str(uuid.uuid4())
 
-        # Cache trained model for interactive live prediction
-        if not hasattr(MLService, "_trained_models"):
-            MLService._trained_models = {}
+        # Cache trained pipeline
         MLService._trained_models[experiment_id] = {
-            "model": model,
-            "feature_columns": X_cols,
+            "pipeline": model_pipeline,
+            "feature_columns": num_cols + cat_cols,
+            "num_cols": num_cols,
+            "cat_cols": cat_cols,
             "problem_type": problem_type,
             "label_mapping": label_mapping,
         }
@@ -328,7 +394,7 @@ class MLService:
             "algorithm": algorithm,
             "problem_type": problem_type,
             "target_column": target_column,
-            "feature_columns": X_cols,
+            "feature_columns": num_cols + cat_cols,
             "n_samples_train": int(len(X_train)),
             "n_samples_test": int(len(X_test)),
             "accuracy_summary": accuracy_summary,
@@ -343,58 +409,74 @@ class MLService:
             "label_mapping": label_mapping,
         }
 
+    # ── Model Instances ───────────────────────────────────────────────────────
+
     @staticmethod
     def _get_model(algorithm: str):
-        """Return a scikit-learn model instance for the given algorithm ID."""
+        """Return optimized model instance with robust hyperparameter configurations."""
         models = {}
-        
-        # Regression
-        models["linear_regression"] = LinearRegression(n_jobs=-1)
-        models["ridge"] = Ridge()
-        models["lasso"] = Lasso()
-        models["elasticnet"] = ElasticNet()
-        
-        # Tree models optimized for speed
-        models["random_forest_regressor"] = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
-        models["gradient_boosting_regressor"] = GradientBoostingRegressor(n_estimators=50, max_depth=5, random_state=42)
-        models["svr"] = SVR(cache_size=500)
 
-        # Classification
-        models["logistic_regression"] = LogisticRegression(max_iter=500, random_state=42, n_jobs=-1)
-        models["random_forest_classifier"] = RandomForestClassifier(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
-        models["gradient_boosting_classifier"] = GradientBoostingClassifier(n_estimators=50, max_depth=5, random_state=42)
-        models["decision_tree"] = DecisionTreeClassifier(random_state=42, max_depth=10)
-        models["svc"] = SVC(probability=True, random_state=42, cache_size=500)
+        # Regression Models
+        models["random_forest_regressor"] = RandomForestRegressor(
+            n_estimators=100, max_depth=15, min_samples_split=4, min_samples_leaf=2, random_state=42, n_jobs=-1
+        )
+        models["gradient_boosting_regressor"] = GradientBoostingRegressor(
+            n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42
+        )
+        models["linear_regression"] = LinearRegression()
+        models["ridge"] = Ridge(alpha=1.0)
+        models["lasso"] = Lasso(alpha=0.1, max_iter=2000)
+        models["elasticnet"] = ElasticNet(alpha=0.1, l1_ratio=0.5, max_iter=2000)
+        models["svr"] = SVR(C=1.0, epsilon=0.1)
+
+        # Classification Models
+        models["random_forest_classifier"] = RandomForestClassifier(
+            n_estimators=100, max_depth=15, min_samples_split=4, min_samples_leaf=2, random_state=42, n_jobs=-1
+        )
+        models["gradient_boosting_classifier"] = GradientBoostingClassifier(
+            n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42
+        )
+        models["logistic_regression"] = LogisticRegression(max_iter=1000, C=1.0, random_state=42)
+        models["decision_tree"] = DecisionTreeClassifier(max_depth=10, min_samples_split=4, random_state=42)
+        models["svc"] = SVC(probability=True, C=1.0, kernel="rbf", random_state=42)
         models["naive_bayes"] = GaussianNB()
-        models["knn"] = KNeighborsClassifier(n_jobs=-1)
+        models["knn"] = KNeighborsClassifier(n_neighbors=5, n_jobs=-1)
 
         if XGBOOST_AVAILABLE:
-            models["xgboost_regressor"] = XGBRegressor(n_estimators=50, max_depth=5, random_state=42, verbosity=0, n_jobs=-1)
-            models["xgboost_classifier"] = XGBClassifier(n_estimators=50, max_depth=5, random_state=42, verbosity=0, eval_metric="logloss", n_jobs=-1)
+            models["xgboost_regressor"] = XGBRegressor(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbosity=0, n_jobs=-1)
+            models["xgboost_classifier"] = XGBClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbosity=0, eval_metric="logloss", n_jobs=-1)
 
         if LIGHTGBM_AVAILABLE:
-            models["lightgbm_classifier"] = LGBMClassifier(n_estimators=50, max_depth=5, random_state=42, verbose=-1, n_jobs=-1)
-            models["lightgbm_regressor"] = LGBMRegressor(n_estimators=50, max_depth=5, random_state=42, verbose=-1, n_jobs=-1)
+            models["lightgbm_classifier"] = LGBMClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1, n_jobs=-1)
+            models["lightgbm_regressor"] = LGBMRegressor(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1, n_jobs=-1)
 
         if algorithm not in models:
             raise ValueError(f"Unknown algorithm: {algorithm}")
 
         return models[algorithm]
 
+    # ── Evaluation Metrics ────────────────────────────────────────────────────
+
     @staticmethod
     def _regression_metrics(y_true, y_pred) -> Dict[str, Any]:
-        """Compute regression metrics."""
+        """Compute comprehensive regression metrics."""
         mse = float(mean_squared_error(y_true, y_pred))
+        rmse = float(np.sqrt(mse))
+        mae = float(mean_absolute_error(y_true, y_pred))
+        r2 = float(r2_score(y_true, y_pred))
+        var_y = np.var(y_true)
+        exp_var = float(1 - np.var(y_true - y_pred) / var_y) if var_y > 1e-9 else 0.0
+
         return {
-            "rmse": round(float(np.sqrt(mse)), 4),
+            "r2_score": round(r2, 4),
+            "rmse": round(rmse, 4),
+            "mae": round(mae, 4),
             "mse": round(mse, 4),
-            "mae": round(float(mean_absolute_error(y_true, y_pred)), 4),
-            "r2_score": round(float(r2_score(y_true, y_pred)), 4),
-            "explained_variance": round(float(1 - np.var(y_true - y_pred) / np.var(y_true)), 4),
+            "explained_variance": round(exp_var, 4),
         }
 
     @staticmethod
-    def _classification_metrics(y_true, y_pred, model, X_test) -> Dict[str, Any]:
+    def _classification_metrics(y_true, y_pred, pipeline, X_test) -> Dict[str, Any]:
         """Compute classification metrics including confusion matrix and ROC data."""
         n_classes = len(np.unique(y_true))
         avg = "binary" if n_classes == 2 else "weighted"
@@ -409,31 +491,82 @@ class MLService:
             "confusion_matrix": cm,
         }
 
-        # ROC AUC (binary only for simplicity)
+        # ROC AUC
         try:
-            if n_classes == 2 and hasattr(model, "predict_proba"):
-                proba = model.predict_proba(X_test)[:, 1]
-                metrics["roc_auc"] = round(float(roc_auc_score(y_true, proba)), 4)
-                # ROC curve points
-                from sklearn.metrics import roc_curve
-                fpr, tpr, _ = roc_curve(y_true, proba)
-                metrics["roc_curve"] = {
-                    "fpr": [round(float(x), 4) for x in fpr[:100]],
-                    "tpr": [round(float(x), 4) for x in tpr[:100]],
-                }
+            model = pipeline.named_steps.get("model")
+            if hasattr(model, "predict_proba"):
+                proba = pipeline.predict_proba(X_test)
+                if n_classes == 2:
+                    metrics["roc_auc"] = round(float(roc_auc_score(y_true, proba[:, 1])), 4)
+                else:
+                    metrics["roc_auc"] = round(float(roc_auc_score(y_true, proba, multi_class="ovr", average="weighted")), 4)
         except Exception as e:
-            logger.warning(f"ROC AUC failed: {e}")
+            logger.warning(f"ROC AUC computation: {e}")
 
         return metrics
+
+    # ── Feature Importance Extraction ─────────────────────────────────────────
+
+    @staticmethod
+    def _extract_feature_importances(pipeline, num_cols: List[str], cat_cols: List[str]) -> List[Dict[str, Any]]:
+        """Extract clean, interpretable feature importance rankings."""
+        importances = []
+        try:
+            model = pipeline.named_steps.get("model")
+            preprocessor = pipeline.named_steps.get("preprocessor")
+
+            # Get raw importances or coefficients
+            if hasattr(model, "feature_importances_"):
+                raw_imps = model.feature_importances_
+            elif hasattr(model, "coef_"):
+                raw_imps = np.abs(model.coef_.flatten())
+            else:
+                return []
+
+            # Retrieve feature names from preprocessor
+            feature_names = []
+            try:
+                feature_names = list(preprocessor.get_feature_names_out())
+            except Exception:
+                feature_names = [f"Feature_{i}" for i in range(len(raw_imps))]
+
+            # Clean and aggregate feature names (e.g. num__age -> age, cat__dept_IT -> dept: IT)
+            col_weights = {}
+            for fname, imp in zip(feature_names, raw_imps):
+                clean_name = fname
+                if clean_name.startswith("num__"):
+                    clean_name = clean_name[5:]
+                elif clean_name.startswith("cat__"):
+                    clean_name = clean_name[5:].replace("_", " = ")
+                
+                # Base column name for aggregation
+                base_col = clean_name.split(" = ")[0] if " = " in clean_name else clean_name
+                col_weights[base_col] = col_weights.get(base_col, 0.0) + float(imp)
+
+            total_weight = sum(col_weights.values()) or 1.0
+            for col, w in col_weights.items():
+                importances.append({
+                    "feature": col,
+                    "importance": round(w / total_weight, 4),
+                })
+
+            importances.sort(key=lambda x: x["importance"], reverse=True)
+        except Exception as e:
+            logger.warning(f"Feature importance extraction warning: {e}")
+
+        return importances
+
+    # ── Clustering ────────────────────────────────────────────────────────────
 
     @staticmethod
     def _train_clustering(
         dataset_id: str, X: pd.DataFrame, X_cols: List[str], algorithm: str, n_clusters: int
     ) -> Dict[str, Any]:
-        """Train a clustering model."""
-        # Scale features for clustering
+        """Train a clustering model with standard scaling and imputation."""
+        imputer = SimpleImputer(strategy="median")
         scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X.dropna())
+        X_clean = imputer.fit_transform(X)
+        X_scaled = scaler.fit_transform(X_clean)
 
         if algorithm == "kmeans":
             model = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
@@ -450,7 +583,6 @@ class MLService:
         else:
             raise ValueError(f"Unknown clustering algorithm: {algorithm}")
 
-        # Silhouette score
         sil_score = None
         try:
             unique_labels = np.unique(labels)
@@ -474,26 +606,6 @@ class MLService:
             "n_samples": len(labels),
         }
 
-    @staticmethod
-    def _get_feature_importances(model, columns: List[str]) -> List[Dict[str, Any]]:
-        """Extract feature importances from the trained model."""
-        importances = []
-        try:
-            if hasattr(model, "feature_importances_"):
-                imps = model.feature_importances_
-            elif hasattr(model, "coef_"):
-                imps = np.abs(model.coef_.flatten())
-            else:
-                return []
-
-            for col, imp in zip(columns, imps):
-                importances.append({"feature": col, "importance": round(float(imp), 6)})
-            importances.sort(key=lambda x: x["importance"], reverse=True)
-        except Exception as e:
-            logger.warning(f"Could not extract feature importances: {e}")
-
-        return importances
-
     # ── Compare Multiple Models ────────────────────────────────────────────────
 
     @staticmethod
@@ -503,7 +615,7 @@ class MLService:
         algorithms: List[str],
         test_size: float = 0.2,
     ) -> Dict[str, Any]:
-        """Train multiple models and compare their performance."""
+        """Train multiple candidate models and benchmark their percentage accuracy."""
         results = []
         for algo in algorithms:
             try:
