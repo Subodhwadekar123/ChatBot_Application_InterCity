@@ -81,6 +81,13 @@ export const getHypothesisTests = (id: string) => api.get(`/statistics/${id}/hyp
 
 // ── Visualization ─────────────────────────────────────────────────────────
 
+export const generateVisualization = (id: string, config: Record<string, any>) =>
+  api.post(`/viz/${id}/generate`, config) as Promise<any>;
+export const getVisualizationRecommendations = (id: string) =>
+  api.get(`/viz/${id}/recommendations`) as Promise<any>;
+export const getVisualizationInsights = (id: string, config: Record<string, any>) =>
+  api.post(`/viz/${id}/insights`, config) as Promise<any>;
+
 export const getHistogram = (id: string, col: string, bins = 30) =>
   api.get(`/viz/${id}/histogram/${encodeURIComponent(col)}?bins=${bins}`);
 export const getBarChart = (id: string, xCol: string, yCol?: string, topN = 20) =>
