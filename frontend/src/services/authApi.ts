@@ -5,8 +5,9 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { useStore } from '../store/useStore';
+import { getApiBaseUrl } from '../utils/apiUrl';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE = getApiBaseUrl();
 
 // ── Dedicated Auth Axios Instance ─────────────────────────────────────────────
 
