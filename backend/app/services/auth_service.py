@@ -10,6 +10,7 @@ import uuid
 import json
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -53,6 +54,7 @@ def register_user(
     """
     # Email uniqueness check
     if db.query(UserRecord).filter(UserRecord.email == email.lower()).first():
+        # pyrefly: ignore [missing-import]
         from fastapi import HTTPException, status
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -62,6 +64,7 @@ def register_user(
     # Username uniqueness check (if provided)
     if username:
         if db.query(UserRecord).filter(UserRecord.username == username).first():
+            # pyrefly: ignore [missing-import]
             from fastapi import HTTPException, status
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -71,6 +74,7 @@ def register_user(
     # Password strength validation
     is_strong, errors = validate_password_strength(password)
     if not is_strong:
+        # pyrefly: ignore [missing-import]
         from fastapi import HTTPException, status
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,6 +82,7 @@ def register_user(
         )
 
     # Create user
+    auto_verify = getattr(settings, "AUTO_VERIFY_USERS", False)
     user = UserRecord(
         id=str(uuid.uuid4()),
         email=email.lower().strip(),
@@ -87,25 +92,25 @@ def register_user(
         role="user",
         is_admin=False,
         is_active=True,
-        is_verified=False,   # Must verify email first
+        is_verified=auto_verify,   # Auto-verify in development if enabled
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    # Generate and send verification email
-    _send_verification_email(db, user, ip_address)
+    # Generate verification token & attempt email send
+    verification_url = _send_verification_email(db, user, ip_address)
 
     log_event(db, AuditAction.REGISTER, user_id=user.id, user_email=user.email,
-              ip_address=ip_address, description="New user registration")
+              ip_address=ip_address, description="New user registration" + (" (auto-verified)" if auto_verify else ""))
 
-    logger.info(f"[SUCCESS] Registered user: {user.email}")
-    return user
+    logger.info(f"[SUCCESS] Registered user: {user.email} (verified={user.is_verified})")
+    return user, verification_url
 
 
 # ── Email Verification ────────────────────────────────────────────────────────
 
-def _send_verification_email(db: Session, user: UserRecord, ip_address: str = "Unknown"):
+def _send_verification_email(db: Session, user: UserRecord, ip_address: str = "Unknown") -> str:
     """Create a verification token and send the email."""
     # Invalidate old tokens
     db.query(EmailVerificationToken).filter(
@@ -126,6 +131,7 @@ def _send_verification_email(db: Session, user: UserRecord, ip_address: str = "U
 
     verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
     send_verification_email_bg(user.email, user.full_name or user.email, verification_url)
+    return verification_url
 
 
 def verify_email_token(db: Session, token: str) -> UserRecord:
@@ -135,6 +141,7 @@ def verify_email_token(db: Session, token: str) -> UserRecord:
         EmailVerificationToken.is_used == False
     ).first()
 
+    # pyrefly: ignore [missing-import]
     from fastapi import HTTPException, status
 
     if not evt:
@@ -156,15 +163,15 @@ def verify_email_token(db: Session, token: str) -> UserRecord:
     return user
 
 
-def resend_verification_email(db: Session, email: str, ip_address: str = "Unknown") -> bool:
+def resend_verification_email(db: Session, email: str, ip_address: str = "Unknown") -> Optional[str]:
     """Resend email verification link."""
     user = db.query(UserRecord).filter(UserRecord.email == email.lower()).first()
-    # Always return True to avoid email enumeration
+    verification_url = None
     if user and not user.is_verified and not user.is_deleted:
-        _send_verification_email(db, user, ip_address)
+        verification_url = _send_verification_email(db, user, ip_address)
         log_event(db, AuditAction.RESEND_VERIFICATION, user_id=user.id, user_email=user.email,
                   ip_address=ip_address)
-    return True
+    return verification_url
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
@@ -185,6 +192,7 @@ def login_user(
     Raises:
         HTTPException on any auth failure
     """
+    # pyrefly: ignore [missing-import]
     from fastapi import HTTPException, status
 
     email = email.lower().strip()
@@ -220,7 +228,7 @@ def login_user(
         )
 
     # Check lockout
-    if user.lockout_until and datetime.utcnow() < user.lockout_until:
+    if getattr(settings, "ENABLE_ACCOUNT_LOCKOUT", False) and user.lockout_until and datetime.utcnow() < user.lockout_until:
         remaining = int((user.lockout_until - datetime.utcnow()).total_seconds() / 60)
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -320,7 +328,7 @@ def _handle_failed_attempt(db: Session, user: UserRecord, ip_address: str, devic
     log_login_failed(db, user.email, ip_address, "Wrong password",
                      browser=device_info["browser"], device=device_info["device_type"])
 
-    if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
+    if getattr(settings, "ENABLE_ACCOUNT_LOCKOUT", False) and user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
         user.lockout_until = datetime.utcnow() + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
         db.commit()
 
@@ -458,6 +466,7 @@ def refresh_access_token(
     Rotate refresh token and issue a new access token.
     Returns: (new_access_token, new_refresh_token, session_id)
     """
+    # pyrefly: ignore [missing-import]
     from fastapi import HTTPException, status
 
     token_hash = hash_refresh_token(raw_refresh_token)
@@ -558,6 +567,7 @@ def reset_password(
     ip_address: str = "Unknown",
 ) -> UserRecord:
     """Reset password using the token from the email link."""
+    # pyrefly: ignore [missing-import]
     from fastapi import HTTPException
 
     prt = db.query(PasswordResetToken).filter(

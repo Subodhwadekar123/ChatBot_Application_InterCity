@@ -98,6 +98,8 @@ async def _process_dataset(
         "file_type": ext,
         "dataset_info": dataset_info,
         "preview": preview,
+        "uploaded_at": record.created_at.isoformat() if getattr(record, "created_at", None) else datetime.utcnow().isoformat(),
+        "created_at": record.created_at.isoformat() if getattr(record, "created_at", None) else datetime.utcnow().isoformat(),
     }
 
 

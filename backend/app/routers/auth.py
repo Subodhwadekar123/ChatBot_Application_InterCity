@@ -200,7 +200,7 @@ async def register(request: Request, body: RegisterRequest, db: Session = Depend
     Sends a verification email. Login is blocked until email is verified.
     """
     ip = get_client_ip(request)
-    user = register_user(
+    user, verification_url = register_user(
         db=db,
         email=body.email,
         password=body.password,
@@ -209,9 +209,11 @@ async def register(request: Request, body: RegisterRequest, db: Session = Depend
         ip_address=ip,
     )
     return {
-        "message": "Account created successfully. Please check your email to verify your account.",
+        "message": "Account created and activated successfully!" if user.is_verified else "Account created successfully. Please check your email to verify your account.",
         "user_id": user.id,
         "email": user.email,
+        "is_verified": user.is_verified,
+        "verification_url": verification_url,
     }
 
 
@@ -333,8 +335,11 @@ async def resend_verification(
 ):
     """Resend the email verification link."""
     ip = get_client_ip(request)
-    resend_verification_email(db, body.email, ip)
-    return {"message": "If this email exists and is unverified, a new verification link has been sent."}
+    verification_url = resend_verification_email(db, body.email, ip)
+    return {
+        "message": "If this email exists and is unverified, a new verification link has been sent.",
+        "verification_url": verification_url,
+    }
 
 
 @router.post("/forgot-password", summary="Request Password Reset")

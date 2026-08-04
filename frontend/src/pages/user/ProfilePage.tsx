@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   User, Mail, Shield, Clock, Monitor, Smartphone,
-  Tablet, Globe, Key, LogOut, Trash2, CheckCircle,
+  Tablet, Globe, Key, Lock, LogOut, Trash2, CheckCircle,
   AlertCircle, Loader2, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';

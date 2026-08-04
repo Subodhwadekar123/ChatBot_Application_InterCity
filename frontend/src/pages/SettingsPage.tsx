@@ -503,9 +503,9 @@ Generate and customize:
                       )}
                     </div>
                     <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                      {ds.dataset_info.rows.toLocaleString()} rows · {ds.dataset_info.columns} cols ·{' '}
-                      {ds.file_size_mb.toFixed(2)} MB ·{' '}
-                      {new Date(ds.uploaded_at + (ds.uploaded_at.endsWith('Z') ? '' : 'Z')).toLocaleDateString()}
+                      {(ds.dataset_info?.rows ?? 0).toLocaleString()} rows · {(ds.dataset_info?.columns ?? 0)} cols ·{' '}
+                      {(ds.file_size_mb ?? 0).toFixed(2)} MB
+                      {ds.uploaded_at ? ` · ${new Date(ds.uploaded_at.endsWith('Z') ? ds.uploaded_at : ds.uploaded_at + 'Z').toLocaleDateString()}` : ''}
                     </p>
                   </div>
 

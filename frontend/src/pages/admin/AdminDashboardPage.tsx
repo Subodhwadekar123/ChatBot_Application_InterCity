@@ -27,8 +27,8 @@ const STAT_CARDS = (stats: Stats) => [
   { label: 'Suspended', value: stats.suspended_users, icon: <Shield size={22} />, color: '#ef4444', bg: 'rgba(239,68,68,0.12)', link: '/admin/users?is_suspended=true' },
   { label: 'Active Sessions', value: stats.active_sessions, icon: <Monitor size={22} />, color: '#06b6d4', bg: 'rgba(6,182,212,0.12)', link: '/admin/sessions' },
   { label: 'Failed Logins (24h)', value: stats.failed_logins_24h, icon: <AlertTriangle size={22} />, color: '#eab308', bg: 'rgba(234,179,8,0.12)', link: '/admin/activity?success=false' },
-  { label: 'Total Datasets', value: stats.total_datasets, icon: <Database size={22} />, color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', link: null },
-  { label: 'ML Experiments', value: stats.total_experiments, icon: <FlaskConical size={22} />, color: '#ec4899', bg: 'rgba(236,72,153,0.12)', link: null },
+  { label: 'Total Datasets', value: stats.total_datasets, icon: <Database size={22} />, color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', link: '/dashboard' },
+  { label: 'ML Experiments', value: stats.total_experiments, icon: <FlaskConical size={22} />, color: '#ec4899', bg: 'rgba(236,72,153,0.12)', link: '/dashboard/ml' },
 ];
 
 const AdminDashboardPage: React.FC = () => {
@@ -73,15 +73,36 @@ const AdminDashboardPage: React.FC = () => {
   return (
     <div style={{ padding: '28px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 4px' }}>Admin Dashboard</h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '14px' }}>System overview and real-time statistics</p>
         </div>
-        <button onClick={handleRefresh} disabled={refreshing}
-          style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', borderRadius: '10px', padding: '9px 16px', cursor: refreshing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600 }}>
-          <RefreshCw size={15} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} /> Refresh
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+              border: 'none',
+              color: '#ffffff',
+              borderRadius: '10px',
+              padding: '9px 16px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(79,70,229,0.3)',
+            }}
+          >
+            <Database size={15} /> Open Analysis Studio
+          </button>
+          <button onClick={handleRefresh} disabled={refreshing}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', borderRadius: '10px', padding: '9px 16px', cursor: refreshing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            <RefreshCw size={15} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}

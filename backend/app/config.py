@@ -66,14 +66,16 @@ class Settings(BaseSettings):
     # ── Email Verification & Password Reset ───────────────────────────────────
     EMAIL_VERIFICATION_EXPIRE_HOURS: int = 24
     PASSWORD_RESET_EXPIRE_HOURS: int = 1
+    AUTO_VERIFY_USERS: bool = True                  # Auto-verify in local dev when no SMTP is configured
 
     # ── Account Security Policies ─────────────────────────────────────────────
-    MAX_LOGIN_ATTEMPTS: int = 5                     # Before lockout
-    LOCKOUT_DURATION_MINUTES: int = 15              # Lockout window
+    ENABLE_ACCOUNT_LOCKOUT: bool = False            # Disable lockout timers / restrictions
+    MAX_LOGIN_ATTEMPTS: int = 999                   # Max attempts threshold
+    LOCKOUT_DURATION_MINUTES: int = 0               # Lockout window (minutes)
     INVALIDATE_SESSIONS_ON_PASSWORD_CHANGE: bool = True
 
     # ── Frontend URL (for email links) ────────────────────────────────────────
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # ── SMTP Email Configuration ──────────────────────────────────────────────
     SMTP_HOST: str = "localhost"

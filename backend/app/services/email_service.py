@@ -95,6 +95,7 @@ async def send_verification_email(
     verification_url: str,
 ) -> bool:
     """Send email address verification link."""
+    logger.info(f"\n=======================================================\n>>> [EMAIL VERIFICATION LINK for {to_email}]:\n{verification_url}\n=======================================================\n")
     html = _render_template("verification_email.html", {
         "full_name": full_name or to_email.split("@")[0],
         "verification_url": verification_url,
@@ -102,7 +103,7 @@ async def send_verification_email(
     })
     return await _send_email(
         to_email=to_email,
-        subject="✅ Verify Your Email Address — AI Data Analyst",
+        subject="Verify Your Email Address - AI Data Analyst",
         html_body=html,
         text_body=f"Hi {full_name},\n\nVerify your email: {verification_url}\n\nExpires in {settings.EMAIL_VERIFICATION_EXPIRE_HOURS} hours.",
     )
@@ -115,6 +116,7 @@ async def send_password_reset_email(
     ip_address: str = "Unknown",
 ) -> bool:
     """Send password reset link."""
+    logger.info(f"\n=======================================================\n>>> [PASSWORD RESET LINK for {to_email}]:\n{reset_url}\n=======================================================\n")
     html = _render_template("password_reset.html", {
         "full_name": full_name or to_email.split("@")[0],
         "reset_url": reset_url,

@@ -14,35 +14,36 @@ venv/
 .venv/
 env/
 
-# Backend data dirs (don't commit user data)
+# Backend data dirs & databases
 backend/uploads/
 backend/reports/
 backend/*.db
 backend/ai_data_analyst.db
+uploads/
+reports/
+*.db
+ai_data_analyst.db
 
 # Node / Frontend
 node_modules/
+frontend/node_modules/
 frontend/dist/
 frontend/.env
 .env.local
 .env.production
 
-# IDE
+# IDE & OS
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
-
-# OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Logs
+# Logs & Coverage
 *.log
 logs/
-
-# Test coverage
 .coverage
 htmlcov/
 .pytest_cache/

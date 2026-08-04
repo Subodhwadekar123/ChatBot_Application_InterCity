@@ -33,6 +33,8 @@ const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [registered, setRegistered] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationUrl, setVerificationUrl] = useState('');
 
   const update = (field: string, value: string | boolean) =>
     setFormData((p) => ({ ...p, [field]: value }));
@@ -56,13 +58,19 @@ const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await registerUser({
+      const res = await registerUser({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
         username: formData.username || undefined,
         agree_terms: true,
       });
+      if (res?.is_verified) {
+        setIsVerified(true);
+      }
+      if (res?.verification_url) {
+        setVerificationUrl(res.verification_url);
+      }
       setRegistered(true);
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -78,35 +86,77 @@ const RegisterPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={{ ...cardStyle, textAlign: 'center', maxWidth: '420px' }}
+          style={{ ...cardStyle, textAlign: 'center', maxWidth: '440px' }}
         >
           <div style={{ width: '72px', height: '72px', background: 'rgba(16,185,129,0.15)', border: '2px solid rgba(16,185,129,0.3)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CheckCircle size={36} color="#10b981" />
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f1f5f9', marginBottom: '12px' }}>Check Your Email!</h2>
-          <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '24px' }}>
-            We've sent a verification link to <strong style={{ color: '#a5b4fc' }}>{formData.email}</strong>.
-            Please verify your email to activate your account.
+          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f1f5f9', marginBottom: '12px' }}>
+            {isVerified ? '🎉 Account Activated!' : 'Account Created!'}
+          </h2>
+          <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '16px', fontSize: '14px' }}>
+            {isVerified
+              ? <>Welcome <strong style={{ color: '#a5b4fc' }}>{formData.full_name || formData.email}</strong>! Your account is active and verified. You can log in right now.</>
+              : <>Verification link prepared for <strong style={{ color: '#a5b4fc' }}>{formData.email}</strong>.</>
+            }
           </p>
-          <p style={{ fontSize: '13px', color: '#475569', marginBottom: '20px' }}>
-            The link expires in 24 hours. Check your spam folder if you don't see it.
-          </p>
+
+          {!isVerified && verificationUrl && (
+            <div style={{ margin: '16px 0 20px', padding: '16px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '12px', textAlign: 'center' }}>
+              <p style={{ fontSize: '12px', fontWeight: 700, color: '#a5b4fc', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ⚡ Instant Email Verification
+              </p>
+              <a
+                href={verificationUrl}
+                style={{
+                  display: 'inline-block',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  padding: '10px 24px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.35)'
+                }}
+              >
+                Verify & Activate Account Now →
+              </a>
+            </div>
+          )}
+
+          {!isVerified && (
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+              Link expires in 24 hours. Once verified, you can sign in to your dashboard.
+            </p>
+          )}
+
           <button
             onClick={() => navigate('/login')}
-            style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '10px', padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+            style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '10px', padding: '12px 28px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', width: '100%', marginTop: isVerified ? '8px' : '0' }}
           >
-            Go to Login
+            {isVerified ? 'Sign In to Your Account →' : 'Go to Login'}
           </button>
-          <div style={{ marginTop: '16px' }}>
-            <button
-              onClick={() => {
-                resendVerification(formData.email).then(() => toast.success('Verification email resent!'));
-              }}
-              style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              Resend verification email
-            </button>
-          </div>
+          {!isVerified && (
+            <div style={{ marginTop: '16px' }}>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await resendVerification(formData.email);
+                    if (res?.verification_url) {
+                      setVerificationUrl(res.verification_url);
+                    }
+                    toast.success('Verification link refreshed!');
+                  } catch (err: any) {
+                    toast.error(err.message || 'Failed to resend.');
+                  }
+                }}
+                style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Resend verification link
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     );
