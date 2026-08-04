@@ -1,122 +1,215 @@
-# Infinitics AI — Automated AI Data Analyst
+# 🚀 Infinitics AI — Automated AI Data Analyst & Intelligence Platform
 
-Infinitics AI is a production-grade, full-stack data intelligence platform combining automated exploratory data analysis (EDA), automated machine learning (AutoML), interactive charts, and LLM-powered insights.
+[![Vercel Deployment](https://img.shields.io/badge/Deploy-Vercel-black?style=flat&logo=vercel)](https://vercel.com)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/Frontend-React_18-61DAFB?style=flat&logo=react)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Built with **FastAPI** (Python) on the backend and **React** (TypeScript) on the frontend, it provides a seamless drag-and-drop workspace for users to extract value from raw CSV and Excel files instantly—no coding required.
-
----
-
-## 🚀 Core Features
-
-### 1. Secure Onboarding & Authentication
-* **JWT Security Layout**: Standard password hashing (`bcrypt`) and signed access tokens (`jose`) protect user pipelines.
-* **Onboarding Modals**: The landing page intercepts unregistered clicks and guides users through registration, explaining the security context of private datasets.
-* **Data Segregation**: Multi-tenant database rules isolate all dataset preview, audit, cleaning, and ML actions by the owner's user account.
-
-### 2. Automated Exploratory Data Analysis (EDA)
-* **Summary Auditing**: High-level statistical parameters, data types, and quality scoring.
-* **Correlations & Matrices**: Transformed Pearson correlation coefficients visualized inside custom responsive heatmaps.
-* **Outliers & Distributions**: Automatically identifies data anomalies and distribution patterns (normality, skewness, variance).
-
-### 3. Smart Data Cleaning Workspace
-* **Null Value Imputations**: Drop columns or replace missing values with mean, median, mode, or constant values.
-* **Feature Cleaning**: Duplicate removal, outlier clipping, and data type conversions.
-* **Transformations**: Standard scaling, normalization, categorical encoding, and variance thresholds.
-
-### 4. Interactive Plotly & Recharts Engine
-* Renders **20+ responsive chart types** including scatter plots, histograms, pie charts, box plots, timeseries overlays, and violin graphs.
-* **Geo-spatial Bubble Mapping**: Automatically parses regional headers (`City`, `State`, `Country`) to plot geographic density maps.
-
-### 5. AutoML Model Comparison Engine
-* **Target Detection**: Analyzes selected label columns to auto-detect classification vs. regression tasks.
-* **Model Pipeline**: Compares and trains **15+ algorithms** (e.g., Random Forest, XGBoost, Linear Regression) simultaneously.
-* **Scoreboard Metrics**: Renders sorted accuracy metrics, confusion matrices, and feature importance bar charts.
-
-### 6. Gemini-Powered AI Insights
-* Generates executive summaries, key data anomalies, and technical cleaning recommendations.
-* Includes an **AI chat sidebar** allowing natural language queries regarding the uploaded dataset.
-
-### 7. Administrative Audit Console
-* Dedicated administration dashboard accessible only to accounts with administrative roles (`admin@datamind.ai`).
-* Audits total platform usage metrics, registered users list, uploaded files metadata, and reported feedback issues.
+**Infinitics AI** is a full-stack, enterprise-ready automated data intelligence platform. It integrates automated Exploratory Data Analysis (EDA), machine learning (AutoML), interactive Plotly & Recharts visualizations, LLM-powered data insights, comprehensive user self-service security settings, and an **Administrative Control & Audit Console**.
 
 ---
 
-## 🛠 Tech Stack
+## 🌟 Key Features
 
-* **Backend**: FastAPI (Python), SQLAlchemy ORM, SQLite (upgradeable to PostgreSQL), Uvicorn.
-* **Frontend**: React, Vite, TypeScript, Recharts, Plotly, Zustand (state persistence), Framer Motion (glassmorphic animations), TailwindCSS (optional/vanilla utilities).
-* **Machine Learning & Stats**: Scikit-Learn, Pandas, NumPy, Scipy, Statsmodels.
-* **AI Integration**: Google Gemini API (via google-generativeai).
+### 🔐 1. Unified Authentication & Self-Service Security
+* **JWT Access & Refresh Tokens**: Secure signed token authentication with bcrypt password hashing.
+* **Unified Login Portal**: Switch between **User** and **Admin** login with instant testing autofill buttons.
+* **Account Security & Session Management**:
+  * Active sessions viewer with one-click remote device revocation.
+  * Complete login audit history (timestamp, IP, user-agent, status).
+  * In-app password change with real-time strength meter.
+  * Email verification support with automatic local fallback for rapid development.
+
+### 🛡️ 2. Comprehensive Admin Control Center (`/admin`)
+* **Real-time Overview Metrics**: Total users, active datasets, machine learning experiments, and reported platform issues.
+* **User Management**: Search, filter, inspect details, reset passwords, suspend, or activate user accounts.
+* **Global Activity & Security Logs**: Comprehensive tracking of login events and audit actions.
+* **Direct Studio Navigation**: Seamless 1-click toggle between Admin Console and the Data Analysis Studio (`/dashboard`).
+
+### 📊 3. Automated Exploratory Data Analysis (EDA)
+* **Summary Auditing**: High-level statistical summaries, data types, missing value percentages, and dataset health score.
+* **Correlation Heatmaps**: Interactive Pearson correlation matrices with configurable thresholds.
+* **Distribution & Outlier Detection**: Automatic anomaly identification, skewness calculations, and box plot visualizations.
+
+### 🧹 4. Smart Data Cleaning & Transformation Workspace
+* **Missing Value Imputation**: Impute via mean, median, mode, constant, or column dropping.
+* **Feature Engineering & Cleaning**: Duplicate removal, outlier clipping, standard scaling, min-max normalization, and categorical encoding.
+
+### 📈 5. Interactive Visualization Engine (20+ Charts)
+* Rich interactive charts built with **Plotly** and **Recharts**:
+  * Scatter plots, Histograms, Line & Bar charts, Pie & Donut charts
+  * Multi-axis timeseries overlays, Violin plots, Box plots
+  * **Geo-spatial Bubble Mapping** with automatic address/city/state detection.
+
+### 🤖 6. AutoML Model Comparison & Training
+* **Automatic Target & Problem Detection**: Automatically classifies target as Regression or Classification.
+* **Multi-Model Tournament**: Trains and compares 15+ models (Random Forest, XGBoost, LightGBM, Gradient Boosting, Linear Regression, Logistic Regression, etc.).
+* **Model Scoreboard**: Interactive leaderboard with accuracy/R², confusion matrices, ROC curves, and feature importance rankings.
+
+### 💡 7. Gemini-Powered AI Insights & Assistant
+* **Executive Summary**: Instant AI narrative summarizing key findings and actionable business recommendations.
+* **Interactive AI Chat Sidebar**: Natural language queries directly over uploaded datasets.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 18, Vite, TypeScript, Lucide Icons, Framer Motion, Zustand, TailwindCSS, Axios |
+| **Backend** | FastAPI, Python 3.10+, Uvicorn, SQLAlchemy ORM, Pydantic v2 |
+| **Data & ML** | Pandas, NumPy, Scikit-Learn, SciPy, Statsmodels, Plotly |
+| **AI / LLM** | Google Gemini API (`google-generativeai`) |
+| **Database** | SQLite (default for local) / PostgreSQL (production) |
 
 ---
 
 ## 💻 Local Quickstart
 
-### 1. Clone & Set Up Backend
+### Prerequisites
+* **Python 3.10+**
+* **Node.js 18+** & **npm**
+
+---
+
+### Step 1: Start the Backend (FastAPI)
+
 ```bash
+# Navigate to backend directory
 cd backend
+
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Activate virtual environment
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Windows (CMD):
+.\venv\Scripts\activate.bat
+# Linux / macOS:
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-pip install bcrypt
+
+# Start FastAPI server (runs on http://127.0.0.1:8000)
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Create a `.env` file in the `backend/` directory:
-```env
-APP_NAME="AI Data Analyst"
-SECRET_KEY="YOUR_JWT_SIGN_SECRET"
-DATABASE_URL="sqlite:///./ai_data_analyst.db"
-GEMINI_API_KEY="YOUR_GOOGLE_GEMINI_KEY"
-```
+---
 
-Start the FastAPI server:
+### Step 2: Start the Frontend (Vite / React)
+
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
+# Open a new terminal and navigate to frontend directory
+cd frontend
 
-### 2. Set Up Frontend
-```bash
-cd ../frontend
+# Install Node dependencies
 npm install
-```
 
-Start the Vite development server:
-```bash
+# Start Vite dev server (runs on http://localhost:3000)
 npm run dev
 ```
 
-Visit the application at `http://localhost:3000`.
+Open your browser and visit: **`http://localhost:3000`**
 
 ---
 
-## 🛡 Seeded Administrator Credentials (Local)
-* **Email**: `admin@datamind.ai`
+## 🔑 Default Credentials (Seeded for Testing)
+
+### 👑 System Administrator:
+* **Email**: `admin@infinitics.ai`
 * **Password**: `SubodhW@7116`
+* **Role**: Admin (`/admin`)
+
+*(You can also use the **"Auto-Fill Admin"** or **"Auto-Fill User"** buttons on the Login page for instant one-click login).*
 
 ---
 
-## 🗺️ Architectural Implementation Plan & Roadmap
+## 🚀 Deployment Guide
 
-Below is the design plan and file structure successfully executed to implement authentication, security, and administrative console systems:
+### 1. Deploy Frontend on Vercel
 
-### Phase 1: Database & Security Blueprint
-* **[database.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/database.py)**: Created the `users` schema table containing fields for emails, hashed passwords, roles (`is_admin`), and created a ForeignKey relation mapping `datasets.user_id` to `users.id`.
-* **[services/security.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/services/security.py)**: Added cryptography functions wrapping native `bcrypt` (independent of passlib versions) for secure verification, alongside JSON Web Token (JWT) signature encoding and decoding helpers.
-* **[routers/auth_deps.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/routers/auth_deps.py)**: Created FastAPI security injection dependencies (`get_current_user` and `get_current_admin`) to authorize and decode session headers.
-
-### Phase 2: Route Handlers & API Routing
-* **[routers/auth.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/routers/auth.py)**: Registered `/auth/register` and `/auth/login` to onboard users and hand out signed access tokens.
-* **[routers/admin.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/routers/admin.py)**: Designed administrative operations (`GET /admin/stats`, `/admin/users`, `/admin/datasets`, `/admin/issues`) to retrieve platform audits, protected by admin role assertions.
-* **[routers/upload.py](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/backend/app/routers/upload.py)**: Locked down dataset retrieval endpoints. Standard users are segmented to only see files matching `user_id == current_user.id`.
-
-### Phase 3: Frontend Route Guardians & Session Managers
-* **[store/useStore.ts](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/frontend/src/store/useStore.ts)**: Configured Zustand state variables (`user` profile, `token` key) with persistent localStorage synchronization and `logout` actions.
-* **[services/api.ts](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/frontend/src/services/api.ts)**: Added an Axios interceptor injecting `Authorization: Bearer <token>` on all outgoing request headers.
-* **[components/layout/ProtectedRoute.tsx](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/frontend/src/components/layout/ProtectedRoute.tsx)**: Created a route guardian layout ensuring unauthorized attempts to read `/dashboard/*` fallback to the landing page.
-* **[pages/LandingPage.tsx](file:///C:/Users/subod/.gemini/antigravity/scratch/ai-data-analyst/frontend/src/pages/LandingPage.tsx)**: Intercepted Core CTAs to open an authentication modal overlay detailing the security parameters of private dataset storage.
+1. Push your repository to GitHub.
+2. Go to [Vercel Dashboard](https://vercel.com/new) and click **"Add New Project"**.
+3. Import the `ai-data-analyst` repository.
+4. Vercel will automatically detect `vercel.json`:
+   * **Framework Preset**: `Vite`
+   * **Root Directory**: `./` (or `frontend`)
+   * **Build Command**: `cd frontend && npm install && npm run build`
+   * **Output Directory**: `frontend/dist`
+5. **Environment Variables**:
+   * Add `VITE_API_URL` pointing to your deployed backend URL:
+     ```env
+     VITE_API_URL=https://your-fastapi-backend.onrender.com
+     ```
+6. Click **Deploy**.
 
 ---
 
-## 🌐 Production Deployment
-For steps on how to containerize this project using Docker and deploy to production-grade serverless platforms (like Vercel, Render, and Neon PostgreSQL), see the [deployment_guide.md](./deployment_guide.md).
+### 2. Deploy Backend on Render / Railway / Docker
+
+#### Option A: Deploy on Render
+1. Create a **Web Service** on [Render.com](https://render.com).
+2. Connect your GitHub repository.
+3. Configure settings:
+   * **Root Directory**: `backend`
+   * **Runtime**: `Python 3`
+   * **Build Command**: `pip install -r requirements.txt`
+   * **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. Add Environment Variables:
+   ```env
+   APP_NAME="AI Data Analyst"
+   SECRET_KEY="generate-a-secure-random-string"
+   REFRESH_SECRET_KEY="generate-a-refresh-secret-string"
+   DATABASE_URL="sqlite:///./ai_data_analyst.db"
+   ALLOWED_ORIGINS="https://your-app.vercel.app,http://localhost:3000"
+   GEMINI_API_KEY="your-google-gemini-api-key"
+   AUTO_VERIFY_USERS=true
+   ```
+
+#### Option B: Run with Docker Compose
+```bash
+docker-compose up --build
+```
+
+---
+
+## 📂 Project Structure
+
+```
+ai-data-analyst/
+├── backend/                  # FastAPI Application
+│   ├── app/
+│   │   ├── routers/          # API Route Handlers (auth, admin, upload, eda, ml, etc.)
+│   │   ├── services/         # Core business logic & ML pipelines
+│   │   ├── database.py       # SQLAlchemy ORM models & database setup
+│   │   ├── config.py         # Pydantic environment configuration
+│   │   └── main.py           # FastAPI entrypoint & middleware
+│   ├── requirements.txt      # Python dependencies
+│   └── .env.example          # Sample environment variables
+│
+├── frontend/                 # React + Vite TypeScript App
+│   ├── src/
+│   │   ├── components/       # Reusable UI components & layouts
+│   │   ├── pages/            # Page components (Dashboard, EDA, ML, Admin, etc.)
+│   │   │   ├── admin/        # Admin Portal (Dashboard, Users, Logs, Settings)
+│   │   │   ├── auth/         # Login, Register, Forgot Password
+│   │   │   └── user/         # Profile & Security settings
+│   │   ├── services/         # Axios API clients
+│   │   ├── store/            # Zustand global state persistence
+│   │   └── utils/            # Helpers & URL resolvers
+│   ├── package.json          # Node dependencies
+│   └── vite.config.ts        # Vite configuration & dev proxy
+│
+├── vercel.json               # Vercel SPA build & routing configuration
+├── docker-compose.yml        # Multi-container orchestration
+└── README.md                 # Project documentation
+```
+
+---
+
+## 📄 License
+This project is open-source and available under the [MIT License](LICENSE).
