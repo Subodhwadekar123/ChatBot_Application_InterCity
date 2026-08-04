@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
+# pyrefly: ignore [missing-import]
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import settings
@@ -55,6 +56,7 @@ async def _send_email(
             msg.attach(MIMEText(text_body, "plain"))
         msg.attach(MIMEText(html_body, "html"))
 
+        # pyrefly: ignore [missing-import]
         import aiosmtplib
 
         await aiosmtplib.send(

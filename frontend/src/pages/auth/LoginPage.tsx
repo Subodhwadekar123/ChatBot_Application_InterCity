@@ -58,6 +58,12 @@ const LoginPage: React.FC = () => {
     toast.success('Admin credentials autofilled!');
   };
 
+  const handleQuickFillUser = () => {
+    setEmail('user@infinitics.ai');
+    setPassword('UserPass@123');
+    toast.success('Demo User credentials autofilled!');
+  };
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -268,7 +274,7 @@ const LoginPage: React.FC = () => {
           transition: 'border 0.3s ease',
         }}>
           {/* Quick Fill Button for Admin */}
-          {activeTab === 'admin' && (
+          {activeTab === 'admin' ? (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -281,7 +287,10 @@ const LoginPage: React.FC = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles size={16} color="#a855f7" />
-                <span style={{ fontSize: '12px', color: '#c084fc', fontWeight: 600 }}>Default Admin Preset</span>
+                <div>
+                  <span style={{ fontSize: '12px', color: '#c084fc', fontWeight: 600, display: 'block' }}>Default Admin Account</span>
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>admin@infinitics.ai</span>
+                </div>
               </div>
               <button
                 type="button"
@@ -291,13 +300,50 @@ const LoginPage: React.FC = () => {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  padding: '5px 12px',
+                  padding: '6px 14px',
                   fontSize: '12px',
                   fontWeight: 700,
                   cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(124,58,237,0.3)',
                 }}
               >
-                Autofill
+                Auto-Fill
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(99,102,241,0.08)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              marginBottom: '20px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} color="#818cf8" />
+                <div>
+                  <span style={{ fontSize: '12px', color: '#a5b4fc', fontWeight: 600, display: 'block' }}>Demo Analyst Account</span>
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>user@infinitics.ai</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleQuickFillUser}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(79,70,229,0.3)',
+                }}
+              >
+                Auto-Fill
               </button>
             </div>
           )}

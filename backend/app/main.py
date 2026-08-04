@@ -13,7 +13,7 @@ Main application factory. Configures:
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
@@ -165,6 +165,64 @@ def create_app() -> FastAPI:
     app.include_router(issues.router, prefix=API_PREFIX, tags=["Issues"])
     app.include_router(auth.router, prefix=API_PREFIX, tags=["Authentication"])
     app.include_router(admin.router, prefix=API_PREFIX, tags=["Administration"])
+
+    # ── Root & Utility Endpoints ──────────────────────────────────────────────
+    @app.get("/", tags=["Root"], summary="API Root Status")
+    async def root():
+        """Returns API status, version, and links to documentation and health check."""
+        return {
+            "status": "online",
+            "app": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "message": "AI Data Analyst API backend is running successfully.",
+            "docs_url": "/api/docs",
+            "swagger_redirect": "/docs",
+            "health_check": "/api/v1/health",
+            "api_prefix": API_PREFIX,
+        }
+
+    @app.get("/docs", include_in_schema=False)
+    async def docs_redirect():
+        """Redirect standard /docs to Swagger UI (/api/docs)."""
+        return RedirectResponse(url="/api/docs")
+
+    @app.get("/redoc", include_in_schema=False)
+    async def redoc_redirect():
+        """Redirect standard /redoc to ReDoc UI (/api/redoc)."""
+        return RedirectResponse(url="/api/redoc")
+
+    @app.get("/health", tags=["Health"], summary="Top-Level Health Check")
+    async def top_level_health():
+        """Top-level health check alias."""
+        return {
+            "status": "healthy",
+            "app": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+        }
+
+    @app.get(API_PREFIX, tags=["Root"], summary="API v1 Overview")
+    async def api_v1_root():
+        """Returns API v1 overview."""
+        return {
+            "status": "online",
+            "version": "v1",
+            "docs": "/api/docs",
+            "endpoints": [
+                f"{API_PREFIX}/health",
+                f"{API_PREFIX}/auth",
+                f"{API_PREFIX}/upload",
+                f"{API_PREFIX}/analysis",
+                f"{API_PREFIX}/cleaning",
+                f"{API_PREFIX}/statistics",
+                f"{API_PREFIX}/visualization",
+                f"{API_PREFIX}/ml",
+                f"{API_PREFIX}/ai-insights",
+                f"{API_PREFIX}/features",
+                f"{API_PREFIX}/reports",
+                f"{API_PREFIX}/issues",
+                f"{API_PREFIX}/admin",
+            ],
+        }
 
     # ── Static Files (uploaded data & reports) ────────────────────────────────
     if os.path.exists(settings.UPLOAD_DIR):
