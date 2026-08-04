@@ -383,8 +383,7 @@ def init_db() -> None:
             exists.full_name = "System Admin Subodh"
             exists.is_admin = True
             exists.is_verified = True
-            if not exists.role:
-                exists.role = "admin"
+            exists.role = "admin"
             db.commit()
             print("[OK] Updated admin credentials: admin@infinitics.ai")
     except Exception as e:
