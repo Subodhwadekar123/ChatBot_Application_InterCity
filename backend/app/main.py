@@ -104,7 +104,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
-        allow_origin_regex=r"https://.*\.vercel\.app",
+        allow_origin_regex=r"https?://.*",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -146,7 +146,7 @@ def create_app() -> FastAPI:
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
         return JSONResponse(
             status_code=500,
-            content={"detail": "An internal server error occurred.", "type": "server_error"},
+            content={"detail": f"Internal server error: {str(exc)}", "type": "server_error"},
         )
 
     # ── API Routers ───────────────────────────────────────────────────────────
