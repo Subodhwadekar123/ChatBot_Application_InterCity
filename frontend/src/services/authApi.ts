@@ -38,13 +38,26 @@ authApi.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Public auth endpoints should never trigger token refresh
+    const isPublicAuthRoute =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/auth/forgot-password') ||
+      requestUrl.includes('/auth/reset-password') ||
+      requestUrl.includes('/auth/verify-email') ||
+      requestUrl.includes('/auth/resend-verification') ||
+      requestUrl.includes('/auth/refresh');
+
+    if (error.response?.status === 401 && !originalRequest?._retry && !isPublicAuthRoute) {
       if (isRefreshing) {
         // Queue requests while refreshing
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           refreshQueue.push((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
             resolve(authApi(originalRequest));
           });
         });
@@ -69,7 +82,9 @@ authApi.interceptors.response.use(
           authApi.defaults.headers.common.Authorization = `Bearer ${newToken}`;
           refreshQueue.forEach((cb) => cb(newToken));
           refreshQueue = [];
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
           return authApi(originalRequest);
         }
       } catch (_refreshError) {
@@ -81,7 +96,14 @@ authApi.interceptors.response.use(
       }
     }
 
-    const message = error.response?.data?.detail || error.message || 'An error occurred';
+    let message = error.response?.data?.detail;
+    if (!message) {
+      if (error.message === 'Network Error' || error.code === 'ERR_NETWORK' || !error.response) {
+        message = 'Unable to connect to the backend server. Please verify your backend server is running and accessible.';
+      } else {
+        message = error.message || 'An error occurred';
+      }
+    }
     return Promise.reject(new Error(message));
   }
 );

@@ -31,9 +31,16 @@ adminApi.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       useStore.getState().logout();
-      window.location.href = '/admin/login';
+      window.location.href = '/admin-login';
     }
-    const message = error.response?.data?.detail || error.message || 'Admin API error';
+    let message = error.response?.data?.detail;
+    if (!message) {
+      if (error.message === 'Network Error' || error.code === 'ERR_NETWORK' || !error.response) {
+        message = 'Unable to connect to the backend server. Please verify your backend server is running and accessible.';
+      } else {
+        message = error.message || 'Admin API error';
+      }
+    }
     return Promise.reject(new Error(message));
   }
 );

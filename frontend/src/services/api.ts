@@ -16,11 +16,17 @@ const api = axios.create({
   },
 });
 
-// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message = error.response?.data?.detail || error.message || 'An error occurred';
+    let message = error.response?.data?.detail;
+    if (!message) {
+      if (error.message === 'Network Error' || error.code === 'ERR_NETWORK' || !error.response) {
+        message = 'Unable to connect to the backend server. Please verify your backend server is running and accessible.';
+      } else {
+        message = error.message || 'An error occurred';
+      }
+    }
     return Promise.reject(new Error(message));
   }
 );
