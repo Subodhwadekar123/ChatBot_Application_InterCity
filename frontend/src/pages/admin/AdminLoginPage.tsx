@@ -96,15 +96,54 @@ const AdminLoginPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Quick Fill Admin Button */}
+            <div style={{
+              background: 'rgba(99,102,241,0.08)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: 600 }}>Default Admin Account</div>
+                <div style={{ fontSize: '10px', color: '#64748b' }}>admin@infinitics.ai</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@infinitics.ai');
+                  setPassword('SubodhW@7116');
+                  toast.success('Admin credentials autofilled!');
+                }}
+                style={{
+                  background: 'rgba(99,102,241,0.2)',
+                  border: '1px solid rgba(99,102,241,0.3)',
+                  color: '#c7d2fe',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Auto-Fill
+              </button>
+            </div>
+
             <motion.button type="submit" disabled={loading} whileHover={{ scale: loading ? 1 : 1.01 }}
               style={{ width: '100%', padding: '13px', background: loading ? 'rgba(79,70,229,0.4)' : 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: loading ? 'none' : '0 4px 20px rgba(79,70,229,0.4)', marginTop: '4px' }}>
               {loading ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />Verifying...</> : <><LogIn size={18} />Access Admin Portal</>}
             </motion.button>
           </form>
 
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <Link to="/login" style={{ fontSize: '13px', color: '#475569', textDecoration: 'none' }}>
-              ← Back to User Login
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link to="/login" style={{ fontSize: '13px', color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>
+              ← User Login
+            </Link>
+            <Link to="/register" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none' }}>
+              Create Account →
             </Link>
           </div>
         </div>

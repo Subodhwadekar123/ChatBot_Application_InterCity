@@ -282,6 +282,19 @@ const RegisterPage: React.FC = () => {
               Sign in <ArrowRight size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
             </Link>
           </div>
+
+          <div style={{
+            marginTop: '16px',
+            paddingTop: '16px',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            textAlign: 'center',
+            fontSize: '12px',
+          }}>
+            <span style={{ color: '#475569' }}>System Administrator? </span>
+            <Link to="/login?role=admin" style={{ color: '#c084fc', fontWeight: 600, textDecoration: 'none' }}>
+              Admin Portal Login →
+            </Link>
+          </div>
         </div>
       </motion.div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
