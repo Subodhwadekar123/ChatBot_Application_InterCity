@@ -16,10 +16,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   Mail, Lock, Eye, EyeOff, Shield, Loader2,
-  AlertCircle, LogIn, ArrowRight, User, Sparkles, CheckCircle
+  AlertCircle, LogIn, ArrowRight, User, Sparkles, CheckCircle, Settings, PlayCircle
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { loginUser } from '../../services/authApi';
+import { getApiBaseUrl, setCustomApiUrl } from '../../utils/apiUrl';
 import type { AuthUser } from '../../store/useStore';
 
 type LoginRole = 'user' | 'admin';
@@ -56,6 +57,52 @@ const LoginPage: React.FC = () => {
     setEmail('admin@infinitics.ai');
     setPassword('SubodhW@7116');
     toast.success('Admin credentials autofilled!');
+  };
+
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [customUrlInput, setCustomUrlInput] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('custom_api_url') || '' : ''
+  );
+
+  const handleDemoModeLogin = () => {
+    const isAdm = activeTab === 'admin';
+    const demoUser: AuthUser = isAdm ? {
+      id: 'demo-admin-id',
+      email: 'admin@infinitics.ai',
+      full_name: 'System Admin Subodh (Demo Mode)',
+      role: 'admin',
+      is_admin: true,
+      is_active: true,
+      is_verified: true,
+      created_at: new Date().toISOString(),
+      login_count: 1,
+    } : {
+      id: 'demo-user-id',
+      email: 'user@infinitics.ai',
+      full_name: 'Demo Analyst (Demo Mode)',
+      role: 'user',
+      is_admin: false,
+      is_active: true,
+      is_verified: true,
+      created_at: new Date().toISOString(),
+      login_count: 1,
+    };
+    setToken('mock-jwt-demo-token');
+    setSessionId('mock-session-id');
+    setUser(demoUser);
+    toast.success(`Logged in as ${demoUser.full_name}! (Offline / Preview Mode)`);
+    if (isAdm) {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleSaveCustomUrl = () => {
+    setCustomApiUrl(customUrlInput);
+    setShowConfigModal(false);
+    toast.success(customUrlInput ? 'Backend URL updated!' : 'Reset to default backend URL');
+    window.location.reload();
   };
 
   const handleQuickFillUser = () => {
@@ -348,7 +395,7 @@ const LoginPage: React.FC = () => {
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message & Offline Demo Fallback */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -356,13 +403,58 @@ const LoginPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '10px',
                   background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
-                  borderRadius: '10px', padding: '12px 14px', marginBottom: '20px',
+                  borderRadius: '12px', padding: '14px', marginBottom: '20px',
                 }}
               >
-                <AlertCircle size={16} color="#f87171" style={{ marginTop: '1px', flexShrink: 0 }} />
-                <span style={{ fontSize: '13px', color: '#fca5a5', lineHeight: '1.4' }}>{error}</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <AlertCircle size={16} color="#f87171" style={{ marginTop: '1px', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', color: '#fca5a5', lineHeight: '1.4' }}>{error}</span>
+                </div>
+
+                {/* Instant Offline Demo Fallback Button */}
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(239,68,68,0.2)', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleDemoModeLogin}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                    }}
+                  >
+                    <PlayCircle size={14} /> Continue in Demo Mode (No Backend Needed)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigModal(true)}
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      color: '#cbd5e1',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: '8px',
+                      padding: '7px 12px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <Settings size={13} /> Configure API URL
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -494,7 +586,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Quick Footer Links */}
-        <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => handleTabChange(activeTab === 'admin' ? 'user' : 'admin')}
@@ -515,7 +607,103 @@ const LoginPage: React.FC = () => {
               <><Shield size={13} color="#a5b4fc" /> Switch to Admin Portal</>
             )}
           </button>
+
+          <span style={{ color: '#334155' }}>•</span>
+
+          <button
+            type="button"
+            onClick={handleDemoModeLogin}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '12px',
+              color: '#34d399',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 600,
+            }}
+          >
+            <PlayCircle size={13} /> Demo / Preview Mode
+          </button>
+
+          <span style={{ color: '#334155' }}>•</span>
+
+          <button
+            type="button"
+            onClick={() => setShowConfigModal(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '12px',
+              color: '#64748b',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Settings size={13} /> API URL
+          </button>
         </div>
+
+        {/* Backend Configuration Modal */}
+        {showConfigModal && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 999, padding: '20px'
+          }}>
+            <div style={{
+              background: '#161925', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '16px', padding: '24px', maxWidth: '440px', width: '100%',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+            }}>
+              <h3 style={{ color: '#f1f5f9', fontSize: '18px', margin: '0 0 8px', fontWeight: 700 }}>
+                Backend API Configuration
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 16px', lineHeight: 1.4 }}>
+                If your backend is hosted on Render, Railway, or locally, enter your backend URL below.
+              </p>
+
+              <label style={labelStyle}>Backend API URL</label>
+              <input
+                type="text"
+                value={customUrlInput}
+                onChange={(e) => setCustomUrlInput(e.target.value)}
+                placeholder="e.g. https://ai-data-analyst-backend.onrender.com"
+                style={{ ...inputStyle, marginBottom: '16px' }}
+              />
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)', color: '#94a3b8',
+                    border: 'none', borderRadius: '8px', padding: '8px 14px',
+                    fontSize: '13px', cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveCustomUrl}
+                  style={{
+                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                    color: 'white', border: 'none', borderRadius: '8px',
+                    padding: '8px 16px', fontSize: '13px', fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save & Reload
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       <style>{`
