@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus } from 'lucide-react';
+import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus, User } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
 const routeTitles: Record<string, string> = {
@@ -16,6 +16,7 @@ const routeTitles: Record<string, string> = {
   '/dashboard/ai-insights': 'AI Insights',
   '/dashboard/reports': 'Reports',
   '/dashboard/settings': 'Settings',
+  '/dashboard/profile': 'Profile & Security',
 };
 
 const Header: React.FC = () => {
@@ -25,6 +26,7 @@ const Header: React.FC = () => {
     datasets,
     activeDataset,
     setActiveDataset,
+    user,
   } = useStore();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -262,6 +264,47 @@ const Header: React.FC = () => {
         >
           <RefreshCw size={15} />
         </button>
+
+        {/* User Profile Quick Access */}
+        {user && (
+          <button
+            onClick={() => navigate('/dashboard/profile')}
+            title="Profile & Security Settings"
+            style={{
+              height: 36,
+              padding: '0 12px',
+              borderRadius: 8,
+              border: '1px solid rgba(99,102,241,0.25)',
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              color: '#c7d2fe',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 600,
+              transition: 'all 0.18s ease',
+            }}
+          >
+            <div
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              {(user.full_name || user.email || 'U')[0].toUpperCase()}
+            </div>
+            <span>{user.full_name ? user.full_name.split(' ')[0] : 'Profile'}</span>
+          </button>
+        )}
 
         {/* Active Dataset Badge */}
         {activeDataset && (

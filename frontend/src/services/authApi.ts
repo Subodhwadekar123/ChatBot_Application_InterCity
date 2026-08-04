@@ -1,0 +1,175 @@
+/**
+ * Authentication API Service
+ * All auth-related API calls with automatic token refresh interceptor.
+ */
+
+import axios, { AxiosInstance } from 'axios';
+import { useStore } from '../store/useStore';
+
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+
+// ── Dedicated Auth Axios Instance ─────────────────────────────────────────────
+
+const authApi: AxiosInstance = axios.create({
+  baseURL: API_BASE,
+  timeout: 30000,
+  withCredentials: true,  // Send cookies (for refresh token HttpOnly cookie)
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Request interceptor: attach Bearer token
+authApi.interceptors.request.use(
+  (config) => {
+    const token = useStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: auto-refresh on 401
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
+
+authApi.interceptors.response.use(
+  (response) => response.data,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue requests while refreshing
+        return new Promise((resolve, reject) => {
+          refreshQueue.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(authApi(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Try to refresh token via cookie
+        const refreshData: any = await axios.post(
+          `${API_BASE}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+        const newToken = refreshData.data?.access_token || refreshData.access_token;
+        if (newToken) {
+          useStore.getState().setToken(newToken);
+          if (refreshData.data?.session_id || refreshData.session_id) {
+            useStore.getState().setSessionId(refreshData.data?.session_id || refreshData.session_id);
+          }
+          authApi.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          refreshQueue.forEach((cb) => cb(newToken));
+          refreshQueue = [];
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return authApi(originalRequest);
+        }
+      } catch (_refreshError) {
+        // Refresh failed — force logout
+        useStore.getState().logout();
+        window.location.href = '/login';
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    const message = error.response?.data?.detail || error.message || 'An error occurred';
+    return Promise.reject(new Error(message));
+  }
+);
+
+// ── Auth API Functions ────────────────────────────────────────────────────────
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  full_name: string;
+  username?: string;
+  agree_terms?: boolean;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+  remember_me?: boolean;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  session_id: string;
+  user: {
+    id: string;
+    email: string;
+    username?: string;
+    full_name?: string;
+    profile_picture_url?: string;
+    role: string;
+    is_admin: boolean;
+    is_active: boolean;
+    is_verified: boolean;
+    last_login?: string;
+    created_at: string;
+    login_count: number;
+  };
+}
+
+export const registerUser = (payload: RegisterPayload): Promise<any> =>
+  authApi.post('/auth/register', payload) as Promise<any>;
+
+export const loginUser = (payload: LoginPayload): Promise<LoginResponse> =>
+  authApi.post('/auth/login', payload) as Promise<LoginResponse>;
+
+export const logoutUser = (): Promise<any> =>
+  authApi.post('/auth/logout') as Promise<any>;
+
+export const logoutAllDevices = (): Promise<any> =>
+  authApi.post('/auth/logout-all') as Promise<any>;
+
+export const refreshToken = (): Promise<any> =>
+  authApi.post('/auth/refresh') as Promise<any>;
+
+export const verifyEmail = (token: string): Promise<any> =>
+  authApi.post('/auth/verify-email', { token }) as Promise<any>;
+
+export const resendVerification = (email: string): Promise<any> =>
+  authApi.post('/auth/resend-verification', { email }) as Promise<any>;
+
+export const forgotPassword = (email: string): Promise<any> =>
+  authApi.post('/auth/forgot-password', { email }) as Promise<any>;
+
+export const resetPassword = (token: string, new_password: string, confirm_password: string): Promise<any> =>
+  authApi.post('/auth/reset-password', { token, new_password, confirm_password }) as Promise<any>;
+
+export const getMe = (): Promise<any> =>
+  authApi.get('/auth/me') as Promise<any>;
+
+export const updateProfile = (data: { full_name?: string; username?: string; profile_picture_url?: string }): Promise<any> =>
+  authApi.put('/auth/profile', data) as Promise<any>;
+
+export const changePassword = (payload: {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+  logout_other_sessions?: boolean;
+}): Promise<any> =>
+  authApi.post('/auth/change-password', payload) as Promise<any>;
+
+export const getActiveSessions = (): Promise<any> =>
+  authApi.get('/auth/sessions') as Promise<any>;
+
+export const revokeSession = (sessionId: string): Promise<any> =>
+  authApi.delete(`/auth/sessions/${sessionId}`) as Promise<any>;
+
+export const getLoginHistory = (limit = 20, offset = 0): Promise<any> =>
+  authApi.get(`/auth/login-history?limit=${limit}&offset=${offset}`) as Promise<any>;
+
+// Re-export the axiosInstance for other uses (e.g. upload, analysis, etc.)
+export default authApi;

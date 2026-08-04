@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List
 import os
+import secrets
 
 
 class Settings(BaseSettings):
@@ -54,9 +55,35 @@ class Settings(BaseSettings):
     # ── AI / LLM ──────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str = ""
 
-    # ── Security ──────────────────────────────────────────────────────────────
+    # ── Security & JWT ────────────────────────────────────────────────────────
     SECRET_KEY: str = "change-this-in-production-please"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_SECRET_KEY: str = "change-this-refresh-secret-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15           # Short-lived JWT
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7              # Standard refresh
+    REMEMBER_ME_EXPIRE_DAYS: int = 30               # Extended refresh
+
+    # ── Email Verification & Password Reset ───────────────────────────────────
+    EMAIL_VERIFICATION_EXPIRE_HOURS: int = 24
+    PASSWORD_RESET_EXPIRE_HOURS: int = 1
+
+    # ── Account Security Policies ─────────────────────────────────────────────
+    MAX_LOGIN_ATTEMPTS: int = 5                     # Before lockout
+    LOCKOUT_DURATION_MINUTES: int = 15              # Lockout window
+    INVALIDATE_SESSIONS_ON_PASSWORD_CHANGE: bool = True
+
+    # ── Frontend URL (for email links) ────────────────────────────────────────
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # ── SMTP Email Configuration ──────────────────────────────────────────────
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025                           # MailHog default
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@ai-data-analyst.com"
+    SMTP_FROM_NAME: str = "AI Data Analyst"
+    SMTP_USE_TLS: bool = False                      # True for production SMTP
+    SMTP_USE_SSL: bool = False
 
     # ── Performance ───────────────────────────────────────────────────────────
     MAX_ROWS_FOR_ML: int = 500000

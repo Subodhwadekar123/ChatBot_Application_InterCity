@@ -6,7 +6,7 @@ const ProtectedRoute: React.FC = () => {
   const token = useStore((state) => state.token);
 
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

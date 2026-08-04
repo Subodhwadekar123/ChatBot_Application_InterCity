@@ -20,8 +20,10 @@ import {
   Sparkles,
   LogOut,
   Shield,
+  User,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { logoutUser } from '../../services/authApi';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -61,9 +63,10 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    heading: 'Output',
+    heading: 'Account & Output',
     items: [
       { icon: <FileText size={18} />, label: 'Reports', path: '/dashboard/reports' },
+      { icon: <User size={18} />, label: 'Profile & Security', path: '/dashboard/profile' },
       { icon: <Settings size={18} />, label: 'Settings', path: '/dashboard/settings' },
     ],
   },
@@ -76,9 +79,9 @@ const Sidebar: React.FC = () => {
   const dynamicSections = [...navSections];
   if (user?.is_admin) {
     dynamicSections.push({
-      heading: 'System',
+      heading: 'Administration',
       items: [
-        { icon: <Shield size={18} />, label: 'Admin Console', path: '/dashboard/admin' },
+        { icon: <Shield size={18} />, label: 'Admin Portal', path: '/admin' },
       ],
     });
   }
@@ -311,7 +314,11 @@ const Sidebar: React.FC = () => {
             gap: '8px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          <div
+            onClick={() => navigate('/dashboard/profile')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, cursor: 'pointer', padding: '4px', borderRadius: '8px' }}
+            title="View Profile & Settings"
+          >
             <div
               style={{
                 width: '32px',
@@ -359,8 +366,7 @@ const Sidebar: React.FC = () => {
           <button
             onClick={async () => {
               try {
-                const api = await import('../../services/api');
-                await api.logout();
+                await logoutUser();
               } catch (e) {
                 console.error('Backend logout failed', e);
               }
@@ -395,8 +401,7 @@ const Sidebar: React.FC = () => {
           <button
             onClick={async () => {
               try {
-                const api = await import('../../services/api');
-                await api.logout();
+                await logoutUser();
               } catch (e) {
                 console.error('Backend logout failed', e);
               }

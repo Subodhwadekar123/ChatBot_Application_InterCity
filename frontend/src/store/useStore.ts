@@ -1,10 +1,29 @@
 /**
  * Global Zustand Store
- * Manages dataset state, active page, and theme across the application.
+ * Manages dataset state, auth state, active page, and theme across the application.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+
+// ── Auth Types ─────────────────────────────────────────────────────────────
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  username?: string | null;
+  full_name?: string | null;
+  profile_picture_url?: string | null;
+  role: 'user' | 'admin';
+  is_admin: boolean;
+  is_active: boolean;
+  is_verified: boolean;
+  last_login?: string | null;
+  created_at?: string | null;
+  login_count?: number;
+}
+
+// ── Dataset Types ──────────────────────────────────────────────────────────
 
 export interface DatasetInfo {
   rows: number;
@@ -53,6 +72,8 @@ export interface UploadedDataset {
   uploaded_at: string;
 }
 
+// ── Store Interface ────────────────────────────────────────────────────────
+
 interface AppStore {
   // Theme
   theme: 'dark' | 'light';
@@ -86,11 +107,13 @@ interface AppStore {
   addChatMessage: (role: 'user' | 'ai', content: string) => void;
   clearChat: () => void;
 
-  // Authentication
-  user: { email: string; full_name?: string; is_admin: boolean } | null;
-  token: string | null;
-  setUser: (user: { email: string; full_name?: string; is_admin: boolean } | null) => void;
+  // Authentication — extended
+  user: AuthUser | null;
+  token: string | null;          // Access token (JWT)
+  sessionId: string | null;      // Current session ID
+  setUser: (user: AuthUser | null) => void;
   setToken: (token: string | null) => void;
+  setSessionId: (id: string | null) => void;
   logout: () => void;
 }
 
@@ -144,9 +167,10 @@ export const useStore = create<AppStore>()(
         })),
       clearChat: () => set({ chatHistory: [] }),
 
-      // Authentication
+      // Authentication — extended
       user: null,
-      token: localStorage.getItem('auth_token') || null,
+      token: null,
+      sessionId: null,
       setUser: (user) => set({ user }),
       setToken: (token) => {
         if (token) {
@@ -156,9 +180,17 @@ export const useStore = create<AppStore>()(
         }
         set({ token });
       },
+      setSessionId: (id) => set({ sessionId: id }),
       logout: () => {
         localStorage.removeItem('auth_token');
-        set({ user: null, token: null, datasets: [], activeDataset: null, chatHistory: [] });
+        set({
+          user: null,
+          token: null,
+          sessionId: null,
+          datasets: [],
+          activeDataset: null,
+          chatHistory: [],
+        });
       },
     }),
     {
@@ -168,6 +200,7 @@ export const useStore = create<AppStore>()(
         sidebarCollapsed: state.sidebarCollapsed,
         token: state.token,
         user: state.user,
+        sessionId: state.sessionId,
       }),
     }
   )

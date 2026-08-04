@@ -52,7 +52,7 @@ async def report_issue(issue_in: IssueCreate, db: Session = Depends(get_db)):
         db.add(new_issue)
         db.commit()
         db.refresh(new_issue)
-        logger.info(f"🐛 New issue reported: #{new_issue.id} - {new_issue.title}")
+        logger.info(f"[ISSUE] New issue reported: #{new_issue.id} - {new_issue.title}")
         return new_issue
     except Exception as e:
         db.rollback()

@@ -23,6 +23,9 @@ import os
 from app.config import settings
 from app.database import init_db
 from app.utils.logger import setup_logger
+from app.middleware import limiter, SecurityHeadersMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 # ── Import All Routers ────────────────────────────────────────────────────────
 from app.routers import (
@@ -88,7 +91,14 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # ── Rate Limiter State ───────────────────────────────────────────────────
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     # ── Middleware ────────────────────────────────────────────────────────────
+
+    # Security Headers
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # CORS - Allow frontend origins
     app.add_middleware(
