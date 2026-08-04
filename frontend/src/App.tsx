@@ -46,10 +46,15 @@ import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const theme = useStore((s) => s.theme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme || 'light');
+  }, [theme]);
 
   useEffect(() => {
     healthCheck().catch(() => {});
-    const timer = setTimeout(() => setShowSplash(false), 10000);
+    const timer = setTimeout(() => setShowSplash(false), 8000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -59,22 +64,19 @@ function App() {
     <HashRouter>
       <Toaster
         position="top-center"
-        containerStyle={{ left: '120px' }}
         toastOptions={{
           style: {
-            background: '#252836',
-            color: '#e2e8f0',
-            border: '1px solid #3d3f50',
-            borderRadius: '16px',
-            fontSize: '1.05rem',
-            padding: '16px 28px',
+            background: 'var(--bg-surface)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-default)',
+            borderRadius: '10px',
+            fontSize: '13.5px',
+            padding: '12px 20px',
             fontWeight: 600,
-            minWidth: '340px',
-            textAlign: 'center',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+            boxShadow: 'var(--shadow-lg)',
           },
-          success: { iconTheme: { primary: '#10b981', secondary: '#252836' } },
-          error: { iconTheme: { primary: '#ef4444', secondary: '#252836' } },
+          success: { iconTheme: { primary: '#10b981', secondary: '#ffffff' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#ffffff' } },
         }}
       />
 

@@ -8,9 +8,9 @@ interface LoadingSpinnerProps {
 }
 
 const sizeMap = {
-  sm: 24,
-  md: 40,
-  lg: 60,
+  sm: 20,
+  md: 36,
+  lg: 52,
 };
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
@@ -26,62 +26,45 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 14,
+        gap: 12,
       }}
     >
-      {/* Outer ring */}
+      {/* Precision Circular Spinner */}
       <div style={{ position: 'relative', width: px, height: px }}>
-        {/* Track */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            border: `${size === 'sm' ? 2 : 3}px solid rgba(99,102,241,0.15)`,
+            border: `${size === 'sm' ? 2 : 2.5}px solid var(--border-default)`,
           }}
         />
-        {/* Animated arc */}
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
           style={{
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            border: `${size === 'sm' ? 2 : 3}px solid transparent`,
-            borderTopColor: '#6366f1',
-            borderRightColor: '#8b5cf6',
-          }}
-        />
-        {/* Inner pulse */}
-        <motion.div
-          animate={{ scale: [0.6, 1, 0.6], opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            position: 'absolute',
-            inset: '25%',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-            boxShadow: '0 0 12px rgba(99,102,241,0.6)',
+            border: `${size === 'sm' ? 2 : 2.5}px solid transparent`,
+            borderTopColor: 'var(--accent-primary)',
           }}
         />
       </div>
 
       {/* Text */}
       {text && (
-        <motion.p
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+        <p
           style={{
             margin: 0,
-            fontSize: size === 'sm' ? 11 : size === 'lg' ? 15 : 13,
+            fontSize: size === 'sm' ? 11 : size === 'lg' ? 14 : 12.5,
             fontWeight: 500,
-            color: 'rgba(148,163,184,0.7)',
-            letterSpacing: '0.02em',
+            color: 'var(--text-secondary)',
+            letterSpacing: '0.01em',
           }}
         >
           {text}
-        </motion.p>
+        </p>
       )}
     </div>
   );
@@ -98,12 +81,22 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(15,17,23,0.85)',
-          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.45)',
+          backdropFilter: 'blur(6px)',
           zIndex: 9999,
         }}
       >
-        {spinner}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            padding: '24px 32px',
+            borderRadius: '12px',
+            boxShadow: 'var(--shadow-xl)',
+            border: '1px solid var(--border-default)',
+          }}
+        >
+          {spinner}
+        </div>
       </motion.div>
     );
   }

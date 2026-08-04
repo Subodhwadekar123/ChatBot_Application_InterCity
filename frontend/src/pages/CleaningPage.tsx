@@ -5,26 +5,26 @@ import EmptyState from '../components/ui/EmptyState';
 import { 
   handleMissingValues, 
   removeDuplicates, 
-  renameColumns,
+  renameColumns, 
   dropColumns, 
   convertDtype, 
   handleOutliers, 
   normalizeData, 
-  encodeColumn,
-  handleSkewness,
-  removeConstants,
-  exportCleaned,
-  getDataset,
-  undoCleaning,
-  getCleaningHistory,
-  resetDataset
+  encodeColumn, 
+  handleSkewness, 
+  removeConstants, 
+  exportCleaned, 
+  getDataset, 
+  undoCleaning, 
+  getCleaningHistory, 
+  resetDataset 
 } from '../services/api';
 import toast from 'react-hot-toast';
 import { 
   Brush, Download, Trash2, Edit3, Settings2, 
   ShieldAlert, Activity, Sliders, 
-  Sparkles, Layers, Type, AlertCircle,
-  Undo2, RotateCcw
+  Sparkles, Layers, Type, AlertCircle, 
+  Undo2, RotateCcw 
 } from 'lucide-react';
 import DataTable from '../components/ui/DataTable';
 
@@ -51,13 +51,12 @@ export default function CleaningPage() {
   const [activeTab, setActiveTab] = useState<CleanTab>('missing');
   const [selectedCol, setSelectedCol] = useState('');
   
-  // Tab-specific form states
+  // Form states
   const [missingStrategy, setMissingStrategy] = useState('drop_rows');
   const [missingColScope, setMissingColScope] = useState<'all' | 'specific'>('all');
   const [fillConstantVal, setFillConstantVal] = useState('');
 
   const [renameNewName, setRenameNewName] = useState('');
-
   const [targetDtype, setTargetDtype] = useState('numeric');
 
   const [outlierMethod, setOutlierMethod] = useState<'iqr' | 'zscore'>('iqr');
@@ -71,10 +70,8 @@ export default function CleaningPage() {
   const [ordinalCategories, setOrdinalCategories] = useState('');
 
   const [skewMethod, setSkewMethod] = useState<'log' | 'sqrt' | 'boxcox' | 'yeo_johnson'>('log');
-
   const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx' | 'json'>('csv');
 
-  // Fetch undo and history state
   const fetchHistory = async () => {
     const currentId = activeDataset?.id;
     if (!currentId) return;
@@ -98,7 +95,6 @@ export default function CleaningPage() {
     fetchHistory();
   }, [activeDataset?.id]);
 
-  // Refresh dataset data after cleaning
   const refreshDataset = async () => {
     const currentId = activeDataset?.id;
     if (!currentId) return;
@@ -154,7 +150,7 @@ export default function CleaningPage() {
       await action();
       toast.success(
         (t) => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span>{successMsg}</span>
             <button
               onClick={async () => {
@@ -162,13 +158,13 @@ export default function CleaningPage() {
                 await handleUndo();
               }}
               style={{
-                background: '#4f46e5',
+                background: 'var(--accent-primary)',
                 color: '#fff',
                 border: 'none',
-                padding: '3px 8px',
+                padding: '2px 8px',
                 borderRadius: '4px',
                 fontSize: '0.75rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer'
               }}
             >
@@ -186,7 +182,6 @@ export default function CleaningPage() {
     }
   };
 
-  // Keyboard shortcut: Ctrl+Z / Cmd+Z to undo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -206,11 +201,11 @@ export default function CleaningPage() {
   const handleReset = async () => {
     const currentId = activeDataset?.id;
     if (!currentId || undoCount === 0 || resetting || loading) return;
-    if (!window.confirm("Are you sure you want to reset all cleaning changes back to the original uploaded dataset?")) return;
+    if (!window.confirm("Are you sure you want to reset all cleaning transformations back to original uploaded state?")) return;
     try {
       setResetting(true);
       await resetDataset(currentId);
-      toast.success("Dataset successfully reset to original state");
+      toast.success("Dataset reset to original state");
       await refreshDataset();
     } catch (err: any) {
       const msg = err.response?.data?.detail || err.message || 'Failed to reset dataset';
@@ -225,64 +220,48 @@ export default function CleaningPage() {
   };
 
   const tabs: { id: CleanTab; label: string; icon: any; desc: string }[] = [
-    { id: 'missing', label: 'Missing Values', icon: ShieldAlert, desc: 'Impute or drop missing data' },
-    { id: 'duplicates', label: 'Duplicates', icon: Edit3, desc: 'Identify and remove duplicate records' },
-    { id: 'rename', label: 'Rename Columns', icon: Type, desc: 'Rename dataset features' },
-    { id: 'columns', label: 'Drop Columns', icon: Trash2, desc: 'Remove redundant columns' },
-    { id: 'dtypes', label: 'Convert Types', icon: Settings2, desc: 'Cast numeric, dates, and categories' },
-    { id: 'outliers', label: 'Outlier Handling', icon: AlertCircle, desc: 'Detect & treat extreme values' },
-    { id: 'normalize', label: 'Normalization', icon: Sliders, desc: 'MinMax, Z-Score, Robust scaling' },
-    { id: 'encode', label: 'Encoding', icon: Layers, desc: 'One-Hot, Label, Ordinal encoders' },
-    { id: 'skewness', label: 'Handle Skewness', icon: Activity, desc: 'Log, Sqrt, Box-Cox, Yeo-Johnson' },
-    { id: 'constants', label: 'Constant Features', icon: Sparkles, desc: 'Drop zero-variance columns' },
+    { id: 'missing', label: 'Missing Values', icon: ShieldAlert, desc: 'Impute or drop missing attributes and nulls' },
+    { id: 'duplicates', label: 'Duplicates', icon: Edit3, desc: 'Identify and eliminate duplicate records' },
+    { id: 'rename', label: 'Rename Columns', icon: Type, desc: 'Modify dataset column identifiers' },
+    { id: 'columns', label: 'Drop Columns', icon: Trash2, desc: 'Remove irrelevant or high-null features' },
+    { id: 'dtypes', label: 'Convert Types', icon: Settings2, desc: 'Cast numeric, datetime, categorical types' },
+    { id: 'outliers', label: 'Outlier Handling', icon: AlertCircle, desc: 'Detect, winsorize, or clip anomalous tails' },
+    { id: 'normalize', label: 'Normalization', icon: Sliders, desc: 'MinMax, Standard, or Robust scaling' },
+    { id: 'encode', label: 'Feature Encoding', icon: Layers, desc: 'One-Hot, Ordinal, and Label categorical mapping' },
+    { id: 'skewness', label: 'Handle Skewness', icon: Activity, desc: 'Log, Box-Cox, and Yeo-Johnson transformations' },
+    { id: 'constants', label: 'Constant Features', icon: Sparkles, desc: 'Purge zero-variance static columns' },
   ];
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+    <div style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: '40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', flexWrap: 'wrap', gap: '14px' }}>
         <SectionHeader 
-          title="Data Cleaning & Preprocessing" 
-          subtitle="Clean, transform, normalize, encode, and prepare your dataset for machine learning."
-          icon={<Brush />}
+          title="Data Cleaning & Transformation" 
+          subtitle="Enterprise data preparation, categorical encoding, outlier winsorization, and scaling"
+          icon={<Brush size={20} />}
         />
         
         {/* Action Controls Bar */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Undo Button */}
           <button
             onClick={handleUndo}
             disabled={undoCount === 0 || undoing || loading}
             title={undoCount > 0 ? `Undo last operation (${lastActionDesc || `${undoCount} steps available`})` : "No changes to undo"}
+            className="btn-secondary"
             style={{
-              height: '40px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '0 14px',
-              borderRadius: '8px',
+              height: '36px',
+              padding: '0 12px',
+              fontSize: '0.82rem',
               fontWeight: 600,
-              fontSize: '0.875rem',
+              opacity: undoCount === 0 ? 0.45 : 1,
               cursor: undoCount === 0 || undoing || loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              border: undoCount > 0 ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid rgba(255,255,255,0.08)',
-              background: undoCount > 0 ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255,255,255,0.03)',
-              color: undoCount > 0 ? '#a5b4fc' : '#64748b',
-              opacity: undoCount === 0 ? 0.5 : 1,
-              boxShadow: undoCount > 0 ? '0 0 12px rgba(99, 102, 241, 0.15)' : 'none'
             }}
           >
-            <Undo2 size={16} style={{ transform: undoing ? 'rotate(-180deg)' : 'none', transition: 'transform 0.3s ease' }} />
-            <span>{undoing ? 'Undoing...' : 'Undo'}</span>
+            <Undo2 size={14} style={{ transform: undoing ? 'rotate(-180deg)' : 'none', transition: 'transform 0.3s ease' }} />
+            <span>{undoing ? 'Reverting...' : 'Undo'}</span>
             {undoCount > 0 && (
-              <span style={{
-                background: '#6366f1',
-                color: '#ffffff',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                padding: '2px 7px',
-                borderRadius: '10px',
-                lineHeight: 1
-              }}>
+              <span className="badge-subtle badge-info" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>
                 {undoCount}
               </span>
             )}
@@ -293,33 +272,25 @@ export default function CleaningPage() {
             <button
               onClick={handleReset}
               disabled={resetting || loading || undoing}
-              title="Revert all changes back to original uploaded file"
+              className="btn-secondary"
               style={{
-                height: '40px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '0 12px',
-                borderRadius: '8px',
-                fontWeight: 500,
-                fontSize: '0.85rem',
+                height: '36px',
+                padding: '0 10px',
+                fontSize: '0.8rem',
+                color: 'var(--color-danger)',
                 cursor: resetting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                background: 'rgba(239, 68, 68, 0.08)',
-                color: '#f87171'
               }}
             >
-              <RotateCcw size={15} style={{ animation: resetting ? 'spin 1s linear infinite' : 'none' }} />
-              <span>{resetting ? 'Resetting...' : 'Reset'}</span>
+              <RotateCcw size={13} />
+              <span>{resetting ? 'Resetting...' : 'Reset All'}</span>
             </button>
           )}
 
-          <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '22px', background: 'var(--border-default)', margin: '0 4px' }} />
 
           <select 
-            className="input" 
-            style={{ width: '100px', height: '40px', padding: '0 8px' }}
+            className="input-precision" 
+            style={{ width: '90px', height: '36px', padding: '0 8px', fontSize: '0.82rem' }}
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as any)}
           >
@@ -327,18 +298,18 @@ export default function CleaningPage() {
             <option value="xlsx">Excel</option>
             <option value="json">JSON</option>
           </select>
-          <button className="btn-primary" onClick={handleExport} style={{ height: '40px' }}>
-            <Download size={16} /> Export Cleaned
+          <button className="btn-primary" onClick={handleExport} style={{ height: '36px', fontSize: '0.82rem' }}>
+            <Download size={14} /> Export Cleaned
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '270px 1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Left Sidebar - Operations */}
-        <div className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px', paddingLeft: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '20px', alignItems: 'start' }}>
+        {/* Left Sidebar - Operations Navigation */}
+        <div className="card-precision" style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em', margin: '4px 0 6px 8px' }}>
             Transformations
-          </h3>
+          </div>
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -350,45 +321,51 @@ export default function CleaningPage() {
                   setSelectedCol('');
                 }}
                 style={{
-                  padding: '10px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px',
-                  background: isActive ? 'rgba(99,102,241,0.15)' : 'transparent',
-                  color: isActive ? '#818cf8' : '#94a3b8',
-                  border: `1px solid ${isActive ? 'rgba(99,102,241,0.3)' : 'transparent'}`,
-                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', fontWeight: isActive ? 600 : 500
+                  padding: '9px 12px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  background: isActive ? 'var(--accent-primary-light)' : 'transparent',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: `1px solid ${isActive ? 'var(--accent-primary)' : 'transparent'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'left',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '0.84rem',
                 }}
               >
-                <Icon size={18} />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.9rem' }}>{tab.label}</span>
-                </div>
+                <Icon size={16} />
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Right Content - Operation Form & Preview */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           
-          <div className="card" style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.25rem', color: '#f8fafc', fontWeight: 600, marginBottom: '4px' }}>
+          <div className="card-precision" style={{ padding: '20px' }}>
+            <div style={{ marginBottom: '18px' }}>
+              <h2 style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 2px' }}>
                 {tabs.find(t => t.id === activeTab)?.label}
               </h2>
-              <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0 }}>
                 {tabs.find(t => t.id === activeTab)?.desc}
               </p>
             </div>
 
             {/* 1. MISSING VALUES */}
             {activeTab === 'missing' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Scope
                     </label>
                     <select 
-                      className="input" 
+                      className="input-precision" 
                       value={missingColScope} 
                       onChange={(e) => setMissingColScope(e.target.value as any)}
                     >
@@ -399,11 +376,11 @@ export default function CleaningPage() {
 
                   {missingColScope === 'specific' && (
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                         Target Column
                       </label>
                       <select 
-                        className="input" 
+                        className="input-precision" 
                         value={selectedCol} 
                         onChange={(e) => setSelectedCol(e.target.value)}
                       >
@@ -414,13 +391,13 @@ export default function CleaningPage() {
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Imputation Strategy
                     </label>
                     <select 
-                      className="input" 
+                      className="input-precision" 
                       value={missingStrategy} 
                       onChange={(e) => setMissingStrategy(e.target.value)}
                     >
@@ -438,12 +415,12 @@ export default function CleaningPage() {
 
                   {missingStrategy === 'fill_constant' && (
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                         Constant Fill Value
                       </label>
                       <input 
                         type="text" 
-                        className="input" 
+                        className="input-precision" 
                         placeholder="e.g. 0 or Unknown" 
                         value={fillConstantVal}
                         onChange={(e) => setFillConstantVal(e.target.value)}
@@ -454,7 +431,7 @@ export default function CleaningPage() {
 
                 <button 
                   className="btn-primary"
-                  style={{ alignSelf: 'flex-start', marginTop: '8px' }}
+                  style={{ alignSelf: 'flex-start', marginTop: '6px' }}
                   disabled={loading || (missingColScope === 'specific' && !selectedCol)}
                   onClick={() => {
                     const payload: any = { strategy: missingStrategy };
@@ -467,19 +444,19 @@ export default function CleaningPage() {
                     handleCleanAction(() => handleMissingValues(activeDataset.id, payload), `Missing values handled with ${missingStrategy}`);
                   }}
                 >
-                  Apply Missing Value Handling
+                  Apply Imputation Transformation
                 </button>
 
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid #2d2f3e', marginTop: '8px' }}>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 600 }}>Missing values summary:</p>
+                <div style={{ background: 'var(--bg-canvas)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-default)', marginTop: '6px' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase' }}>Missing values telemetry:</p>
                   {Object.entries(activeDataset.dataset_info.missing_info).map(([col, info]: [string, any]) => (
-                    <div key={col} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px' }}>
-                      <span style={{ color: '#e2e8f0' }}>{col}</span>
-                      <span style={{ color: '#f59e0b' }}>{info.count} missing ({info.percentage.toFixed(1)}%)</span>
+                    <div key={col} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '3px' }}>
+                      <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{col}</span>
+                      <span style={{ color: 'var(--accent-amber)', fontFamily: 'var(--font-family-mono)' }}>{info.count} missing ({info.percentage.toFixed(1)}%)</span>
                     </div>
                   ))}
                   {Object.keys(activeDataset.dataset_info.missing_info).length === 0 && (
-                    <span style={{ color: '#10b981', fontSize: '0.85rem' }}>✓ No missing values found in this dataset!</span>
+                    <span style={{ color: 'var(--color-success)', fontSize: '0.8rem', fontWeight: 600 }}>✓ Zero missing values detected in active workspace</span>
                   )}
                 </div>
               </div>
@@ -488,39 +465,39 @@ export default function CleaningPage() {
             {/* 2. DUPLICATES */}
             {activeTab === 'duplicates' && (
               <div>
-                <p style={{ color: '#94a3b8', marginBottom: '20px', fontSize: '0.95rem' }}>
-                  Your dataset has <strong>{activeDataset.dataset_info.duplicate_rows}</strong> duplicate rows ({activeDataset.dataset_info.duplicate_percentage}%).
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.88rem' }}>
+                  Dataset contains <strong style={{ color: 'var(--text-primary)' }}>{activeDataset.dataset_info.duplicate_rows}</strong> duplicate rows ({activeDataset.dataset_info.duplicate_percentage}%).
                 </p>
                 <button 
                   className="btn-primary"
                   disabled={loading || activeDataset.dataset_info.duplicate_rows === 0}
-                  onClick={() => handleCleanAction(() => removeDuplicates(activeDataset.id), 'Duplicate rows removed')}
+                  onClick={() => handleCleanAction(() => removeDuplicates(activeDataset.id), 'Duplicate rows purged')}
                 >
-                  Remove All Duplicate Rows
+                  Purge Duplicate Rows
                 </button>
               </div>
             )}
 
             {/* 3. RENAME COLUMNS */}
             {activeTab === 'rename' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Select Column
                     </label>
-                    <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                    <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                       <option value="">Select column...</option>
                       {allCols.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      New Column Name
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      New Column Identifier
                     </label>
                     <input 
                       type="text" 
-                      className="input" 
+                      className="input-precision" 
                       placeholder="e.g. customer_age" 
                       value={renameNewName} 
                       onChange={(e) => setRenameNewName(e.target.value)} 
@@ -539,26 +516,26 @@ export default function CleaningPage() {
                     setRenameNewName('');
                   }}
                 >
-                  Rename Column
+                  Apply Rename
                 </button>
               </div>
             )}
 
             {/* 4. DROP COLUMNS */}
             {activeTab === 'columns' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                     Select Column to Drop
                   </label>
-                  <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                  <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                     <option value="">Select a column to drop...</option>
                     {allCols.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <button 
                   className="btn-primary"
-                  style={{ alignSelf: 'flex-start', background: '#ef4444' }}
+                  style={{ alignSelf: 'flex-start', background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
                   disabled={loading || !selectedCol}
                   onClick={() => handleCleanAction(() => dropColumns(activeDataset.id, [selectedCol]), `Dropped column ${selectedCol}`)}
                 >
@@ -569,27 +546,27 @@ export default function CleaningPage() {
 
             {/* 5. CONVERT DTYPES */}
             {activeTab === 'dtypes' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Column
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Target Column
                     </label>
-                    <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                    <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                       <option value="">Select a column...</option>
                       {allCols.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Target Type
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Cast To Data Type
                     </label>
                     <select 
-                      className="input" 
+                      className="input-precision" 
                       value={targetDtype} 
                       onChange={(e) => setTargetDtype(e.target.value)}
                     >
-                      <option value="numeric">Numeric (Float)</option>
+                      <option value="numeric">Numeric (Float64)</option>
                       <option value="integer">Integer (Nullable Int64)</option>
                       <option value="string">String / Text</option>
                       <option value="category">Categorical</option>
@@ -604,52 +581,52 @@ export default function CleaningPage() {
                   disabled={loading || !selectedCol}
                   onClick={() => handleCleanAction(() => convertDtype(activeDataset.id, selectedCol, targetDtype), `Converted ${selectedCol} to ${targetDtype}`)}
                 >
-                  Convert Data Type
+                  Cast Data Type
                 </button>
               </div>
             )}
 
             {/* 6. OUTLIERS */}
             {activeTab === 'outliers' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                    Numeric Column
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                    Numeric Feature
                   </label>
-                  <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                  <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                     <option value="">Select numeric column...</option>
                     {numericCols.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Detection Method
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Detection Algorithm
                     </label>
-                    <select className="input" value={outlierMethod} onChange={(e) => setOutlierMethod(e.target.value as any)}>
+                    <select className="input-precision" value={outlierMethod} onChange={(e) => setOutlierMethod(e.target.value as any)}>
                       <option value="iqr">IQR (Interquartile Range)</option>
                       <option value="zscore">Z-Score (Standard Deviations)</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Handling Strategy
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Treatment Strategy
                     </label>
-                    <select className="input" value={outlierStrategy} onChange={(e) => setOutlierStrategy(e.target.value as any)}>
+                    <select className="input-precision" value={outlierStrategy} onChange={(e) => setOutlierStrategy(e.target.value as any)}>
                       <option value="remove">Remove Outlier Rows</option>
-                      <option value="cap">Cap Values (Winsorize / Clip)</option>
+                      <option value="cap">Cap Values (Winsorize)</option>
                       <option value="replace_mean">Replace with Mean</option>
                       <option value="replace_median">Replace with Median</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Threshold ({outlierMethod === 'iqr' ? 'IQR Multiplier, e.g. 1.5' : 'Z-Score Std, e.g. 3.0'})
                     </label>
                     <input 
                       type="number" 
                       step="0.1" 
-                      className="input" 
+                      className="input-precision" 
                       value={outlierThreshold}
                       onChange={(e) => setOutlierThreshold(parseFloat(e.target.value) || 1.5)}
                     />
@@ -670,30 +647,30 @@ export default function CleaningPage() {
                     );
                   }}
                 >
-                  Apply Outlier Handling
+                  Execute Outlier Treatment
                 </button>
               </div>
             )}
 
             {/* 7. NORMALIZE */}
             {activeTab === 'normalize' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Scaling Method
                     </label>
-                    <select className="input" value={normMethod} onChange={(e) => setNormMethod(e.target.value as any)}>
+                    <select className="input-precision" value={normMethod} onChange={(e) => setNormMethod(e.target.value as any)}>
                       <option value="minmax">Min-Max Scaling (Scale 0 to 1)</option>
                       <option value="zscore">Standard Scaling (Mean 0, Std 1)</option>
                       <option value="robust">Robust Scaling (Median & IQR based)</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Columns Scope
                     </label>
-                    <select className="input" value={normColScope} onChange={(e) => setNormColScope(e.target.value as any)}>
+                    <select className="input-precision" value={normColScope} onChange={(e) => setNormColScope(e.target.value as any)}>
                       <option value="all">All Numeric Columns</option>
                       <option value="specific">Specific Column</option>
                     </select>
@@ -702,10 +679,10 @@ export default function CleaningPage() {
 
                 {normColScope === 'specific' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Select Column
                     </label>
-                    <select className="input" value={selectedCol} onChange={(e) => setSelectedCol(e.target.value)}>
+                    <select className="input-precision" value={selectedCol} onChange={(e) => setSelectedCol(e.target.value)}>
                       <option value="">Select numeric column...</option>
                       {numericCols.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -731,37 +708,37 @@ export default function CleaningPage() {
 
             {/* 8. ENCODE */}
             {activeTab === 'encode' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Categorical Column
                     </label>
-                    <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                    <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                       <option value="">Select categorical column...</option>
                       {catCols.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Encoding Method
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Encoding Scheme
                     </label>
-                    <select className="input" value={encodeMethod} onChange={(e) => setEncodeMethod(e.target.value as any)}>
+                    <select className="input-precision" value={encodeMethod} onChange={(e) => setEncodeMethod(e.target.value as any)}>
                       <option value="label">Label Encoding (0, 1, 2...)</option>
                       <option value="onehot">One-Hot Encoding (Binary dummy columns)</option>
-                      <option value="ordinal">Ordinal Encoding (Custom order)</option>
+                      <option value="ordinal">Ordinal Encoding (User-ordered hierarchy)</option>
                     </select>
                   </div>
                 </div>
 
                 {encodeMethod === 'ordinal' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Ordered Categories (Comma-separated from lowest to highest)
                     </label>
                     <input 
                       type="text" 
-                      className="input" 
+                      className="input-precision" 
                       placeholder="e.g. Low, Medium, High" 
                       value={ordinalCategories} 
                       onChange={(e) => setOrdinalCategories(e.target.value)} 
@@ -781,33 +758,33 @@ export default function CleaningPage() {
                     handleCleanAction(() => encodeColumn(activeDataset.id, payload), `Encoded ${selectedCol} using ${encodeMethod}`);
                   }}
                 >
-                  Encode Column
+                  Apply Feature Encoding
                 </button>
               </div>
             )}
 
             {/* 9. SKEWNESS */}
             {activeTab === 'skewness' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
                       Numeric Column
                     </label>
-                    <select className="input" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
+                    <select className="input-precision" onChange={(e) => setSelectedCol(e.target.value)} value={selectedCol}>
                       <option value="">Select numeric column...</option>
                       {numericCols.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
-                      Transformation Method
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                      Transformation Formula
                     </label>
-                    <select className="input" value={skewMethod} onChange={(e) => setSkewMethod(e.target.value as any)}>
+                    <select className="input-precision" value={skewMethod} onChange={(e) => setSkewMethod(e.target.value as any)}>
                       <option value="log">Log Transformation (Log1p)</option>
                       <option value="sqrt">Square Root Transformation</option>
-                      <option value="boxcox">Box-Cox (Strictly Positive)</option>
-                      <option value="yeo_johnson">Yeo-Johnson (Supports +/- / zero)</option>
+                      <option value="boxcox">Box-Cox (Strictly Positive Series)</option>
+                      <option value="yeo_johnson">Yeo-Johnson (Supports Zero & Negative values)</option>
                     </select>
                   </div>
                 </div>
@@ -822,7 +799,7 @@ export default function CleaningPage() {
                     );
                   }}
                 >
-                  Apply Skewness Transformation
+                  Apply Skew Transformation
                 </button>
               </div>
             )}
@@ -830,25 +807,27 @@ export default function CleaningPage() {
             {/* 10. REMOVE CONSTANT FEATURES */}
             {activeTab === 'constants' && (
               <div>
-                <p style={{ color: '#94a3b8', marginBottom: '16px', fontSize: '0.95rem' }}>
-                  Constant features (columns where every row has the identical value) add zero predictive information to ML models and increase dimensionality.
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '14px', fontSize: '0.88rem' }}>
+                  Constant features (columns where every row has the identical value) provide zero predictive entropy and add redundant model complexity.
                 </p>
                 <button 
                   className="btn-primary"
                   disabled={loading}
                   onClick={() => handleCleanAction(() => removeConstants(activeDataset.id), 'Removed constant features')}
                 >
-                  Detect & Remove Constant Features
+                  Purge Zero-Variance Constant Columns
                 </button>
               </div>
             )}
           </div>
 
           {/* Live Preview Table */}
-          <div className="card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', fontWeight: 600 }}>Live Dataset Preview</h3>
-              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+          <div className="card-precision" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '0.94rem', color: 'var(--text-primary)', fontWeight: 700, margin: 0 }}>
+                Cleaned Data Preview
+              </h3>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-family-mono)' }}>
                 {activeDataset.dataset_info.rows} rows × {activeDataset.dataset_info.columns} columns
               </span>
             </div>
@@ -860,59 +839,56 @@ export default function CleaningPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
-                gap: '12px',
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08))',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
+                gap: '10px',
+                background: 'var(--accent-primary-light)',
+                border: '1px solid var(--accent-primary)',
                 borderRadius: '8px',
-                padding: '10px 16px',
-                marginBottom: '16px',
-                fontSize: '0.875rem'
+                padding: '8px 14px',
+                marginBottom: '14px',
+                fontSize: '0.82rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c7d2fe' }}>
-                  <Sparkles size={16} color="#818cf8" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                  <Sparkles size={15} color="var(--accent-primary)" />
                   <span>
-                    <strong>{undoCount} change{undoCount > 1 ? 's' : ''}</strong> applied to this dataset.
+                    <strong>{undoCount} transformation{undoCount > 1 ? 's' : ''}</strong> applied to this workspace session.
                     {lastActionDesc && <span style={{ opacity: 0.85, marginLeft: '6px' }}>(Last: <em>{lastActionDesc}</em>)</span>}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   <button
                     onClick={handleUndo}
                     disabled={undoing || loading}
                     className="btn-secondary"
                     style={{
-                      height: '32px',
-                      padding: '0 12px',
-                      fontSize: '0.8rem',
+                      height: '28px',
+                      padding: '0 10px',
+                      fontSize: '0.75rem',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      background: 'rgba(99, 102, 241, 0.25)',
-                      color: '#e0e7ff',
-                      borderColor: 'rgba(99, 102, 241, 0.45)',
+                      gap: '4px',
                       cursor: undoing || loading ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    <Undo2 size={13} /> Revert Last Step (Ctrl+Z)
+                    <Undo2 size={12} /> Revert Last Step (Ctrl+Z)
                   </button>
                   <button
                     onClick={handleReset}
                     disabled={resetting || loading}
                     style={{
-                      height: '32px',
-                      padding: '0 10px',
-                      fontSize: '0.8rem',
+                      height: '28px',
+                      padding: '0 8px',
+                      fontSize: '0.75rem',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
                       background: 'transparent',
-                      color: '#f87171',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: 'var(--color-danger)',
+                      border: '1px solid var(--border-default)',
                       borderRadius: '6px',
                       cursor: resetting || loading ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    <RotateCcw size={13} /> Reset All
+                    <RotateCcw size={12} /> Reset All
                   </button>
                 </div>
               </div>

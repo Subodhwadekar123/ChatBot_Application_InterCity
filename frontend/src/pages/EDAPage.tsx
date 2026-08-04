@@ -5,23 +5,7 @@ import { getFullEDA } from '../services/api';
 import SectionHeader from '../components/ui/SectionHeader';
 import EmptyState from '../components/ui/EmptyState';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { Activity, BarChart2, TrendingUp, AlertTriangle, Layers } from 'lucide-react';
-
-/**
- * EDAPage – Exploratory Data Analysis
- * ====================================
- * Backend returns from /analysis/{id}/eda:
- *   {
- *     summary:            { numeric: { col: {count,mean,std,...} }, categorical: {...} }
- *     distributions:      { col: { histogram:{counts,bin_edges}, normality, skewness, ... } }
- *     correlations:       { pearson: {matrix,columns}, top_correlated_pairs: [{col1,col2,correlation,strength,direction}] }
- *     missing_values:     { total_missing_values, columns_with_missing (int), columns_detail: [{column,missing_count,missing_percentage,recommendation}] }
- *     outliers:           { columns_with_outliers (int), outlier_details: [{column,iqr_outliers,iqr_outlier_pct,...}] }
- *     feature_insights:   { ... }
- *     business_insights:  { ... }
- *     data_quality_score: { score, grade, breakdown: {completeness,uniqueness,consistency,validity} }
- *   }
- */
+import { Activity, BarChart2, TrendingUp, AlertTriangle, Layers, CheckCircle2 } from 'lucide-react';
 
 export default function EDAPage() {
   const { activeDataset } = useStore();
@@ -34,7 +18,6 @@ export default function EDAPage() {
     if (activeDataset) {
       loadEDA();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDataset]);
 
   const loadEDA = async () => {
@@ -50,20 +33,18 @@ export default function EDAPage() {
     }
   };
 
-  // ── No dataset selected ──────────────────────────────────────────────────
   if (!activeDataset) {
     return <EmptyState />;
   }
 
   const tabs = [
-    { id: 'summary', label: 'Summary', icon: Activity },
-    { id: 'distributions', label: 'Distributions', icon: BarChart2 },
-    { id: 'correlations', label: 'Correlations', icon: TrendingUp },
-    { id: 'missing', label: 'Missing Values', icon: Layers },
-    { id: 'outliers', label: 'Outliers', icon: AlertTriangle },
+    { id: 'summary', label: 'Summary & Profile', icon: Activity },
+    { id: 'distributions', label: 'Feature Distributions', icon: BarChart2 },
+    { id: 'correlations', label: 'Correlation Matrix', icon: TrendingUp },
+    { id: 'missing', label: 'Missing Values & Nulls', icon: Layers },
+    { id: 'outliers', label: 'Outlier Diagnostics', icon: AlertTriangle },
   ];
 
-  // ── Safely extract data using ACTUAL backend key names ───────────────────
   const summaryNumeric: Record<string, any> = edaData?.summary?.numeric ?? {};
   const summaryCategorical: Record<string, any> = edaData?.summary?.categorical ?? {};
   const qualityScore = edaData?.data_quality_score ?? null;
@@ -73,17 +54,17 @@ export default function EDAPage() {
   const distributions: Record<string, any> = edaData?.distributions ?? {};
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
+    <div style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: '40px' }}>
       <SectionHeader
         title="Exploratory Data Analysis"
-        subtitle="Comprehensive automated analysis of your dataset."
-        icon={<Activity />}
+        subtitle="Automated statistical profiling, correlation heatmaps, and outlier diagnostics"
+        icon={<Activity size={20} />}
       />
 
-      {/* ── Tab Bar ──────────────────────────────────────────────────────── */}
+      {/* Tab Navigation */}
       <div style={{
-        display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px',
-        marginBottom: '24px', borderBottom: '1px solid #2d2f3e'
+        display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px',
+        marginBottom: '20px', borderBottom: '1px solid var(--border-default)'
       }}>
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -93,55 +74,70 @@ export default function EDAPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               style={{
-                padding: '10px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px',
-                background: isActive ? 'rgba(99,102,241,0.1)' : 'transparent',
-                color: isActive ? '#818cf8' : '#94a3b8',
-                border: `1px solid ${isActive ? 'rgba(99,102,241,0.2)' : 'transparent'}`,
-                cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap'
+                padding: '8px 16px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: isActive ? 'var(--accent-primary-light)' : 'transparent',
+                color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                border: `1px solid ${isActive ? 'var(--accent-primary)' : 'transparent'}`,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                fontSize: '0.82rem',
               }}
             >
-              <Icon size={16} /> {tab.label}
+              <Icon size={15} /> {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* ── Loading / Error / Content ────────────────────────────────────── */}
+      {/* Loading / Error / Content */}
       {loading ? (
-        <LoadingSpinner text="Running automated EDA..." />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+          <LoadingSpinner text="Computing automated exploratory analysis..." />
+        </div>
       ) : error ? (
-        <div style={{ padding: '20px', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.2)' }}>
+        <div style={{ padding: '16px 20px', background: 'rgba(239,68,68,0.1)', color: 'var(--color-danger)', borderRadius: '8px', border: '1px solid var(--border-default)', fontSize: '0.86rem' }}>
           {error}
         </div>
       ) : edaData ? (
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
           >
 
-            {/* ════════════════════════ SUMMARY TAB ════════════════════════ */}
+            {/* SUMMARY TAB */}
             {activeTab === 'summary' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
 
                 {/* Data Quality Card */}
-                <div className="card" style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Data Quality</h3>
-                  <div style={{ fontSize: '3rem', fontWeight: 800, color: '#6366f1', marginBottom: '8px' }}>
-                    {qualityScore?.score?.toFixed(0) ?? '—'}/100
+                <div className="card-precision" style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                    Data Quality Health
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: '14px' }}>
+                    <span style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-primary)', letterSpacing: '-0.03em' }}>
+                      {qualityScore?.score?.toFixed(0) ?? '—'}
+                    </span>
+                    <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 600 }}>/100</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {Object.entries(qualityScore?.breakdown ?? {}).map(([key, value]: [string, any]) => (
                       <div key={key}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8', textTransform: 'capitalize' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'capitalize', fontWeight: 600 }}>
                           <span>{key}</span>
-                          <span>{typeof value === 'number' ? value.toFixed(1) : value}%</span>
+                          <span style={{ fontFamily: 'var(--font-family-mono)' }}>{typeof value === 'number' ? value.toFixed(1) : value}%</span>
                         </div>
-                        <div className="progress-bar">
-                          <div className="progress-bar-fill" style={{ width: `${typeof value === 'number' ? value : 0}%` }} />
+                        <div style={{ height: 5, borderRadius: 999, background: 'var(--border-default)', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', borderRadius: 999, width: `${typeof value === 'number' ? value : 0}%`, background: 'var(--accent-primary)' }} />
                         </div>
                       </div>
                     ))}
@@ -149,69 +145,65 @@ export default function EDAPage() {
                 </div>
 
                 {/* Summary Statistics Table */}
-                <div className="card" style={{ padding: '24px', gridColumn: Object.keys(summaryNumeric).length > 0 ? 'span 2' : undefined }}>
-                  <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Summary Statistics</h3>
+                <div className="card-precision" style={{ padding: '20px', gridColumn: Object.keys(summaryNumeric).length > 0 ? 'span 2' : undefined }}>
+                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                    Parametric Summary Statistics
+                  </h3>
                   {Object.keys(summaryNumeric).length > 0 ? (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table className="data-table">
+                    <div style={{ overflowX: 'auto', maxHeight: 360 }}>
+                      <table className="data-table" style={{ width: '100%', fontSize: '0.8rem' }}>
                         <thead>
                           <tr>
-                            <th>Column</th>
-                            <th>Count</th>
-                            <th>Mean</th>
-                            <th>Std</th>
-                            <th>Min</th>
-                            <th>25%</th>
-                            <th>50%</th>
-                            <th>75%</th>
-                            <th>Max</th>
+                            {['Column', 'Count', 'Mean', 'Std', 'Min', '25%', '50%', '75%', 'Max'].map(h => (
+                              <th key={h} style={{ padding: '8px 12px', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                            ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.entries(summaryNumeric).map(([col, stats]: [string, any]) => (
-                            <tr key={col}>
-                              <td style={{ color: '#818cf8', fontWeight: 500 }}>{col}</td>
-                              <td>{stats?.count?.toFixed?.(0) ?? '—'}</td>
-                              <td>{stats?.mean?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.std?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.min?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.['25%']?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.['50%']?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.['75%']?.toFixed?.(2) ?? '—'}</td>
-                              <td>{stats?.max?.toFixed?.(2) ?? '—'}</td>
+                          {Object.entries(summaryNumeric).map(([col, stats]: [string, any], idx) => (
+                            <tr key={col} style={{ background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)' }}>
+                              <td style={{ color: 'var(--accent-primary)', fontWeight: 600, fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{col}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.count?.toFixed?.(0) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.mean?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.std?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.min?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.['25%']?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.['50%']?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.['75%']?.toFixed?.(2) ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{stats?.max?.toFixed?.(2) ?? '—'}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p style={{ color: '#94a3b8' }}>No numeric columns found in this dataset.</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>No numeric columns detected in this dataset.</p>
                   )}
                 </div>
 
                 {/* Categorical Summary */}
                 {Object.keys(summaryCategorical).length > 0 && (
-                  <div className="card" style={{ padding: '24px', gridColumn: 'span 2' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Categorical Summary</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table className="data-table">
+                  <div className="card-precision" style={{ padding: '20px', gridColumn: '1 / -1' }}>
+                    <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                      Categorical Cardinality & Distributions
+                    </h3>
+                    <div style={{ overflowX: 'auto', maxHeight: 320 }}>
+                      <table className="data-table" style={{ width: '100%', fontSize: '0.8rem' }}>
                         <thead>
                           <tr>
-                            <th>Column</th>
-                            <th>Unique</th>
-                            <th>Missing</th>
-                            <th>Mode</th>
-                            <th>Top Values</th>
+                            {['Column', 'Unique Count', 'Missing Count', 'Top Mode', 'Frequency Sample'].map(h => (
+                              <th key={h} style={{ padding: '8px 12px', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                            ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.entries(summaryCategorical).map(([col, info]: [string, any]) => (
-                            <tr key={col}>
-                              <td style={{ color: '#818cf8', fontWeight: 500 }}>{col}</td>
-                              <td>{info?.unique_count ?? '—'}</td>
-                              <td>{info?.missing ?? 0}</td>
-                              <td>{info?.mode ?? '—'}</td>
-                              <td style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {Object.entries(summaryCategorical).map(([col, info]: [string, any], idx) => (
+                            <tr key={col} style={{ background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)' }}>
+                              <td style={{ color: 'var(--accent-primary)', fontWeight: 600, fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{col}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{info?.unique_count ?? '—'}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{info?.missing ?? 0}</td>
+                              <td style={{ fontFamily: 'var(--font-family-mono)', padding: '7px 12px' }}>{info?.mode ?? '—'}</td>
+                              <td style={{ maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '7px 12px', color: 'var(--text-secondary)' }}>
                                 {info?.top_values ? Object.entries(info.top_values).slice(0, 3).map(([k, v]) => `${k} (${v})`).join(', ') : '—'}
                               </td>
                             </tr>
@@ -224,81 +216,85 @@ export default function EDAPage() {
               </div>
             )}
 
-            {/* ════════════════════════ DISTRIBUTIONS TAB ════════════════════════ */}
+            {/* DISTRIBUTIONS TAB */}
             {activeTab === 'distributions' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
                 {Object.keys(distributions).length > 0 ? (
                   Object.entries(distributions).map(([col, dist]: [string, any]) => (
-                    <div key={col} className="card" style={{ padding: '24px' }}>
-                      <h4 style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: '12px' }}>{col}</h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.85rem', color: '#94a3b8' }}>
-                        <div>Mean: <span style={{ color: '#e2e8f0' }}>{dist?.mean?.toFixed(2) ?? '—'}</span></div>
-                        <div>Median: <span style={{ color: '#e2e8f0' }}>{dist?.median?.toFixed(2) ?? '—'}</span></div>
-                        <div>Std: <span style={{ color: '#e2e8f0' }}>{dist?.std?.toFixed(2) ?? '—'}</span></div>
-                        <div>IQR: <span style={{ color: '#e2e8f0' }}>{dist?.iqr?.toFixed(2) ?? '—'}</span></div>
-                        <div>Min: <span style={{ color: '#e2e8f0' }}>{dist?.min?.toFixed(2) ?? '—'}</span></div>
-                        <div>Max: <span style={{ color: '#e2e8f0' }}>{dist?.max?.toFixed(2) ?? '—'}</span></div>
-                        <div>Skewness: <span style={{ color: '#e2e8f0' }}>{dist?.skewness?.toFixed(3) ?? '—'}</span></div>
-                        <div>Kurtosis: <span style={{ color: '#e2e8f0' }}>{dist?.kurtosis?.toFixed(3) ?? '—'}</span></div>
+                    <div key={col} className="card-precision" style={{ padding: '18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <h4 style={{ color: 'var(--text-primary)', fontWeight: 700, margin: 0, fontSize: '0.9rem', fontFamily: 'var(--font-family-mono)' }}>{col}</h4>
+                        {dist?.skewness_interpretation && (
+                          <span className="badge-subtle badge-info" style={{ fontSize: '0.7rem' }}>
+                            {dist.skewness_interpretation}
+                          </span>
+                        )}
                       </div>
-                      {dist?.skewness_interpretation && (
-                        <div style={{ marginTop: '10px' }}>
-                          <span className="badge badge-info">{dist.skewness_interpretation}</span>
-                        </div>
-                      )}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        <div>Mean: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.mean?.toFixed(2) ?? '—'}</span></div>
+                        <div>Median: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.median?.toFixed(2) ?? '—'}</span></div>
+                        <div>Std: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.std?.toFixed(2) ?? '—'}</span></div>
+                        <div>IQR: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.iqr?.toFixed(2) ?? '—'}</span></div>
+                        <div>Min: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.min?.toFixed(2) ?? '—'}</span></div>
+                        <div>Max: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.max?.toFixed(2) ?? '—'}</span></div>
+                        <div>Skewness: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.skewness?.toFixed(3) ?? '—'}</span></div>
+                        <div>Kurtosis: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{dist?.kurtosis?.toFixed(3) ?? '—'}</span></div>
+                      </div>
                       {dist?.normality && (
-                        <div style={{ marginTop: '8px', fontSize: '0.82rem', color: '#94a3b8' }}>
-                          Normality ({dist.normality.test}): p={dist.normality.p_value?.toFixed(4)}
-                          {' — '}
-                          <span style={{ color: dist.normality.is_normal ? '#10b981' : '#f59e0b' }}>
-                            {dist.normality.is_normal ? 'Normal' : 'Non-normal'}
+                        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.76rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Normality ({dist.normality.test}): p={dist.normality.p_value?.toFixed(4)}</span>
+                          <span className={`badge-subtle ${dist.normality.is_normal ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.68rem' }}>
+                            {dist.normality.is_normal ? 'Gaussian' : 'Non-Gaussian'}
                           </span>
                         </div>
                       )}
                     </div>
                   ))
                 ) : (
-                  <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                    No numeric columns to show distributions.
+                  <div className="card-precision" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No numeric columns available for distribution modeling.
                   </div>
                 )}
               </div>
             )}
 
-            {/* ════════════════════════ CORRELATIONS TAB ════════════════════════ */}
+            {/* CORRELATIONS TAB */}
             {activeTab === 'correlations' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-
-                {/* Correlation Heatmap Summary */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '18px' }}>
                 {edaData?.correlations?.pearson?.columns && (
-                  <div className="card" style={{ padding: '24px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Correlation Matrix</h3>
+                  <div className="card-precision" style={{ padding: '20px' }}>
+                    <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                      Pearson Correlation Heatmap Matrix
+                    </h3>
                     <div style={{ overflowX: 'auto' }}>
-                      <table className="data-table" style={{ fontSize: '0.8rem' }}>
+                      <table className="data-table" style={{ fontSize: '0.78rem' }}>
                         <thead>
                           <tr>
                             <th></th>
                             {edaData.correlations.pearson.columns.map((c: string) => (
-                              <th key={c} style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c}</th>
+                              <th key={c} style={{ maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', padding: '6px 8px', fontSize: '0.7rem' }}>{c}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {edaData.correlations.pearson.columns.map((row: string) => (
                             <tr key={row}>
-                              <td style={{ color: '#818cf8', fontWeight: 500 }}>{row}</td>
+                              <td style={{ color: 'var(--accent-primary)', fontWeight: 600, fontFamily: 'var(--font-family-mono)', padding: '6px 8px' }}>{row}</td>
                               {edaData.correlations.pearson.columns.map((col: string) => {
                                 const val = edaData.correlations.pearson.matrix?.[row]?.[col];
                                 const absVal = typeof val === 'number' ? Math.abs(val) : 0;
                                 return (
                                   <td key={col} style={{
                                     background: absVal > 0.7
-                                      ? `rgba(99,102,241,${absVal * 0.4})`
+                                      ? `var(--accent-primary-light)`
                                       : absVal > 0.3
-                                        ? `rgba(99,102,241,${absVal * 0.2})`
+                                        ? `var(--bg-surface-elevated)`
                                         : 'transparent',
                                     textAlign: 'center',
-                                    color: absVal > 0.7 ? '#e2e8f0' : '#94a3b8'
+                                    color: absVal > 0.7 ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                    fontWeight: absVal > 0.7 ? 700 : 400,
+                                    fontFamily: 'var(--font-family-mono)',
+                                    padding: '6px 8px',
                                   }}>
                                     {typeof val === 'number' ? val.toFixed(2) : '—'}
                                   </td>
@@ -313,109 +309,107 @@ export default function EDAPage() {
                 )}
 
                 {/* Top Correlated Pairs */}
-                <div className="card" style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Top Correlated Pairs</h3>
+                <div className="card-precision" style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                    Dominant Linear Feature Associations (|r| ≥ 0.5)
+                  </h3>
                   {correlationPairs.length > 0 ? (
-                    <table className="data-table">
+                    <table className="data-table" style={{ width: '100%', fontSize: '0.8rem' }}>
                       <thead>
                         <tr>
-                          <th>Feature 1</th>
-                          <th>Feature 2</th>
-                          <th>Correlation</th>
-                          <th>Strength</th>
-                          <th>Direction</th>
+                          {['Feature 1', 'Feature 2', 'Correlation Coefficient', 'Strength', 'Direction'].map(h => (
+                            <th key={h} style={{ padding: '8px 12px', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
                         {correlationPairs.map((pair: any, i: number) => (
-                          <tr key={i}>
-                            {/* Backend sends col1/col2 — NOT feature1/feature2 */}
-                            <td>{pair.col1 ?? pair.feature1 ?? '—'}</td>
-                            <td>{pair.col2 ?? pair.feature2 ?? '—'}</td>
-                            <td>
+                          <tr key={i} style={{ background: i % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)' }}>
+                            <td style={{ fontFamily: 'var(--font-family-mono)', fontWeight: 600, color: 'var(--text-primary)', padding: '8px 12px' }}>{pair.col1 ?? pair.feature1 ?? '—'}</td>
+                            <td style={{ fontFamily: 'var(--font-family-mono)', fontWeight: 600, color: 'var(--text-primary)', padding: '8px 12px' }}>{pair.col2 ?? pair.feature2 ?? '—'}</td>
+                            <td style={{ padding: '8px 12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ color: pair.correlation > 0 ? '#10b981' : '#ef4444' }}>
+                                <span style={{ color: pair.correlation > 0 ? 'var(--color-success)' : 'var(--color-danger)', fontFamily: 'var(--font-family-mono)', fontWeight: 700 }}>
                                   {typeof pair.correlation === 'number' ? pair.correlation.toFixed(4) : '—'}
                                 </span>
-                                <div style={{ width: '50px', height: '4px', background: '#2d2f3e', borderRadius: '2px', overflow: 'hidden' }}>
+                                <div style={{ width: '60px', height: '4px', background: 'var(--border-default)', borderRadius: '2px', overflow: 'hidden' }}>
                                   <div style={{
                                     height: '100%',
                                     width: `${Math.abs(pair.correlation ?? 0) * 100}%`,
-                                    background: pair.correlation > 0 ? '#10b981' : '#ef4444'
+                                    background: pair.correlation > 0 ? 'var(--color-success)' : 'var(--color-danger)'
                                   }} />
                                 </div>
                               </div>
                             </td>
-                            <td>
-                              <span className={`badge badge-${pair.strength === 'very strong' || pair.strength === 'strong' ? 'success' : 'info'}`}>
+                            <td style={{ padding: '8px 12px' }}>
+                              <span className="badge-subtle badge-info" style={{ fontSize: '0.7rem' }}>
                                 {pair.strength ?? (Math.abs(pair.correlation) > 0.7 ? 'Strong' : 'Moderate')}
                               </span>
                             </td>
-                            <td>{pair.direction ?? (pair.correlation > 0 ? 'positive' : 'negative')}</td>
+                            <td style={{ textTransform: 'capitalize', color: 'var(--text-secondary)', padding: '8px 12px' }}>{pair.direction ?? (pair.correlation > 0 ? 'positive' : 'negative')}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   ) : (
-                    <p style={{ color: '#94a3b8' }}>No highly correlated pairs found (threshold: |r| ≥ 0.5).</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>No strongly correlated pairs detected.</p>
                   )}
                 </div>
               </div>
             )}
 
-            {/* ════════════════════════ MISSING VALUES TAB ════════════════════════ */}
+            {/* MISSING VALUES TAB */}
             {activeTab === 'missing' && (
-              <div className="card" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '16px' }}>Missing Values Report</h3>
+              <div className="card-precision" style={{ padding: '20px' }}>
+                <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
+                  Null Value & Sparsity Audit
+                </h3>
 
-                {/* Overall stats */}
                 {edaData?.missing_values && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginBottom: '20px' }}>
                     {[
-                      { label: 'Total Missing', value: edaData.missing_values.total_missing_values ?? 0 },
-                      { label: 'Overall %', value: `${edaData.missing_values.overall_missing_percentage ?? 0}%` },
-                      { label: 'Cols with Missing', value: edaData.missing_values.columns_with_missing ?? 0 },
+                      { label: 'Total Nulls', value: edaData.missing_values.total_missing_values ?? 0 },
+                      { label: 'Overall Null %', value: `${edaData.missing_values.overall_missing_percentage ?? 0}%` },
+                      { label: 'Sparse Columns', value: edaData.missing_values.columns_with_missing ?? 0 },
                       { label: 'Complete Columns', value: edaData.missing_values.complete_columns ?? 0 },
-                      { label: 'Complete Rows', value: edaData.missing_values.complete_rows ?? '—' },
+                      { label: 'Complete Records', value: edaData.missing_values.complete_rows ?? '—' },
                     ].map((stat) => (
-                      <div key={stat.label} style={{ background: '#1a1d27', padding: '16px', borderRadius: '10px', border: '1px solid #2d2f3e' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>{stat.label}</div>
-                        <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e2e8f0' }}>{stat.value}</div>
+                      <div key={stat.label} style={{ background: 'var(--bg-canvas)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>{stat.label}</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{stat.value}</div>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Column-level detail table */}
                 {missingDetails.length > 0 ? (
-                  <table className="data-table">
+                  <table className="data-table" style={{ width: '100%', fontSize: '0.8rem' }}>
                     <thead>
                       <tr>
-                        <th>Column</th>
-                        <th>Missing Count</th>
-                        <th>Percentage</th>
-                        <th>Recommendation</th>
+                        {['Column', 'Missing Count', 'Missing Percentage', 'Remediation Action'].map(h => (
+                          <th key={h} style={{ padding: '8px 12px', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {missingDetails.map((item: any, i: number) => (
-                        <tr key={i}>
-                          <td style={{ color: '#818cf8', fontWeight: 500 }}>{item.column}</td>
-                          <td>{item.missing_count}</td>
-                          <td>
+                        <tr key={i} style={{ background: i % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)' }}>
+                          <td style={{ fontFamily: 'var(--font-family-mono)', fontWeight: 600, color: 'var(--accent-primary)', padding: '8px 12px' }}>{item.column}</td>
+                          <td style={{ fontFamily: 'var(--font-family-mono)', padding: '8px 12px' }}>{item.missing_count}</td>
+                          <td style={{ padding: '8px 12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {typeof item.missing_percentage === 'number' ? item.missing_percentage.toFixed(2) : item.missing_percentage}%
-                              <div style={{ width: '100px', height: '6px', background: '#2d2f3e', borderRadius: '3px', overflow: 'hidden' }}>
+                              <span style={{ fontFamily: 'var(--font-family-mono)' }}>{typeof item.missing_percentage === 'number' ? item.missing_percentage.toFixed(2) : item.missing_percentage}%</span>
+                              <div style={{ width: '80px', height: '5px', background: 'var(--border-default)', borderRadius: '3px', overflow: 'hidden' }}>
                                 <div style={{
                                   height: '100%',
                                   width: `${item.missing_percentage ?? 0}%`,
-                                  background: (item.missing_percentage ?? 0) > 50 ? '#ef4444' : (item.missing_percentage ?? 0) > 20 ? '#f59e0b' : '#6366f1'
+                                  background: (item.missing_percentage ?? 0) > 50 ? 'var(--color-danger)' : (item.missing_percentage ?? 0) > 20 ? 'var(--accent-amber)' : 'var(--accent-primary)'
                                 }} />
                               </div>
                             </div>
                           </td>
-                          <td>
-                            <span className={`badge badge-${(item.missing_percentage ?? 0) > 50 ? 'danger' : 'info'}`}>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span className={`badge-subtle ${(item.missing_percentage ?? 0) > 50 ? 'badge-danger' : 'badge-neutral'}`} style={{ fontSize: '0.7rem' }}>
                               {item.recommendation}
                             </span>
                           </td>
@@ -424,44 +418,44 @@ export default function EDAPage() {
                     </tbody>
                   </table>
                 ) : (
-                  <div style={{ padding: '40px', textAlign: 'center', color: '#10b981' }}>
-                    <AlertTriangle size={40} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-                    <h4 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>No Missing Values!</h4>
-                    <p>Your dataset is clean and contains no missing data.</p>
+                  <div style={{ padding: '36px', textAlign: 'center', color: 'var(--color-success)' }}>
+                    <CheckCircle2 size={36} style={{ margin: '0 auto 10px', color: 'var(--color-success)' }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>Zero Null Values Detected</h4>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>All tabular attributes are 100% complete and populated.</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ════════════════════════ OUTLIERS TAB ════════════════════════ */}
+            {/* OUTLIERS TAB */}
             {activeTab === 'outliers' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
                 {outlierDetails.length > 0 ? (
                   outlierDetails.map((item: any) => (
-                    <div key={item.column} className="card" style={{ padding: '24px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h4 style={{ color: '#e2e8f0', fontWeight: 600, margin: 0 }}>{item.column}</h4>
-                        <span className={`badge badge-${item.severity === 'high' ? 'danger' : item.severity === 'medium' ? 'warning' : 'info'}`}>
+                    <div key={item.column} className="card-precision" style={{ padding: '18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h4 style={{ color: 'var(--text-primary)', fontWeight: 700, margin: 0, fontSize: '0.9rem', fontFamily: 'var(--font-family-mono)' }}>{item.column}</h4>
+                        <span className={`badge-subtle ${item.severity === 'high' ? 'badge-danger' : item.severity === 'medium' ? 'badge-warning' : 'badge-neutral'}`} style={{ fontSize: '0.7rem' }}>
                           {item.severity} severity
                         </span>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.85rem', color: '#94a3b8' }}>
-                        <div>IQR Outliers: <span style={{ color: '#f59e0b', fontWeight: 600 }}>{item.iqr_outliers}</span></div>
-                        <div>IQR %: <span style={{ color: '#e2e8f0' }}>{item.iqr_outlier_pct?.toFixed(2) ?? '—'}%</span></div>
-                        <div>Z-Score Outliers: <span style={{ color: '#f59e0b', fontWeight: 600 }}>{item.zscore_outliers}</span></div>
-                        <div>Z-Score %: <span style={{ color: '#e2e8f0' }}>{item.zscore_outlier_pct?.toFixed(2) ?? '—'}%</span></div>
-                        <div>Lower Bound: <span style={{ color: '#e2e8f0' }}>{item.lower_bound}</span></div>
-                        <div>Upper Bound: <span style={{ color: '#e2e8f0' }}>{item.upper_bound}</span></div>
-                        <div>Min Value: <span style={{ color: '#e2e8f0' }}>{item.min_value}</span></div>
-                        <div>Max Value: <span style={{ color: '#e2e8f0' }}>{item.max_value}</span></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        <div>IQR Outliers: <span style={{ color: 'var(--accent-amber)', fontWeight: 700, fontFamily: 'var(--font-family-mono)' }}>{item.iqr_outliers}</span></div>
+                        <div>IQR %: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.iqr_outlier_pct?.toFixed(2) ?? '—'}%</span></div>
+                        <div>Z-Score Outliers: <span style={{ color: 'var(--accent-amber)', fontWeight: 700, fontFamily: 'var(--font-family-mono)' }}>{item.zscore_outliers}</span></div>
+                        <div>Z-Score %: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.zscore_outlier_pct?.toFixed(2) ?? '—'}%</span></div>
+                        <div>Lower Bound: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.lower_bound}</span></div>
+                        <div>Upper Bound: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.upper_bound}</span></div>
+                        <div>Min Value: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.min_value}</span></div>
+                        <div>Max Value: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-family-mono)' }}>{item.max_value}</span></div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="card" style={{ padding: '40px', textAlign: 'center', gridColumn: '1 / -1', color: '#10b981' }}>
-                    <AlertTriangle size={40} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-                    <h4 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>No Outliers Detected</h4>
-                    <p>No significant outliers detected in numeric columns.</p>
+                  <div className="card-precision" style={{ padding: '36px', textAlign: 'center', gridColumn: '1 / -1', color: 'var(--color-success)' }}>
+                    <CheckCircle2 size={36} style={{ margin: '0 auto 10px', color: 'var(--color-success)' }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>No Anomalous Outliers Detected</h4>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>All numeric series conform within statistical IQR boundaries.</p>
                   </div>
                 )}
               </div>

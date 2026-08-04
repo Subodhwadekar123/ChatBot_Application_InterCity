@@ -1,40 +1,21 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
-  BarChart2,
-  TrendingUp,
-  LineChart as LineChartIcon,
-  Crosshair,
-  BoxSelect,
-  PieChart as PieChartIcon,
-  LayoutGrid,
-  Music2,
-  Clock,
   Settings2,
-  Play,
   Download,
-  Share2,
   Bookmark,
   Sparkles,
   RefreshCw,
   Maximize2,
-  Minimize2,
   RotateCcw,
   Undo2,
   Redo2,
   Copy,
-  Layers,
   Palette,
   Sliders,
-  Compass,
   FileCode,
   FileSpreadsheet,
-  Globe,
   Grid,
-  Flame,
-  Activity,
-  Maximize,
   CheckCircle2,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -145,24 +126,24 @@ export default function VisualizationPage() {
   // ── Figure & Global Settings ────────────────────────────────────────────────
   const [figureTheme, setFigureTheme] = useState<string>('dark');
   const [figureHeight, setFigureHeight] = useState<number>(560);
-  const [fontFamily, setFontFamily] = useState<string>('Inter, sans-serif');
-  const [fontSize, setFontSize] = useState<number>(12);
+  const [fontFamily] = useState<string>('Inter, sans-serif');
+  const [fontSize] = useState<number>(12);
   const [palette, setPalette] = useState<string>('viridis');
-  const [primaryColor, setPrimaryColor] = useState<string>('#6366f1');
+  const [primaryColor, setPrimaryColor] = useState<string>('#3b82f6');
   const [alpha, setAlpha] = useState<number>(0.85);
 
   // ── Legend & Grid ───────────────────────────────────────────────────────────
   const [showLegend, setShowLegend] = useState<boolean>(true);
   const [legendPosition, setLegendPosition] = useState<'top' | 'bottom' | 'right' | 'inside'>('right');
   const [majorGrid, setMajorGrid] = useState<boolean>(true);
-  const [minorGrid, setMinorGrid] = useState<boolean>(false);
-  const [gridColor, setGridColor] = useState<string>('rgba(255,255,255,0.08)');
-  const [lineStyle, setLineStyle] = useState<'solid' | 'dash' | 'dot'>('solid');
+  const [minorGrid] = useState<boolean>(false);
+  const [gridColor] = useState<string>('var(--border-subtle)');
+  const [lineStyle] = useState<'solid' | 'dash' | 'dot'>('solid');
 
   // ── Specialized Settings ────────────────────────────────────────────────────
   const [bins, setBins] = useState<number>(30);
   const [enableKde, setEnableKde] = useState<boolean>(true);
-  const [kdeFill, setKdeFill] = useState<boolean>(true);
+  const [kdeFill] = useState<boolean>(true);
   const [meanLine, setMeanLine] = useState<boolean>(true);
   const [medianLine, setMedianLine] = useState<boolean>(false);
   const [regressionLine, setRegressionLine] = useState<boolean>(true);
@@ -176,7 +157,7 @@ export default function VisualizationPage() {
   const [correlationMethod, setCorrelationMethod] = useState<string>('pearson');
   const [showAnnotations, setShowAnnotations] = useState<boolean>(true);
   const [markerStyle, setMarkerStyle] = useState<string>('circle');
-  const [markerSize, setMarkerSize] = useState<number>(8);
+  const [markerSize] = useState<number>(8);
 
   // ── Runtime Data & AI States ────────────────────────────────────────────────
   const [chartData, setChartData] = useState<any>(null);
@@ -184,7 +165,7 @@ export default function VisualizationPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loadingRecs, setLoadingRecs] = useState<boolean>(false);
   const [insights, setInsights] = useState<any[]>([]);
-  const [loadingInsights, setLoadingInsights] = useState<boolean>(false);
+  const [, setLoadingInsights] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [activePanel, setActivePanel] = useState<'catalog' | 'figure' | 'axis' | 'specialized' | 'insights'>('catalog');
 
@@ -197,7 +178,6 @@ export default function VisualizationPage() {
   // Available dataset columns
   const numericColumns = activeDataset?.dataset_info?.numeric_columns || [];
   const categoricalColumns = activeDataset?.dataset_info?.categorical_columns || [];
-  const datetimeColumns = activeDataset?.dataset_info?.datetime_columns || [];
   const allColumns = activeDataset?.dataset_info?.column_names || [];
 
   // Snapshot current visual state
@@ -267,7 +247,6 @@ export default function VisualizationPage() {
     toast.success('Redid visualization setting change', { duration: 1500 });
   };
 
-  // Keyboard shortcut Ctrl+Z / Ctrl+Y
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -287,7 +266,20 @@ export default function VisualizationPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [historyStack, redoStack]);
 
-  // Set default initial column selections when dataset changes
+  const fetchRecommendations = async () => {
+    if (!activeDataset?.id) return;
+    setLoadingRecs(true);
+    try {
+      const res = await getVisualizationRecommendations(activeDataset.id);
+      const recs = res?.data || res || [];
+      setRecommendations(recs);
+    } catch (err) {
+      console.error('Failed to fetch recommendations:', err);
+    } finally {
+      setLoadingRecs(false);
+    }
+  };
+
   useEffect(() => {
     if (activeDataset) {
       if (numericColumns.length > 0) {
@@ -305,27 +297,24 @@ export default function VisualizationPage() {
       if (categoricalColumns.length > 0) {
         setColorCol(categoricalColumns[0]);
       }
-
-      // Fetch automatic AI recommendations
       fetchRecommendations();
     }
   }, [activeDataset?.id]);
 
-  const fetchRecommendations = async () => {
+  const fetchInsights = async (config: any) => {
     if (!activeDataset?.id) return;
-    setLoadingRecs(true);
+    setLoadingInsights(true);
     try {
-      const res = await getVisualizationRecommendations(activeDataset.id);
-      const recs = res?.data || res || [];
-      setRecommendations(recs);
+      const res = await getVisualizationInsights(activeDataset.id, config);
+      const insData = res?.data?.insights || res?.insights || [];
+      setInsights(insData);
     } catch (err) {
-      console.error('Failed to fetch recommendations:', err);
+      console.error('Insights error:', err);
     } finally {
-      setLoadingRecs(false);
+      setLoadingInsights(false);
     }
   };
 
-  // ── Render / Fetch Current Visualization ────────────────────────────────────
   const fetchChart = useCallback(async () => {
     if (!activeDataset?.id) return;
 
@@ -361,8 +350,6 @@ export default function VisualizationPage() {
       const res = await generateVisualization(activeDataset.id, config);
       const data = res?.data || res;
       setChartData(data);
-
-      // Also trigger smart insights in background
       fetchInsights(config);
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to render visualization');
@@ -398,20 +385,6 @@ export default function VisualizationPage() {
     markerSize,
   ]);
 
-  const fetchInsights = async (config: any) => {
-    if (!activeDataset?.id) return;
-    setLoadingInsights(true);
-    try {
-      const res = await getVisualizationInsights(activeDataset.id, config);
-      const insData = res?.data?.insights || res?.insights || [];
-      setInsights(insData);
-    } catch (err) {
-      console.error('Insights error:', err);
-    } finally {
-      setLoadingInsights(false);
-    }
-  };
-
   useEffect(() => {
     if (activeDataset?.id && (xCol || selectedChartType.includes('heatmap') || selectedChartType === 'parallel_coordinates')) {
       fetchChart();
@@ -426,13 +399,13 @@ export default function VisualizationPage() {
     if (rec.config?.color_col) setColorCol(rec.config.color_col);
     if (rec.config?.column) setXCol(rec.config.column);
     if (rec.config?.enable_kde !== undefined) setEnableKde(rec.config.enable_kde);
-    toast.success(`Applied AI Recommendation: ${rec.title}`);
+    toast.success(`Applied Recommendation: ${rec.title}`);
   };
 
   const copyConfigJSON = () => {
     const cfg = captureState();
     navigator.clipboard.writeText(JSON.stringify(cfg, null, 2));
-    toast.success('Visualization settings copied to clipboard!');
+    toast.success('Settings JSON copied to clipboard');
   };
 
   const bookmarkChart = () => {
@@ -444,10 +417,9 @@ export default function VisualizationPage() {
       config: captureState(),
     });
     localStorage.setItem('infinitics_saved_charts', JSON.stringify(saved));
-    toast.success('Visualization bookmarked successfully!');
+    toast.success('Visualization bookmarked');
   };
 
-  // Filter Catalog by category and search
   const filteredCatalog = VISUALIZATION_CATALOG.filter((item) => {
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -457,78 +429,60 @@ export default function VisualizationPage() {
   const categories = ['All', 'Distributions', 'Trends & Comparisons', 'Relationships', 'Part-to-Whole', 'Multidimensional', '3D & Scientific', 'Time Series'];
 
   if (!activeDataset) {
-    return (
-      <div className="page-container" style={{ padding: '32px' }}>
-        <EmptyState
-          title="No Dataset Selected"
-          description="Upload or select a dataset from the sidebar to launch the full 47-chart Visualization Studio."
-        />
-      </div>
-    );
+    return <EmptyState />;
   }
 
   return (
-    <div className="page-container" style={{ padding: '24px', maxWidth: '1800px', margin: '0 auto' }}>
+    <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: '40px' }}>
       
       {/* ── TOP HEADER & TOOLBAR ────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               Visualization Studio
             </h1>
-            <span style={{
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))',
-              color: '#a5b4fc',
-              border: '1px solid rgba(168, 85, 247, 0.3)',
-              borderRadius: '20px',
-              padding: '4px 12px',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
-              <Sparkles size={13} color="#c084fc" /> 47 Interactive Visualizations
+            <span className="badge-subtle badge-info" style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Sparkles size={12} /> 47 Chart Archetypes
             </span>
           </div>
-          <p className="page-subtitle" style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.88rem' }}>
-            Active Dataset: <strong style={{ color: '#f8fafc' }}>{activeDataset.filename}</strong> ({activeDataset.dataset_info.rows.toLocaleString()} rows × {activeDataset.dataset_info.columns} cols)
+          <p style={{ margin: '3px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+            Workspace: <strong style={{ color: 'var(--text-primary)' }}>{activeDataset.filename}</strong> ({activeDataset.dataset_info.rows.toLocaleString()} rows × {activeDataset.dataset_info.columns} cols)
           </p>
         </div>
 
         {/* Action Toolbar */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Undo / Redo */}
           <button
             onClick={handleUndo}
             disabled={historyStack.length === 0}
             className="btn-secondary"
             title="Undo Setting (Ctrl+Z)"
-            style={{ height: '36px', padding: '0 10px', opacity: historyStack.length === 0 ? 0.4 : 1 }}
+            style={{ height: '34px', padding: '0 8px', opacity: historyStack.length === 0 ? 0.4 : 1 }}
           >
-            <Undo2 size={15} />
+            <Undo2 size={14} />
           </button>
           <button
             onClick={handleRedo}
             disabled={redoStack.length === 0}
             className="btn-secondary"
             title="Redo Setting (Ctrl+Y)"
-            style={{ height: '36px', padding: '0 10px', opacity: redoStack.length === 0 ? 0.4 : 1 }}
+            style={{ height: '34px', padding: '0 8px', opacity: redoStack.length === 0 ? 0.4 : 1 }}
           >
-            <Redo2 size={15} />
+            <Redo2 size={14} />
           </button>
 
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '20px', background: 'var(--border-default)', margin: '0 3px' }} />
 
           {/* Reset View */}
           <button
             onClick={() => exportFnsRef.current?.resetView?.()}
             className="btn-secondary"
             title="Reset Zoom & Pan"
-            style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem' }}
+            style={{ height: '34px', padding: '0 10px', fontSize: '0.8rem' }}
           >
-            <RotateCcw size={14} /> Reset View
+            <RotateCcw size={13} /> Reset View
           </button>
 
           {/* Copy Config */}
@@ -536,9 +490,9 @@ export default function VisualizationPage() {
             onClick={copyConfigJSON}
             className="btn-secondary"
             title="Copy Settings JSON"
-            style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem' }}
+            style={{ height: '34px', padding: '0 10px', fontSize: '0.8rem' }}
           >
-            <Copy size={14} /> Copy Config
+            <Copy size={13} /> Copy JSON
           </button>
 
           {/* Bookmark */}
@@ -546,26 +500,26 @@ export default function VisualizationPage() {
             onClick={bookmarkChart}
             className="btn-secondary"
             title="Bookmark Visualization"
-            style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem' }}
+            style={{ height: '34px', padding: '0 10px', fontSize: '0.8rem' }}
           >
-            <Bookmark size={14} /> Bookmark
+            <Bookmark size={13} /> Save
           </button>
 
-          {/* Download Dropdown */}
-          <div style={{ display: 'flex', gap: '4px' }}>
+          {/* Export Formats */}
+          <div style={{ display: 'flex', gap: '3px' }}>
             <button
               onClick={() => exportFnsRef.current?.downloadPNG?.()}
               className="btn-secondary"
               title="Download High-Res PNG"
-              style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem', color: '#38bdf8' }}
+              style={{ height: '34px', padding: '0 9px', fontSize: '0.8rem' }}
             >
-              <Download size={14} /> PNG
+              <Download size={13} /> PNG
             </button>
             <button
               onClick={() => exportFnsRef.current?.downloadSVG?.()}
               className="btn-secondary"
               title="Download Vector SVG"
-              style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem', color: '#a855f7' }}
+              style={{ height: '34px', padding: '0 9px', fontSize: '0.8rem' }}
             >
               SVG
             </button>
@@ -573,17 +527,17 @@ export default function VisualizationPage() {
               onClick={() => exportFnsRef.current?.downloadHTML?.()}
               className="btn-secondary"
               title="Download Interactive HTML"
-              style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem', color: '#10b981' }}
+              style={{ height: '34px', padding: '0 9px', fontSize: '0.8rem' }}
             >
-              <FileCode size={14} /> HTML
+              <FileCode size={13} /> HTML
             </button>
             <button
               onClick={() => exportFnsRef.current?.downloadCSV?.()}
               className="btn-secondary"
               title="Download Chart Data CSV"
-              style={{ height: '36px', padding: '0 12px', fontSize: '0.85rem', color: '#f59e0b' }}
+              style={{ height: '34px', padding: '0 9px', fontSize: '0.8rem' }}
             >
-              <FileSpreadsheet size={14} /> CSV
+              <FileSpreadsheet size={13} /> CSV
             </button>
           </div>
 
@@ -592,9 +546,9 @@ export default function VisualizationPage() {
             onClick={fetchChart}
             disabled={loading}
             className="btn-primary"
-            style={{ height: '36px', padding: '0 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ height: '34px', padding: '0 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             Render
           </button>
         </div>
@@ -602,75 +556,49 @@ export default function VisualizationPage() {
 
       {/* ── AI RECOMMENDATION ENGINE BANNER ─────────────────────────────────── */}
       {recommendations.length > 0 && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          marginBottom: '24px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
+        <div className="card-precision" style={{
+          padding: '14px 18px',
+          marginBottom: '20px',
+          background: 'var(--bg-surface)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                background: 'rgba(99, 102, 241, 0.2)',
-                padding: '6px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#818cf8'
-              }}>
-                <Sparkles size={16} />
-              </div>
-              <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#f1f5f9' }}>
-                AI Automated Chart Recommendations
-              </span>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                (Tailored to your dataset's column schemas)
+              <Sparkles size={15} color="var(--accent-primary)" />
+              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                Recommended Visualizations for Schema
               </span>
             </div>
             <button
               onClick={fetchRecommendations}
-              style={{ background: 'transparent', border: 'none', color: '#818cf8', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
             >
-              <RefreshCw size={12} className={loadingRecs ? 'animate-spin' : ''} /> Refresh
+              <RefreshCw size={11} className={loadingRecs ? 'animate-spin' : ''} /> Refresh AI
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
             {recommendations.map((rec, i) => (
               <div
                 key={i}
                 onClick={() => applyRecommendation(rec)}
                 style={{
-                  background: selectedChartType === rec.chart_type ? 'rgba(99, 102, 241, 0.18)' : 'rgba(15, 23, 42, 0.6)',
-                  border: `1px solid ${selectedChartType === rec.chart_type ? 'rgba(99, 102, 241, 0.6)' : 'rgba(255, 255, 255, 0.08)'}`,
-                  borderRadius: '10px',
-                  padding: '12px 14px',
+                  background: selectedChartType === rec.chart_type ? 'var(--accent-primary-light)' : 'var(--bg-canvas)',
+                  border: `1px solid ${selectedChartType === rec.chart_type ? 'var(--accent-primary)' : 'var(--border-default)'}`,
+                  borderRadius: '8px',
+                  padding: '10px 12px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  overflow: 'hidden'
+                  transition: 'all 0.15s ease',
                 }}
-                className="hover-card"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {rec.title}
                   </span>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    color: '#34d399',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontWeight: 600
-                  }}>
+                  <span className="badge-subtle badge-success" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>
                     {Math.round(rec.confidence * 100)}% Match
                   </span>
                 </div>
-                <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
                   {rec.reason}
                 </p>
               </div>
@@ -680,25 +608,25 @@ export default function VisualizationPage() {
       )}
 
       {/* ── MAIN STUDIO GRID ────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '310px 1fr', gap: '20px', alignItems: 'start' }}>
 
         {/* ── LEFT CONTROL PANELS ───────────────────────────────────────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
           {/* Panel Selector Tabs */}
           <div style={{
             display: 'flex',
-            background: '#1e293b',
-            padding: '4px',
-            borderRadius: '10px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            gap: '4px'
+            background: 'var(--bg-surface)',
+            padding: '3px',
+            borderRadius: '8px',
+            border: '1px solid var(--border-default)',
+            gap: '3px'
           }}>
             {[
-              { id: 'catalog', label: 'Charts', icon: <Grid size={14} /> },
-              { id: 'axis', label: 'Axes', icon: <Sliders size={14} /> },
-              { id: 'figure', label: 'Figure', icon: <Palette size={14} /> },
-              { id: 'specialized', label: 'Fine-Tune', icon: <Settings2 size={14} /> },
+              { id: 'catalog', label: 'Charts', icon: <Grid size={13} /> },
+              { id: 'axis', label: 'Axes', icon: <Sliders size={13} /> },
+              { id: 'figure', label: 'Theme', icon: <Palette size={13} /> },
+              { id: 'specialized', label: 'Tune', icon: <Settings2 size={13} /> },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -708,15 +636,15 @@ export default function VisualizationPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '5px',
-                  padding: '8px 0',
-                  fontSize: '0.8rem',
+                  gap: '4px',
+                  padding: '6px 0',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  background: activePanel === tab.id ? '#6366f1' : 'transparent',
-                  color: activePanel === tab.id ? '#ffffff' : '#94a3b8',
+                  background: activePanel === tab.id ? 'var(--accent-primary)' : 'transparent',
+                  color: activePanel === tab.id ? '#ffffff' : 'var(--text-secondary)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -728,31 +656,32 @@ export default function VisualizationPage() {
 
           {/* 1. VISUALIZATION CATALOG PANEL */}
           {activePanel === 'catalog' && (
-            <div className="card" style={{ padding: '18px', maxHeight: '720px', overflowY: 'auto' }}>
-              <div style={{ marginBottom: '12px' }}>
+            <div className="card-precision" style={{ padding: '14px', maxHeight: '680px', overflowY: 'auto' }}>
+              <div style={{ marginBottom: '10px' }}>
                 <input
                   type="text"
-                  placeholder="Search 47 visualizations..."
+                  placeholder="Search 47 chart archetypes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input"
-                  style={{ width: '100%', fontSize: '0.85rem' }}
+                  className="input-precision"
+                  style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                 />
               </div>
 
               {/* Category Pills */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '12px' }}>
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     style={{
-                      fontSize: '0.72rem',
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      background: activeCategory === cat ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.4)',
-                      color: activeCategory === cat ? '#a5b4fc' : '#94a3b8',
+                      fontSize: '0.68rem',
+                      padding: '3px 7px',
+                      borderRadius: '5px',
+                      border: `1px solid ${activeCategory === cat ? 'var(--accent-primary)' : 'var(--border-default)'}`,
+                      background: activeCategory === cat ? 'var(--accent-primary-light)' : 'transparent',
+                      color: activeCategory === cat ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontWeight: activeCategory === cat ? 700 : 500,
                       cursor: 'pointer'
                     }}
                   >
@@ -762,7 +691,7 @@ export default function VisualizationPage() {
               </div>
 
               {/* Catalog Items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {filteredCatalog.map((item) => (
                   <div
                     key={item.id}
@@ -771,25 +700,24 @@ export default function VisualizationPage() {
                       setSelectedChartType(item.id);
                     }}
                     style={{
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      background: selectedChartType === item.id ? 'rgba(99, 102, 241, 0.2)' : 'rgba(30, 41, 59, 0.4)',
-                      border: `1px solid ${selectedChartType === item.id ? '#6366f1' : 'rgba(255,255,255,0.05)'}`,
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      background: selectedChartType === item.id ? 'var(--accent-primary-light)' : 'var(--bg-canvas)',
+                      border: `1px solid ${selectedChartType === item.id ? 'var(--accent-primary)' : 'var(--border-default)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
-                    className="hover-card"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: selectedChartType === item.id ? '#ffffff' : '#e2e8f0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.95rem' }}>{item.icon}</span>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: selectedChartType === item.id ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
                           {item.name}
                         </span>
                       </div>
-                      {selectedChartType === item.id && <CheckCircle2 size={15} color="#818cf8" />}
+                      {selectedChartType === item.id && <CheckCircle2 size={13} color="var(--accent-primary)" />}
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, lineHeight: 1.3 }}>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.3 }}>
                       {item.description}
                     </p>
                   </div>
@@ -800,22 +728,22 @@ export default function VisualizationPage() {
 
           {/* 2. AXIS & COLUMN CONTROLS PANEL */}
           {activePanel === 'axis' && (
-            <div className="card" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e2e8f0', margin: 0 }}>
-                Axis & Feature Mapping
+            <div className="card-precision" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Axis & Feature Dimensions
               </h3>
 
               {/* X Column */}
               <div>
-                <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>X-Axis Column</label>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>Primary X-Axis</label>
                 <select
                   value={xCol}
                   onChange={(e) => {
                     setHistoryStack((h) => [...h, captureState()]);
                     setXCol(e.target.value);
                   }}
-                  className="input"
-                  style={{ width: '100%' }}
+                  className="input-precision"
+                  style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                 >
                   <option value="">-- Select X Column --</option>
                   {allColumns.map((c) => (
@@ -826,65 +754,34 @@ export default function VisualizationPage() {
 
               {/* Y Column */}
               <div>
-                <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Primary Y-Axis Column</label>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>Primary Y-Axis</label>
                 <select
                   value={yCol}
                   onChange={(e) => {
                     setHistoryStack((h) => [...h, captureState()]);
                     setYCol(e.target.value);
                   }}
-                  className="input"
-                  style={{ width: '100%' }}
+                  className="input-precision"
+                  style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                 >
-                  <option value="">-- Select Y Column (Optional for 1D) --</option>
+                  <option value="">-- Select Y Column --</option>
                   {allColumns.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Multiple Y Columns (for multi-line) */}
-              {(selectedChartType === 'line' || selectedChartType === 'area') && (
-                <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Multi-Series Y Columns</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '100px', overflowY: 'auto' }}>
-                    {numericColumns.map((c) => {
-                      const isSel = yCols.includes(c);
-                      return (
-                        <button
-                          key={c}
-                          onClick={() => {
-                            setYCols(isSel ? yCols.filter((x) => x !== c) : [...yCols, c]);
-                          }}
-                          style={{
-                            fontSize: '0.75rem',
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            border: `1px solid ${isSel ? '#6366f1' : 'rgba(255,255,255,0.1)'}`,
-                            background: isSel ? 'rgba(99,102,241,0.25)' : 'transparent',
-                            color: isSel ? '#c7d2fe' : '#94a3b8',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {c}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Color / Hue Column */}
+              {/* Color / Grouping */}
               <div>
-                <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Color / Hue Dimension</label>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>Categorical Hue Dimension</label>
                 <select
                   value={colorCol}
                   onChange={(e) => {
                     setHistoryStack((h) => [...h, captureState()]);
                     setColorCol(e.target.value);
                   }}
-                  className="input"
-                  style={{ width: '100%' }}
+                  className="input-precision"
+                  style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                 >
                   <option value="">-- None --</option>
                   {allColumns.map((c) => (
@@ -896,12 +793,12 @@ export default function VisualizationPage() {
               {/* 3D Z Column */}
               {selectedChartType.includes('3d') && (
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Z-Axis Dimension (3D)</label>
+                  <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>Z-Axis (3D Surface)</label>
                   <select
                     value={zCol}
                     onChange={(e) => setZCol(e.target.value)}
-                    className="input"
-                    style={{ width: '100%' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                   >
                     <option value="">-- Select Z Column --</option>
                     {numericColumns.map((c) => (
@@ -911,28 +808,28 @@ export default function VisualizationPage() {
                 </div>
               )}
 
-              {/* Axis Labels & Scale */}
+              {/* Labels */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>X Label</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>X Label</label>
                   <input
                     type="text"
                     value={xLabel}
                     placeholder="Auto"
                     onChange={(e) => setXLabel(e.target.value)}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   />
                 </div>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Y Label</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Y Label</label>
                   <input
                     type="text"
                     value={yLabel}
                     placeholder="Auto"
                     onChange={(e) => setYLabel(e.target.value)}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   />
                 </div>
               </div>
@@ -940,24 +837,24 @@ export default function VisualizationPage() {
               {/* Scale & Rotation */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Axis Scale</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Scale</label>
                   <select
                     value={axisScale}
                     onChange={(e) => setAxisScale(e.target.value as any)}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   >
                     <option value="linear">Linear</option>
                     <option value="log">Logarithmic</option>
                   </select>
                 </div>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Tick Rotation</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Rotation</label>
                   <select
                     value={axisRotation}
                     onChange={(e) => setAxisRotation(Number(e.target.value))}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   >
                     <option value={0}>0° Horizontal</option>
                     <option value={-45}>-45° Slanted</option>
@@ -966,14 +863,14 @@ export default function VisualizationPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                 <input
                   type="checkbox"
                   id="revAxis"
                   checked={reverseAxis}
                   onChange={(e) => setReverseAxis(e.target.checked)}
                 />
-                <label htmlFor="revAxis" style={{ fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                <label htmlFor="revAxis" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   Reverse Axis Orientation
                 </label>
               </div>
@@ -982,28 +879,24 @@ export default function VisualizationPage() {
 
           {/* 3. FIGURE & THEME SETTINGS PANEL */}
           {activePanel === 'figure' && (
-            <div className="card" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e2e8f0', margin: 0 }}>
-                Figure Themes & Palettes
+            <div className="card-precision" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Visual Style & Colormaps
               </h3>
 
               {/* Color Palette */}
               <div>
-                <label className="section-label" style={{ display: 'block', marginBottom: '6px' }}>Color Palette</label>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Color Palette</label>
                 <select
                   value={palette}
                   onChange={(e) => setPalette(e.target.value)}
-                  className="input"
-                  style={{ width: '100%' }}
+                  className="input-precision"
+                  style={{ width: '100%', fontSize: '0.8rem', height: '32px' }}
                 >
-                  <option value="viridis">Viridis (Sequential Standard)</option>
-                  <option value="plasma">Plasma (High Energy Glow)</option>
-                  <option value="turbo">Turbo (Full Spectrum Gradient)</option>
-                  <option value="coolwarm">Coolwarm (Diverging Zero-Centered)</option>
-                  <option value="spectral">Spectral (Multi-Tone Rainbow)</option>
-                  <option value="plotly">Plotly Classic</option>
-                  <option value="cyberpunk">Cyberpunk Neon</option>
-                  <option value="emerald">Emerald Nature</option>
+                  <option value="viridis">Viridis (Standard)</option>
+                  <option value="coolwarm">Coolwarm (Diverging)</option>
+                  <option value="spectral">Spectral (Multi-Tone)</option>
+                  <option value="plotly">Precision Teal/Blue</option>
                   <option value="sunset">Sunset Warm</option>
                   <option value="minimalist">Minimalist Slate</option>
                 </select>
@@ -1012,16 +905,16 @@ export default function VisualizationPage() {
               {/* Primary Color Picker & Alpha */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignItems: 'center' }}>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Primary Accent</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Primary Hue</label>
                   <input
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    style={{ width: '100%', height: '38px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', background: 'transparent' }}
+                    style={{ width: '100%', height: '32px', borderRadius: '6px', border: '1px solid var(--border-default)', cursor: 'pointer', background: 'transparent' }}
                   />
                 </div>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Alpha ({Math.round(alpha * 100)}%)</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Alpha ({Math.round(alpha * 100)}%)</label>
                   <input
                     type="range"
                     min="0.2"
@@ -1036,7 +929,7 @@ export default function VisualizationPage() {
 
               {/* Figure Height */}
               <div>
-                <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Figure Height: {figureHeight}px</label>
+                <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Canvas Height: {figureHeight}px</label>
                 <input
                   type="range"
                   min="380"
@@ -1051,37 +944,36 @@ export default function VisualizationPage() {
               {/* Legend Controls */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Show Legend</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Legend</label>
                   <select
                     value={showLegend ? 'yes' : 'no'}
                     onChange={(e) => setShowLegend(e.target.value === 'yes')}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   >
                     <option value="yes">Visible</option>
                     <option value="no">Hidden</option>
                   </select>
                 </div>
                 <div>
-                  <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Legend Pos</label>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Position</label>
                   <select
                     value={legendPosition}
                     onChange={(e) => setLegendPosition(e.target.value as any)}
-                    className="input"
-                    style={{ width: '100%', fontSize: '0.8rem' }}
+                    className="input-precision"
+                    style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                   >
                     <option value="right">Right</option>
                     <option value="top">Top</option>
                     <option value="bottom">Bottom</option>
-                    <option value="inside">Inside</option>
                   </select>
                 </div>
               </div>
 
               {/* Grid Lines */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={majorGrid} onChange={(e) => setMajorGrid(e.target.checked)} /> Major Grid
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={majorGrid} onChange={(e) => setMajorGrid(e.target.checked)} /> Major Grid Lines
                 </label>
               </div>
             </div>
@@ -1089,16 +981,16 @@ export default function VisualizationPage() {
 
           {/* 4. SPECIALIZED & FINE-TUNE SETTINGS PANEL */}
           {activePanel === 'specialized' && (
-            <div className="card" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e2e8f0', margin: 0 }}>
-                Specialized Chart Options
+            <div className="card-precision" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Specialized Statistical Controls
               </h3>
 
               {/* Histogram Options */}
               {selectedChartType === 'histogram' && (
                 <>
                   <div>
-                    <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Number of Bins: {bins}</label>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Bins: {bins}</label>
                     <input
                       type="range"
                       min="5"
@@ -1108,14 +1000,14 @@ export default function VisualizationPage() {
                       style={{ width: '100%' }}
                     />
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={enableKde} onChange={(e) => setEnableKde(e.target.checked)} /> Overlay KDE Density
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={enableKde} onChange={(e) => setEnableKde(e.target.checked)} /> KDE Density Curve
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={meanLine} onChange={(e) => setMeanLine(e.target.checked)} /> Overlay Mean Line
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={meanLine} onChange={(e) => setMeanLine(e.target.checked)} /> Mean Reference Line
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={medianLine} onChange={(e) => setMedianLine(e.target.checked)} /> Overlay Median Line
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={medianLine} onChange={(e) => setMedianLine(e.target.checked)} /> Median Reference Line
                   </label>
                 </>
               )}
@@ -1123,26 +1015,24 @@ export default function VisualizationPage() {
               {/* Scatter Options */}
               {selectedChartType.includes('scatter') && (
                 <>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={regressionLine} onChange={(e) => setRegressionLine(e.target.checked)} /> OLS Linear Regression
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={polyFit} onChange={(e) => setPolyFit(e.target.checked)} /> Polynomial Degree 2 Fit
                   </label>
                   <div>
-                    <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Marker Symbol</label>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Marker Symbol</label>
                     <select
                       value={markerStyle}
                       onChange={(e) => setMarkerStyle(e.target.value)}
-                      className="input"
-                      style={{ width: '100%', fontSize: '0.85rem' }}
+                      className="input-precision"
+                      style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                     >
                       <option value="circle">Circle</option>
                       <option value="square">Square</option>
                       <option value="diamond">Diamond</option>
                       <option value="cross">Cross</option>
-                      <option value="triangle-up">Triangle</option>
-                      <option value="star">Star</option>
                     </select>
                   </div>
                 </>
@@ -1151,36 +1041,25 @@ export default function VisualizationPage() {
               {/* Line Options */}
               {selectedChartType.includes('line') && (
                 <>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={smoothing} onChange={(e) => setSmoothing(e.target.checked)} /> Spline Curve Smoothing
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={smoothing} onChange={(e) => setSmoothing(e.target.checked)} /> Spline Smoothing
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={stepPlot} onChange={(e) => setStepPlot(e.target.checked)} /> Step Plot Mode
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={fillBetween} onChange={(e) => setFillBetween(e.target.checked)} /> Shaded Area Fill
                   </label>
-                  <div>
-                    <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Moving Avg Window: {movingAvgWindow ? `${movingAvgWindow} steps` : 'Off'}</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="30"
-                      value={movingAvgWindow}
-                      onChange={(e) => setMovingAvgWindow(Number(e.target.value))}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
                 </>
               )}
 
               {/* Box & Violin Options */}
               {(selectedChartType === 'box' || selectedChartType === 'violin') && (
                 <>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={boxNotch} onChange={(e) => setBoxNotch(e.target.checked)} /> Notched Median Bounds
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={showOutliers} onChange={(e) => setShowOutliers(e.target.checked)} /> Display Outlier Points
                   </label>
                 </>
@@ -1190,20 +1069,20 @@ export default function VisualizationPage() {
               {selectedChartType.includes('heatmap') && (
                 <>
                   <div>
-                    <label className="section-label" style={{ display: 'block', marginBottom: '4px' }}>Correlation Method</label>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Correlation Method</label>
                     <select
                       value={correlationMethod}
                       onChange={(e) => setCorrelationMethod(e.target.value)}
-                      className="input"
-                      style={{ width: '100%' }}
+                      className="input-precision"
+                      style={{ width: '100%', fontSize: '0.78rem', height: '30px' }}
                     >
                       <option value="pearson">Pearson (Linear)</option>
                       <option value="spearman">Spearman (Rank)</option>
                       <option value="kendall">Kendall (Tau)</option>
                     </select>
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={showAnnotations} onChange={(e) => setShowAnnotations(e.target.checked)} /> Numeric Value Labels
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={showAnnotations} onChange={(e) => setShowAnnotations(e.target.checked)} /> Numeric Matrix Annotations
                   </label>
                 </>
               )}
@@ -1212,64 +1091,61 @@ export default function VisualizationPage() {
 
         </div>
 
-        {/* ── CENTER & RIGHT WORKSPACE CANVAS ───────────────────────────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* ── CENTER WORKSPACE CANVAS ───────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
           {/* Interactive Chart Canvas Card */}
           <div
             ref={chartWrapperRef}
-            className="card"
+            className="card-precision"
             style={{
-              padding: '24px',
+              padding: '20px',
               position: 'relative',
-              minHeight: '580px',
+              minHeight: '560px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
             }}
           >
             {/* Header / Active Chart Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.4rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>
                   {VISUALIZATION_CATALOG.find((c) => c.id === selectedChartType)?.icon || '📊'}
                 </span>
                 <div>
-                  <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                  <h2 style={{ fontSize: '0.96rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     {VISUALIZATION_CATALOG.find((c) => c.id === selectedChartType)?.name || selectedChartType.toUpperCase()}
                   </h2>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     {xCol ? `X: ${xCol}` : ''} {yCol ? `| Y: ${yCol}` : ''} {colorCol ? `| Group: ${colorCol}` : ''}
                   </span>
                 </div>
               </div>
 
-              {/* Fullscreen & Fast Reset */}
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button
-                  onClick={() => {
-                    if (!isFullscreen) {
-                      chartWrapperRef.current?.requestFullscreen?.();
-                      setIsFullscreen(true);
-                    } else {
-                      document.exitFullscreen?.();
-                      setIsFullscreen(false);
-                    }
-                  }}
-                  className="btn-secondary"
-                  title="Toggle Fullscreen"
-                  style={{ height: '32px', padding: '0 8px' }}
-                >
-                  <Maximize2 size={14} />
-                </button>
-              </div>
+              {/* Fullscreen Toggle */}
+              <button
+                onClick={() => {
+                  if (!isFullscreen) {
+                    chartWrapperRef.current?.requestFullscreen?.();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.();
+                    setIsFullscreen(false);
+                  }
+                }}
+                className="btn-secondary"
+                title="Toggle Fullscreen"
+                style={{ height: '28px', padding: '0 7px' }}
+              >
+                <Maximize2 size={13} />
+              </button>
             </div>
 
             {/* Main Plotly WebGL Canvas */}
             {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '420px', gap: '12px' }}>
-                <LoadingSpinner />
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Rendering {selectedChartType.replace('_', ' ')} with statistical overlays...</p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', gap: '10px' }}>
+                <LoadingSpinner text={`Rendering ${selectedChartType.replace('_', ' ')}...`} />
               </div>
             ) : chartData ? (
               <UniversalPlotlyChart
@@ -1331,36 +1207,36 @@ export default function VisualizationPage() {
             ) : (
               <EmptyState
                 title="Select Features to Render"
-                description="Choose an X Column and Y Column from the left panel or click an AI Recommendation above."
+                description="Choose an X Column and Y Column from the left panel or select an AI Recommendation above."
               />
             )}
           </div>
 
           {/* ── SMART AI INSIGHTS CARD ───────────────────────────────────────── */}
           {insights.length > 0 && (
-            <div className="card" style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7))' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                <Sparkles size={18} color="#818cf8" />
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f1f5f9', margin: 0 }}>
-                  Smart Automated Insights
+            <div className="card-precision" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <Sparkles size={16} color="var(--accent-primary)" />
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                  Automated Statistical Findings
                 </h3>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
                 {insights.map((ins, idx) => (
                   <div
                     key={idx}
                     style={{
-                      background: 'rgba(15, 23, 42, 0.6)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '8px',
-                      padding: '12px 16px',
+                      background: 'var(--bg-canvas)',
+                      border: '1px solid var(--border-default)',
+                      borderRadius: '6px',
+                      padding: '10px 12px',
                     }}
                   >
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#a5b4fc', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>
                       {ins.title}
                     </div>
-                    <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                       {ins.text}
                     </div>
                   </div>

@@ -51,7 +51,14 @@ interface DataDictionary {
 // ─── Skeleton shimmer ────────────────────────────────────────────────────────
 
 const SkeletonBlock: React.FC<{ height?: string }> = ({ height = '120px' }) => (
-  <div className="skeleton" style={{ height, borderRadius: '12px', marginBottom: '16px' }} />
+  <div style={{
+    height,
+    borderRadius: '10px',
+    marginBottom: '14px',
+    background: 'var(--bg-surface-raised)',
+    border: '1px solid var(--border-default)',
+    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+  }} />
 );
 
 // ─── Suggested questions ─────────────────────────────────────────────────────
@@ -67,40 +74,42 @@ const SUGGESTED_QUESTIONS = [
 
 const TypingIndicator: React.FC = () => (
   <motion.div
-    initial={{ opacity: 0, y: 8 }}
+    initial={{ opacity: 0, y: 6 }}
     animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -8 }}
-    style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}
+    exit={{ opacity: 0, y: -6 }}
+    style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}
   >
     <div
       style={{
-        width: 32,
-        height: 32,
+        width: 28,
+        height: 28,
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        background: 'var(--accent-primary-light)',
+        color: 'var(--accent-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
       }}
     >
-      <Sparkles size={16} color="#fff" />
+      <Sparkles size={14} />
     </div>
     <div
       style={{
-        background: '#252836',
-        borderRadius: '0 12px 12px 12px',
-        padding: '12px 16px',
+        background: 'var(--bg-surface-raised)',
+        border: '1px solid var(--border-default)',
+        borderRadius: '0 10px 10px 10px',
+        padding: '10px 14px',
         display: 'flex',
-        gap: '6px',
+        gap: '5px',
         alignItems: 'center',
       }}
     >
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', display: 'block' }}
-          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+          style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-primary)', display: 'block' }}
+          animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
         />
       ))}
@@ -113,26 +122,26 @@ const TypingIndicator: React.FC = () => (
 interface InsightCardProps {
   icon: React.ReactNode;
   title: string;
-  accentColor: string;
   children: React.ReactNode;
   delay?: number;
 }
 
-const InsightCard: React.FC<InsightCardProps> = ({ icon, title, accentColor, children, delay = 0 }) => (
+const InsightCard: React.FC<InsightCardProps> = ({ icon, title, children, delay = 0 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 16 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay }}
-    className="card"
-    style={{ marginBottom: '16px', border: `1px solid ${accentColor}33` }}
+    transition={{ duration: 0.35, delay }}
+    className="card-precision"
+    style={{ marginBottom: '14px', padding: '16px' }}
   >
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
       <div
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: '10px',
-          background: `${accentColor}22`,
+          width: 30,
+          height: 30,
+          borderRadius: '8px',
+          background: 'var(--accent-primary-light)',
+          color: 'var(--accent-primary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -140,7 +149,7 @@ const InsightCard: React.FC<InsightCardProps> = ({ icon, title, accentColor, chi
       >
         {icon}
       </div>
-      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>{title}</h3>
+      <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h3>
     </div>
     {children}
   </motion.div>
@@ -187,7 +196,7 @@ const AIInsightsPage: React.FC = () => {
     setDataDictionary(null);
     setShowDictionary(false);
     loadInsights();
-  }, [activeDataset?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeDataset?.id]);
 
   // ── Data dictionary ────────────────────────────────────────────────────────
 
@@ -265,75 +274,79 @@ const AIInsightsPage: React.FC = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ paddingBottom: '40px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Page header */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: '28px' }}
-      >
-        <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#f1f5f9' }}>
-          <span className="text-gradient">AI Insights</span>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Automated Insights &amp; Copilot
         </h1>
-        <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '15px' }}>
-          Automated analysis and conversational AI for{' '}
-          <strong style={{ color: '#e2e8f0' }}>{activeDataset.filename}</strong>
+        <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '0.84rem' }}>
+          Real-time dataset intelligence and analytical dialogue for <strong style={{ color: 'var(--text-primary)' }}>{activeDataset.filename}</strong>
         </p>
-      </motion.div>
+      </div>
 
       {/* Two-column grid */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '24px',
+          gap: '20px',
           alignItems: 'start',
         }}
       >
         {/* ── LEFT: Auto Insights ───────────────────────────────────────────── */}
         <div>
           {/* Refresh & Tabs Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
-            <div className="tabs" style={{ marginBottom: 0, gap: '4px' }}>
-              <button
-                className={`tab-btn ${activeInsightTab === 'general' ? 'active' : ''}`}
-                onClick={() => setActiveInsightTab('general')}
-                style={{ padding: '8px 12px', fontSize: '13px' }}
-              >
-                Overview
-              </button>
-              <button
-                className={`tab-btn ${activeInsightTab === 'stats' ? 'active' : ''}`}
-                onClick={() => setActiveInsightTab('stats')}
-                style={{ padding: '8px 12px', fontSize: '13px' }}
-              >
-                Stats & Cleaning
-              </button>
-              <button
-                className={`tab-btn ${activeInsightTab === 'ml' ? 'active' : ''}`}
-                onClick={() => setActiveInsightTab('ml')}
-                style={{ padding: '8px 12px', fontSize: '13px' }}
-              >
-                ML Readiness
-              </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '8px',
+              padding: '3px',
+              gap: '3px'
+            }}>
+              {[
+                { id: 'general', label: 'Overview' },
+                { id: 'stats', label: 'Stats & Risks' },
+                { id: 'ml', label: 'ML Readiness' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveInsightTab(tab.id as any)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: activeInsightTab === tab.id ? 'var(--accent-primary)' : 'transparent',
+                    color: activeInsightTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
             
             <button
               className="btn-secondary"
               onClick={loadInsights}
               disabled={isLoadingInsights}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 12px', fontSize: '0.78rem' }}
             >
-              <RefreshCw size={14} className={isLoadingInsights ? 'animate-spin' : ''} />
+              <RefreshCw size={12} className={isLoadingInsights ? 'animate-spin' : ''} />
               Refresh
             </button>
           </div>
 
           {isLoadingInsights ? (
             <>
-              <SkeletonBlock height="140px" />
-              <SkeletonBlock height="180px" />
+              <SkeletonBlock height="120px" />
               <SkeletonBlock height="160px" />
+              <SkeletonBlock height="140px" />
             </>
           ) : insights ? (
             <>
@@ -342,61 +355,56 @@ const AIInsightsPage: React.FC = () => {
                 <>
                   {/* Executive Summary */}
                   <InsightCard
-                    icon={<Sparkles size={18} color="#a78bfa" />}
-                    title="Executive Summary"
-                    accentColor="#8b5cf6"
+                    icon={<Sparkles size={16} />}
+                    title="Executive Synthesis"
                     delay={0}
                   >
-                    <p style={{ margin: 0, color: '#cbd5e1', lineHeight: 1.7, fontSize: '14px' }}>
+                    <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.6, fontSize: '0.82rem' }}>
                       {insights.executive_summary}
                     </p>
                   </InsightCard>
 
                   {/* Key Findings */}
                   <InsightCard
-                    icon={<CheckCircle size={18} color="#34d399" />}
-                    title="Key Findings"
-                    accentColor="#10b981"
+                    icon={<CheckCircle size={16} />}
+                    title="Key Statistical Findings"
                     delay={0.08}
                   >
-                    <ol style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <ol style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {insights.key_findings?.map((finding: string, i: number) => (
-                        <motion.li
+                        <li
                           key={i}
-                          initial={{ opacity: 0, x: -12 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 + i * 0.06 }}
-                          style={{ color: '#cbd5e1', fontSize: '14px', lineHeight: 1.6 }}
+                          style={{ color: 'var(--text-primary)', fontSize: '0.8rem', lineHeight: 1.5 }}
                         >
                           {finding}
-                        </motion.li>
+                        </li>
                       ))}
                     </ol>
                   </InsightCard>
 
                   {/* Data Quality Insights */}
                   <InsightCard
-                    icon={<AlertCircle size={18} color="#fbbf24" />}
-                    title="Data Quality Insights"
-                    accentColor="#f59e0b"
+                    icon={<AlertCircle size={16} />}
+                    title="Data Quality Assessment"
                     delay={0.16}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {(insights.data_quality_insights || insights.data_quality_issues)?.map((item: string, i: number) => (
                         <div
                           key={i}
                           style={{
                             display: 'flex',
                             alignItems: 'flex-start',
-                            gap: '8px',
-                            padding: '8px 12px',
-                            background: '#f59e0b11',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            color: '#cbd5e1',
+                            gap: '6px',
+                            padding: '8px 10px',
+                            background: 'var(--bg-canvas)',
+                            border: '1px solid var(--border-default)',
+                            borderRadius: '6px',
+                            fontSize: '0.78rem',
+                            color: 'var(--text-secondary)',
                           }}
                         >
-                          <span style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }}>•</span>
+                          <span style={{ color: 'var(--status-warning)', flexShrink: 0, marginTop: '1px' }}>•</span>
                           {item}
                         </div>
                       ))}
@@ -406,27 +414,27 @@ const AIInsightsPage: React.FC = () => {
                   {/* Anomalies */}
                   {insights.anomalies && insights.anomalies.length > 0 && (
                     <InsightCard
-                      icon={<AlertCircle size={18} color="#f87171" />}
+                      icon={<AlertCircle size={16} />}
                       title="Anomalies Detected"
-                      accentColor="#ef4444"
                       delay={0.24}
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {insights.anomalies.map((anomaly, i) => (
                           <div
                             key={i}
                             style={{
                               display: 'flex',
                               alignItems: 'flex-start',
-                              gap: '8px',
-                              padding: '8px 12px',
-                              background: '#ef444411',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              color: '#fca5a5',
+                              gap: '6px',
+                              padding: '8px 10px',
+                              background: 'var(--status-danger-bg, rgba(239, 68, 68, 0.08))',
+                              border: '1px solid var(--border-default)',
+                              borderRadius: '6px',
+                              fontSize: '0.78rem',
+                              color: 'var(--status-danger)',
                             }}
                           >
-                            <AlertCircle size={14} color="#f87171" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <AlertCircle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                             {anomaly}
                           </div>
                         ))}
@@ -441,12 +449,11 @@ const AIInsightsPage: React.FC = () => {
                 <>
                   {/* Risk Factors */}
                   <InsightCard
-                    icon={<AlertCircle size={18} color="#f87171" />}
+                    icon={<AlertCircle size={16} />}
                     title="Statistical Risk Factors"
-                    accentColor="#ef4444"
                     delay={0}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {insights.risk_factors && insights.risk_factors.length > 0 ? (
                         insights.risk_factors.map((item: string, i: number) => (
                           <div
@@ -454,34 +461,34 @@ const AIInsightsPage: React.FC = () => {
                             style={{
                               display: 'flex',
                               alignItems: 'flex-start',
-                              gap: '8px',
-                              padding: '8px 12px',
-                              background: '#ef444411',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              color: '#fca5a5',
+                              gap: '6px',
+                              padding: '8px 10px',
+                              background: 'var(--status-danger-bg, rgba(239, 68, 68, 0.08))',
+                              border: '1px solid var(--border-default)',
+                              borderRadius: '6px',
+                              fontSize: '0.78rem',
+                              color: 'var(--status-danger)',
                             }}
                           >
-                            <span style={{ color: '#f87171', flexShrink: 0, marginTop: '2px' }}>•</span>
+                            <span style={{ flexShrink: 0, marginTop: '1px' }}>•</span>
                             {item}
                           </div>
                         ))
                       ) : (
-                        <div style={{ color: '#94a3b8', fontSize: '14px' }}>No significant statistical risk factors found.</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>No significant statistical risk factors found.</div>
                       )}
                     </div>
                   </InsightCard>
 
                   {/* Recommendations */}
                   <InsightCard
-                    icon={<TrendingUp size={18} color="#60a5fa" />}
+                    icon={<TrendingUp size={16} />}
                     title="Cleaning & Imputation Recommendations"
-                    accentColor="#3b82f6"
                     delay={0.08}
                   >
-                    <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {insights.recommendations?.map((rec: string, i: number) => (
-                        <li key={i} style={{ color: '#cbd5e1', fontSize: '14px', lineHeight: 1.6 }}>
+                        <li key={i} style={{ color: 'var(--text-primary)', fontSize: '0.8rem', lineHeight: 1.5 }}>
                           {rec}
                         </li>
                       ))}
@@ -495,68 +502,68 @@ const AIInsightsPage: React.FC = () => {
                 <>
                   {insights.ml_readiness ? (
                     <InsightCard
-                      icon={<Sparkles size={18} color="#a855f7" />}
+                      icon={<Sparkles size={16} />}
                       title="Machine Learning Readiness"
-                      accentColor="#a855f7"
                       delay={0}
                     >
-                      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
                         <div
                           style={{
-                            width: 80,
-                            height: 80,
+                            width: 68,
+                            height: 68,
                             borderRadius: '50%',
-                            border: '4px solid #a855f7',
+                            border: '3px solid var(--accent-primary)',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            background: '#a855f711',
+                            background: 'var(--accent-primary-light)',
                           }}
                         >
-                          <span style={{ fontSize: '20px', fontWeight: 700, color: '#e2e8f0' }}>
+                          <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                             {insights.ml_readiness.score}%
                           </span>
-                          <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
                             GRADE {insights.ml_readiness.grade}
                           </span>
                         </div>
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                             <span
-                              className={`badge badge-${insights.ml_readiness.is_ready ? 'success' : 'warning'}`}
+                              className={`badge-subtle ${insights.ml_readiness.is_ready ? 'badge-success' : 'badge-warning'}`}
+                              style={{ fontSize: '0.72rem' }}
                             >
                               {insights.ml_readiness.is_ready ? 'Ready for ML' : 'Action Required'}
                             </span>
                           </div>
-                          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
+                          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                             {insights.ml_readiness.is_ready
-                              ? 'This dataset is structured properly and ready to train machine learning models.'
-                              : 'Data cleaning or transformations should be performed before training models.'}
+                              ? 'This dataset is structured properly and ready to train predictive machine learning models.'
+                              : 'Data cleaning or feature transformations are recommended before training models.'}
                           </p>
                         </div>
                       </div>
 
                       {/* Diagnostics notes */}
                       {insights.ml_readiness.notes && insights.ml_readiness.notes.length > 0 && (
-                        <div style={{ marginBottom: '20px' }}>
-                          <h4 style={{ margin: '0 0 10px', fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>
+                        <div style={{ marginBottom: '14px' }}>
+                          <h4 style={{ margin: '0 0 8px', fontSize: '0.78rem', color: 'var(--text-primary)', fontWeight: 700 }}>
                             Readiness Diagnostics
                           </h4>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {insights.ml_readiness.notes.map((note: string, i: number) => (
                               <div
                                 key={i}
                                 style={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: '8px',
-                                  fontSize: '13px',
-                                  color: '#cbd5e1',
+                                  gap: '6px',
+                                  fontSize: '0.76rem',
+                                  color: 'var(--text-secondary)',
                                 }}
                               >
-                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a855f7', flexShrink: 0 }} />
+                                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-primary)', flexShrink: 0 }} />
                                 {note}
                               </div>
                             ))}
@@ -567,22 +574,15 @@ const AIInsightsPage: React.FC = () => {
                       {/* Suggested models */}
                       {insights.ml_readiness.suggested_models && insights.ml_readiness.suggested_models.length > 0 && (
                         <div>
-                          <h4 style={{ margin: '0 0 10px', fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>
-                            Recommended Algorithms
+                          <h4 style={{ margin: '0 0 8px', fontSize: '0.78rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+                            Recommended Model Architectures
                           </h4>
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             {insights.ml_readiness.suggested_models.map((model: string, i: number) => (
                               <span
                                 key={i}
-                                style={{
-                                  padding: '6px 12px',
-                                  background: '#a855f722',
-                                  border: '1px solid #a855f744',
-                                  borderRadius: '20px',
-                                  fontSize: '12px',
-                                  color: '#d8b4fe',
-                                  fontWeight: 500,
-                                }}
+                                className="badge-subtle badge-info"
+                                style={{ fontSize: '0.72rem', padding: '3px 8px' }}
                               >
                                 {model}
                               </span>
@@ -592,7 +592,7 @@ const AIInsightsPage: React.FC = () => {
                       )}
                     </InsightCard>
                   ) : (
-                    <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textAlign: 'center', padding: '20px 0' }}>
                       ML Readiness score is not available for this dataset.
                     </div>
                   )}
@@ -600,14 +600,14 @@ const AIInsightsPage: React.FC = () => {
               )}
 
               {/* Data Dictionary toggle */}
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+              <div>
                 <button
                   className="btn-secondary"
                   onClick={handleLoadDictionary}
                   disabled={isLoadingDict}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center', marginBottom: '16px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center', height: '36px', fontSize: '0.82rem', marginBottom: '14px' }}
                 >
-                  {isLoadingDict ? <LoadingSpinner size="sm" /> : <BookOpen size={16} />}
+                  {isLoadingDict ? <LoadingSpinner /> : <BookOpen size={14} />}
                   {showDictionary ? 'Hide Data Dictionary' : 'View Data Dictionary'}
                 </button>
 
@@ -618,42 +618,41 @@ const AIInsightsPage: React.FC = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35 }}
+                      transition={{ duration: 0.25 }}
                       style={{ overflow: 'hidden' }}
                     >
-                      <div className="card" style={{ padding: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>
-                            <BookOpen size={16} style={{ marginRight: 8, verticalAlign: 'middle', color: '#6366f1' }} />
-                            Data Dictionary
+                      <div className="card-precision" style={{ padding: '14px', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <h3 style={{ margin: 0, fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            <BookOpen size={14} style={{ marginRight: 6, verticalAlign: 'middle', color: 'var(--accent-primary)' }} />
+                            Data Dictionary Schema
                           </h3>
                           <button
-                            className="btn-ghost"
                             onClick={() => setShowDictionary(false)}
-                            style={{ padding: '4px' }}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px' }}
                           >
-                            <X size={16} />
+                            <X size={14} />
                           </button>
                         </div>
                         <div style={{ overflowX: 'auto' }}>
-                          <table className="data-table" style={{ width: '100%' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                             <thead>
-                              <tr>
-                                <th>Column</th>
-                                <th>Type</th>
-                                <th>Description</th>
+                              <tr style={{ background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 600 }}>Column</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 600 }}>Type</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 600 }}>Description</th>
                               </tr>
                             </thead>
                             <tbody>
                               {dataDictionary.columns.map((col, i) => (
-                                <tr key={i}>
-                                  <td>
-                                    <code style={{ color: '#a78bfa', fontSize: '12px' }}>{col.name}</code>
+                                <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                  <td style={{ padding: '6px 10px' }}>
+                                    <code style={{ color: 'var(--accent-primary)', fontSize: '0.75rem' }}>{col.name}</code>
                                   </td>
-                                  <td>
-                                    <span className="badge">{col.dtype}</span>
+                                  <td style={{ padding: '6px 10px' }}>
+                                    <span className="badge-subtle badge-info" style={{ fontSize: '0.68rem' }}>{col.dtype}</span>
                                   </td>
-                                  <td style={{ color: '#94a3b8', fontSize: '13px' }}>{col.description}</td>
+                                  <td style={{ padding: '6px 10px', color: 'var(--text-secondary)' }}>{col.description}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -663,73 +662,71 @@ const AIInsightsPage: React.FC = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             </>
           ) : (
-            <div style={{ textAlign: 'center', color: '#64748b', padding: '40px 0' }}>
-              <Sparkles size={40} color="#374151" style={{ marginBottom: 12 }} />
-              <p>No insights loaded yet. Click Refresh Insights.</p>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '30px 0' }}>
+              <Sparkles size={32} color="var(--border-default)" style={{ marginBottom: 8 }} />
+              <p style={{ margin: 0, fontSize: '0.82rem' }}>No insights loaded. Click Refresh Insights.</p>
             </div>
           )}
         </div>
 
         {/* ── RIGHT: Chat Interface ─────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.45 }}
-          className="card"
+        <div
+          className="card-precision"
           style={{
-            height: 'calc(100vh - 200px)',
+            height: 'calc(100vh - 180px)',
             display: 'flex',
             flexDirection: 'column',
             padding: 0,
             overflow: 'hidden',
             position: 'sticky',
-            top: '24px',
+            top: '20px',
           }}
         >
           {/* Chat header */}
           <div
             style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #2d2f3e',
+              padding: '14px 18px',
+              borderBottom: '1px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexShrink: 0,
+              background: 'var(--bg-surface)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: '8px',
+                  background: 'var(--accent-primary-light)',
+                  color: 'var(--accent-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <MessageSquare size={18} color="#fff" />
+                <MessageSquare size={16} />
               </div>
               <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>
-                  Ask AI About Your Data
+                <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Dataset Assistant
                 </h3>
-                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                  Powered by Gemini AI
+                <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                  Gemini Data Copilot
                 </p>
               </div>
             </div>
             <button
-              className="btn-ghost"
               onClick={clearChat}
               title="Clear chat history"
-              style={{ padding: '8px', color: '#64748b' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
             </button>
           </div>
 
@@ -738,56 +735,60 @@ const AIInsightsPage: React.FC = () => {
             style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '20px',
+              padding: '16px',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
+              background: 'var(--bg-canvas)',
             }}
           >
             {chatHistory.length === 0 && !isAiResponding ? (
               /* Suggested questions */
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                 <div
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #6366f111, #8b5cf611)',
-                    border: '1px solid #6366f133',
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    background: 'var(--accent-primary-light)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '8px',
+                    marginBottom: '4px',
                   }}
                 >
-                  <Sparkles size={28} color="#6366f1" />
+                  <Sparkles size={22} color="var(--accent-primary)" />
                 </div>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '14px', textAlign: 'center' }}>
-                  Ask me anything about your dataset
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', textAlign: 'center' }}>
+                  Ask questions about trends, distributions, or predictive features
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '6px' }}>
                   {SUGGESTED_QUESTIONS.map((q, i) => (
-                    <motion.button
+                    <button
                       key={i}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
                       onClick={() => handleSuggestion(q)}
                       style={{
-                        background: '#252836',
-                        border: '1px solid #2d2f3e',
-                        borderRadius: '10px',
-                        padding: '10px 14px',
-                        color: '#94a3b8',
-                        fontSize: '13px',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.78rem',
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'all 0.2s',
+                        transition: 'all 0.15s ease',
                       }}
-                      whileHover={{ borderColor: '#6366f1', color: '#e2e8f0', x: 4 }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-default)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                      }}
                     >
                       "{q}"
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -797,26 +798,27 @@ const AIInsightsPage: React.FC = () => {
                   {chatHistory.map((msg, i) => (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.25 }}
+                      transition={{ duration: 0.2 }}
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        marginBottom: '12px',
+                        marginBottom: '10px',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                         {/* AI avatar */}
                         {msg.role === 'ai' && (
                           <div
                             style={{
-                              width: 28,
-                              height: 28,
+                              width: 24,
+                              height: 24,
                               borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                              background: 'var(--accent-primary-light)',
+                              color: 'var(--accent-primary)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -824,23 +826,24 @@ const AIInsightsPage: React.FC = () => {
                               marginTop: '2px',
                             }}
                           >
-                            <Sparkles size={14} color="#fff" />
+                            <Sparkles size={12} />
                           </div>
                         )}
 
                         {/* Bubble */}
                         <div
                           style={{
-                            maxWidth: '80%',
-                            padding: '12px 16px',
+                            maxWidth: '82%',
+                            padding: '10px 14px',
                             borderRadius:
                               msg.role === 'user'
-                                ? '16px 16px 4px 16px'
-                                : '4px 16px 16px 16px',
-                            background: msg.role === 'user' ? '#6366f1' : '#252836',
-                            color: msg.role === 'user' ? '#fff' : '#cbd5e1',
-                            fontSize: '14px',
-                            lineHeight: 1.65,
+                                ? '12px 12px 2px 12px'
+                                : '2px 12px 12px 12px',
+                            background: msg.role === 'user' ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                            border: msg.role === 'user' ? 'none' : '1px solid var(--border-default)',
+                            color: msg.role === 'user' ? '#ffffff' : 'var(--text-primary)',
+                            fontSize: '0.82rem',
+                            lineHeight: 1.5,
                             wordBreak: 'break-word',
                             whiteSpace: 'pre-wrap',
                           }}
@@ -852,10 +855,10 @@ const AIInsightsPage: React.FC = () => {
                       {/* Timestamp */}
                       <span
                         style={{
-                          fontSize: '11px',
-                          color: '#475569',
-                          marginTop: '4px',
-                          marginLeft: msg.role === 'ai' ? '36px' : 0,
+                          fontSize: '0.68rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '2px',
+                          marginLeft: msg.role === 'ai' ? '30px' : 0,
                         }}
                       >
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -875,21 +878,21 @@ const AIInsightsPage: React.FC = () => {
           {/* Input area */}
           <div
             style={{
-              padding: '16px 20px',
-              borderTop: '1px solid #2d2f3e',
+              padding: '12px 16px',
+              borderTop: '1px solid var(--border-default)',
               flexShrink: 0,
+              background: 'var(--bg-surface)',
             }}
           >
             <div
               style={{
                 display: 'flex',
-                gap: '10px',
+                gap: '8px',
                 alignItems: 'flex-end',
-                background: '#252836',
-                borderRadius: '14px',
-                border: '1px solid #2d2f3e',
-                padding: '10px 12px',
-                transition: 'border-color 0.2s',
+                background: 'var(--bg-canvas)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-default)',
+                padding: '8px 10px',
               }}
             >
               <textarea
@@ -898,7 +901,7 @@ const AIInsightsPage: React.FC = () => {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask a question about your data... (Enter to send, Shift+Enter for newline)"
+                placeholder="Ask about your data... (Enter to send, Shift+Enter for newline)"
                 disabled={isAiResponding}
                 style={{
                   flex: 1,
@@ -906,42 +909,33 @@ const AIInsightsPage: React.FC = () => {
                   border: 'none',
                   outline: 'none',
                   resize: 'none',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  lineHeight: 1.5,
+                  color: 'var(--text-primary)',
+                  fontSize: '0.82rem',
+                  lineHeight: 1.4,
                   fontFamily: 'inherit',
                 }}
               />
               <button
                 onClick={() => sendMessage(chatInput)}
                 disabled={!chatInput.trim() || isAiResponding}
+                className="btn-primary"
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '10px',
-                  background: chatInput.trim() && !isAiResponding ? '#6366f1' : '#374151',
-                  border: 'none',
-                  cursor: chatInput.trim() && !isAiResponding ? 'pointer' : 'default',
+                  width: '32px',
+                  height: '32px',
+                  padding: 0,
+                  borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'background 0.2s, transform 0.15s',
                   flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  if (chatInput.trim() && !isAiResponding)
-                    (e.currentTarget as HTMLButtonElement).style.background = '#4f46e5';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    chatInput.trim() && !isAiResponding ? '#6366f1' : '#374151';
+                  opacity: chatInput.trim() && !isAiResponding ? 1 : 0.4,
                 }}
               >
-                <Send size={16} color="#fff" />
+                <Send size={14} />
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

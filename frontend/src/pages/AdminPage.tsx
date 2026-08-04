@@ -9,7 +9,6 @@ import {
   User,
   Shield,
   Activity,
-  Calendar,
   Inbox,
   Power,
   Eye,
@@ -86,7 +85,6 @@ const AdminPage: React.FC = () => {
     try {
       const result = await forceLogoutUser(userId);
       toast.success(result.message || `Session terminated for ${userName}`);
-      // Refresh users list
       const usersData = await getAdminUsers();
       setUsersList(usersData);
     } catch (err: any) {
@@ -151,17 +149,17 @@ const AdminPage: React.FC = () => {
   const formatDateTime = (dateStr?: string) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
-    return d.toLocaleDateString('en-IN', {
+    return d.toLocaleDateString('en-US', {
       year: 'numeric', month: 'short', day: 'numeric'
-    }) + ' • ' + d.toLocaleTimeString('en-IN', {
+    }) + ' • ' + d.toLocaleTimeString('en-US', {
       hour: '2-digit', minute: '2-digit', hour12: true
     });
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '80vh', alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner />
+      <div style={{ display: 'flex', minHeight: '60vh', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner text="Loading administration console..." />
       </div>
     );
   }
@@ -169,69 +167,64 @@ const AdminPage: React.FC = () => {
   const onlineUserCount = usersList.length > 0 ? usersList.filter(u => u.is_online).length : 0;
 
   const statCards = [
-    { label: 'Currently Online Users', value: onlineUserCount, icon: Users, color: '#6366f1' },
-    { label: 'Datasets Uploaded', value: stats?.total_datasets || 0, icon: Database, color: '#3b82f6' },
-    { label: 'ML Experiments Run', value: stats?.total_experiments || 0, icon: Activity, color: '#10b981' },
-    { label: 'Reported Issues', value: stats?.total_issues || 0, icon: AlertCircle, color: '#f59e0b' }
+    { label: 'Active Online Users', value: onlineUserCount, icon: Users },
+    { label: 'Ingested Datasets', value: stats?.total_datasets || 0, icon: Database },
+    { label: 'Trained ML Models', value: stats?.total_experiments || 0, icon: Activity },
+    { label: 'Reported Inquiries', value: stats?.total_issues || 0, icon: AlertCircle }
   ];
 
   return (
-    <div style={{ padding: '24px', color: '#94a3b8' }}>
+    <div style={{ paddingBottom: '40px', maxWidth: '1400px', margin: '0 auto' }}>
       <SectionHeader
-        title="Admin Control Center"
-        description="Monitor system-wide activity, audit user dataset uploads, and inspect reported feedback logs."
+        title="Administrative Control &amp; Audit Console"
+        subtitle="Manage user access permissions, inspect uploaded datasets, and monitor system activity logs."
       />
 
       {/* Stats Cards */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '20px',
-          marginBottom: '32px',
-          marginTop: '16px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '14px',
+          marginBottom: '20px',
+          marginTop: '12px'
         }}
       >
         {statCards.map((card, i) => (
           <motion.div
             key={card.label}
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: i * 0.05 }}
+            transition={{ duration: 0.25, delay: i * 0.04 }}
+            className="card-precision"
             style={{
-              background: '#1a1d27',
-              border: '1px solid #252836',
-              borderRadius: '16px',
-              padding: '24px',
-              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.25)',
+              padding: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              position: 'relative',
-              overflow: 'hidden'
             }}
           >
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {card.label}
               </span>
-              <h3 style={{ fontSize: '32px', fontWeight: 700, color: 'white', margin: '8px 0 0' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0 0' }}>
                 {card.value}
               </h3>
             </div>
             <div
               style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                background: `${card.color}15`,
+                width: '38px',
+                height: '38px',
+                borderRadius: '8px',
+                background: 'var(--accent-primary-light)',
+                color: 'var(--accent-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: `1px solid ${card.color}30`
               }}
             >
-              <card.icon size={22} color={card.color} />
+              <card.icon size={18} />
             </div>
           </motion.div>
         ))}
@@ -241,16 +234,19 @@ const AdminPage: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          gap: '12px',
-          borderBottom: '1px solid #252836',
-          paddingBottom: '16px',
-          marginBottom: '24px'
+          gap: '4px',
+          marginBottom: '18px',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-default)',
+          borderRadius: '8px',
+          padding: '3px',
+          width: 'fit-content'
         }}
       >
         {[
-          { id: 'users', label: 'Users Audit', icon: Users },
-          { id: 'datasets', label: 'Dataset Registry', icon: Database },
-          { id: 'issues', label: 'Reported Issues', icon: AlertCircle }
+          { id: 'users', label: 'User Directory', icon: Users },
+          { id: 'datasets', label: 'Dataset Storage', icon: Database },
+          { id: 'issues', label: 'Feedback Inquiries', icon: AlertCircle }
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -260,19 +256,19 @@ const AdminPage: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                borderRadius: '10px',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '6px',
                 border: 'none',
-                background: isActive ? '#6366f1' : 'transparent',
-                color: isActive ? 'white' : '#94a3b8',
+                background: isActive ? 'var(--accent-primary)' : 'transparent',
+                color: isActive ? '#ffffff' : 'var(--text-secondary)',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: '0.78rem',
                 cursor: 'pointer',
-                transition: 'background 0.25s, color 0.25s'
+                transition: 'all 0.15s ease'
               }}
             >
-              <tab.icon size={16} />
+              <tab.icon size={14} />
               {tab.label}
             </button>
           );
@@ -280,119 +276,106 @@ const AdminPage: React.FC = () => {
       </div>
 
       {/* Tab contents */}
-      <div style={{ background: '#1a1d27', border: '1px solid #252836', borderRadius: '16px', overflow: 'hidden', minHeight: '300px' }}>
+      <div className="card-precision" style={{ padding: '18px', overflow: 'hidden' }}>
         <AnimatePresence mode="wait">
           {/* ═══════════════════ USERS TAB ═══════════════════ */}
           {activeTab === 'users' && (
             <motion.div
               key="users"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              style={{ padding: '24px' }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
             >
-              <h3 style={{ fontSize: '18px', color: 'white', fontWeight: 600, margin: '0 0 16px' }}>Registered User Profiles</h3>
+              <h3 style={{ fontSize: '0.94rem', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 14px' }}>Registered User Accounts</h3>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.78rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #252836', color: '#64748b', fontWeight: 600 }}>
-                      <th style={{ padding: '12px' }}>Profile Name</th>
-                      <th style={{ padding: '12px' }}>Email Address</th>
-                      <th style={{ padding: '12px' }}>Role</th>
-                      <th style={{ padding: '12px' }}>Status</th>
-                      <th style={{ padding: '12px' }}>Last Login Date & Time</th>
-                      <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
+                    <tr style={{ background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Profile Name</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Email Address</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Role</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Last Login</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 600 }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {usersList.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No users registered.</td>
+                        <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>No users registered.</td>
                       </tr>
                     ) : (
                       usersList.map((user) => (
                         <React.Fragment key={user.id}>
-                          <tr style={{ borderBottom: '1px solid #25283688' }}>
-                            <td style={{ padding: '14px 12px', color: 'white', fontWeight: 500 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <User size={16} color="#64748b" />
+                          <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td style={{ padding: '10px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <User size={14} color="var(--text-secondary)" />
                                 {user.full_name || 'N/A'}
                               </div>
                             </td>
-                            <td style={{ padding: '14px 12px' }}>{user.email}</td>
-                            <td style={{ padding: '14px 12px' }}>
+                            <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{user.email}</td>
+                            <td style={{ padding: '10px' }}>
                               {user.is_admin ? (
-                                <span style={{ padding: '3px 8px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '11px', fontWeight: 600, border: '1px solid rgba(239,68,68,0.2)' }}>
-                                  <Shield size={10} style={{ marginRight: '4px', display: 'inline' }} /> ADMIN
+                                <span className="badge-subtle badge-danger" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
+                                  <Shield size={9} style={{ marginRight: '3px', display: 'inline' }} /> ADMIN
                                 </span>
                               ) : (
-                                <span style={{ padding: '3px 8px', borderRadius: '4px', background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontSize: '11px', fontWeight: 600 }}>
+                                <span className="badge-subtle badge-info" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
                                   USER
                                 </span>
                               )}
                             </td>
-                            <td style={{ padding: '14px 12px' }}>
-                              <span style={{ color: user.is_online ? '#10b981' : '#64748b', fontWeight: 500 }}>
+                            <td style={{ padding: '10px' }}>
+                              <span style={{ color: user.is_online ? 'var(--status-success)' : 'var(--text-muted)', fontWeight: 600, fontSize: '0.74rem' }}>
                                 ● {user.is_online ? 'Online' : 'Offline'}
                               </span>
                             </td>
-                            <td style={{ padding: '14px 12px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                                <Clock size={14} />
+                            <td style={{ padding: '10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '0.74rem' }}>
+                                <Clock size={12} />
                                 {user.last_login ? formatDateTime(user.last_login) : 'Never'}
                               </div>
                             </td>
-                            <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                {/* Force Logout Button */}
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                                 {!user.is_admin && user.is_online && (
                                   <button
                                     onClick={() => handleForceLogout(user.id, user.full_name || user.email)}
                                     disabled={togglingUserId === user.id}
                                     title="Force Logout User"
+                                    className="btn-secondary"
                                     style={{
+                                      padding: '3px 8px',
+                                      fontSize: '0.72rem',
+                                      color: 'var(--status-danger)',
+                                      height: '26px',
                                       display: 'flex',
                                       alignItems: 'center',
-                                      gap: '5px',
-                                      padding: '6px 12px',
-                                      borderRadius: '8px',
-                                      border: '1px solid rgba(239,68,68,0.3)',
-                                      background: 'rgba(239,68,68,0.1)',
-                                      color: '#ef4444',
-                                      fontSize: '12px',
-                                      fontWeight: 600,
-                                      cursor: togglingUserId === user.id ? 'wait' : 'pointer',
-                                      opacity: togglingUserId === user.id ? 0.5 : 1,
-                                      transition: 'all 0.2s'
+                                      gap: '4px',
                                     }}
                                   >
-                                    <Power size={13} />
-                                    {togglingUserId === user.id ? '...' : 'Force Logout'}
+                                    <Power size={11} />
+                                    {togglingUserId === user.id ? '...' : 'Terminate'}
                                   </button>
                                 )}
-                                {/* View Datasets Button */}
                                 <button
                                   onClick={() => handleViewUserDatasets(user.id)}
                                   title="View User Datasets"
+                                  className="btn-secondary"
                                   style={{
+                                    padding: '3px 8px',
+                                    fontSize: '0.72rem',
+                                    height: '26px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '5px',
-                                    padding: '6px 12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(99,102,241,0.3)',
-                                    background: expandedUserId === user.id ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
-                                    color: '#a5b4fc',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    gap: '4px',
                                   }}
                                 >
-                                  <Eye size={13} />
+                                  <Eye size={11} />
                                   Datasets
-                                  {expandedUserId === user.id ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                                  {expandedUserId === user.id ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
                                 </button>
                               </div>
                             </td>
@@ -407,91 +390,67 @@ const AdminPage: React.FC = () => {
                                   animate={{ opacity: 1, height: 'auto' }}
                                   exit={{ opacity: 0, height: 0 }}
                                   style={{
-                                    background: '#12141c',
-                                    borderTop: '1px solid #252836',
-                                    borderBottom: '2px solid #6366f130',
-                                    padding: '16px 24px'
+                                    background: 'var(--bg-canvas)',
+                                    borderTop: '1px solid var(--border-default)',
+                                    borderBottom: '2px solid var(--accent-primary)',
+                                    padding: '12px 16px'
                                   }}
                                 >
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#a5b4fc', fontWeight: 600 }}>
-                                      📂 Datasets by {user.full_name || user.email}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+                                      Datasets by {user.full_name || user.email}
                                     </h4>
                                     <button
                                       onClick={() => { setExpandedUserId(null); setUserDatasets([]); }}
-                                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                                      style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px' }}
                                     >
-                                      <X size={16} />
+                                      <X size={14} />
                                     </button>
                                   </div>
                                   {loadingUserDatasets ? (
-                                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>Loading datasets...</div>
+                                    <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading user datasets...</div>
                                   ) : userDatasets.length === 0 ? (
-                                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No datasets uploaded by this user.</div>
+                                    <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>No datasets uploaded by this user.</div>
                                   ) : (
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
                                       <thead>
-                                        <tr style={{ borderBottom: '1px solid #252836', color: '#64748b' }}>
-                                          <th style={{ padding: '8px', textAlign: 'left' }}>File Name</th>
-                                          <th style={{ padding: '8px', textAlign: 'left' }}>Dimensions</th>
-                                          <th style={{ padding: '8px', textAlign: 'left' }}>Size</th>
-                                          <th style={{ padding: '8px', textAlign: 'left' }}>Uploaded</th>
-                                          <th style={{ padding: '8px', textAlign: 'center' }}>Download Report</th>
+                                        <tr style={{ borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
+                                          <th style={{ padding: '6px', textAlign: 'left', fontWeight: 600 }}>File Name</th>
+                                          <th style={{ padding: '6px', textAlign: 'left', fontWeight: 600 }}>Dimensions</th>
+                                          <th style={{ padding: '6px', textAlign: 'left', fontWeight: 600 }}>Size</th>
+                                          <th style={{ padding: '6px', textAlign: 'left', fontWeight: 600 }}>Uploaded</th>
+                                          <th style={{ padding: '6px', textAlign: 'center', fontWeight: 600 }}>Download</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {userDatasets.map((ds: any) => (
-                                          <tr key={ds.id} style={{ borderBottom: '1px solid #1e2030' }}>
-                                            <td style={{ padding: '10px 8px', color: '#e2e8f0', fontWeight: 500 }}>
-                                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <FileText size={14} color="#3b82f6" />
+                                          <tr key={ds.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                            <td style={{ padding: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <FileText size={12} color="var(--accent-primary)" />
                                                 {ds.original_filename}
                                               </div>
                                             </td>
-                                            <td style={{ padding: '10px 8px' }}>
+                                            <td style={{ padding: '6px', color: 'var(--text-secondary)' }}>
                                               {ds.rows != null ? `${ds.rows.toLocaleString()} × ${ds.columns}` : '—'}
                                             </td>
-                                            <td style={{ padding: '10px 8px' }}>{roundSize(ds.file_size_bytes)}</td>
-                                            <td style={{ padding: '10px 8px', color: '#64748b' }}>{formatDateTime(ds.created_at)}</td>
-                                            <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                            <td style={{ padding: '6px', color: 'var(--text-secondary)' }}>{roundSize(ds.file_size_bytes)}</td>
+                                            <td style={{ padding: '6px', color: 'var(--text-muted)' }}>{formatDateTime(ds.created_at)}</td>
+                                            <td style={{ padding: '6px', textAlign: 'center' }}>
+                                              <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                 <button
                                                   onClick={() => handleDownload('pdf', ds.id)}
-                                                  style={{
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    padding: '4px 10px',
-                                                    borderRadius: '6px',
-                                                    background: 'rgba(239,68,68,0.1)',
-                                                    color: '#f87171',
-                                                    fontSize: '11px',
-                                                    fontWeight: 600,
-                                                    border: '1px solid rgba(239,68,68,0.2)',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                  }}
+                                                  className="btn-secondary"
+                                                  style={{ padding: '2px 6px', fontSize: '0.68rem', height: '22px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                                                 >
-                                                  <Download size={11} /> PDF
+                                                  <Download size={10} /> PDF
                                                 </button>
                                                 <button
                                                   onClick={() => handleDownload('excel', ds.id)}
-                                                  style={{
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    padding: '4px 10px',
-                                                    borderRadius: '6px',
-                                                    background: 'rgba(16,185,129,0.1)',
-                                                    color: '#34d399',
-                                                    fontSize: '11px',
-                                                    fontWeight: 600,
-                                                    border: '1px solid rgba(16,185,129,0.2)',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                  }}
+                                                  className="btn-secondary"
+                                                  style={{ padding: '2px 6px', fontSize: '0.68rem', height: '22px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                                                 >
-                                                  <Download size={11} /> Excel
+                                                  <Download size={10} /> Excel
                                                 </button>
                                               </div>
                                             </td>
@@ -517,74 +476,66 @@ const AdminPage: React.FC = () => {
           {activeTab === 'datasets' && (
             <motion.div
               key="datasets"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              style={{ padding: '24px' }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
             >
-              <h3 style={{ fontSize: '18px', color: 'white', fontWeight: 600, margin: '0 0 16px' }}>System Dataset Upload Registry</h3>
+              <h3 style={{ fontSize: '0.94rem', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 14px' }}>System-Wide Dataset Logs</h3>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.78rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #252836', color: '#64748b', fontWeight: 600 }}>
-                      <th style={{ padding: '12px' }}>Dataset Name</th>
-                      <th style={{ padding: '12px' }}>Owner Account</th>
-                      <th style={{ padding: '12px' }}>Dimensions</th>
-                      <th style={{ padding: '12px' }}>File Size</th>
-                      <th style={{ padding: '12px' }}>Upload Date & Time</th>
-                      <th style={{ padding: '12px', textAlign: 'center' }}>Download Dataset</th>
+                    <tr style={{ background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Dataset Name</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Owner Account</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Dimensions</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>File Size</th>
+                      <th style={{ padding: '8px 10px', fontWeight: 600 }}>Upload Date</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 600 }}>Download</th>
                     </tr>
                   </thead>
                   <tbody>
                     {datasetsList.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No dataset logs found.</td>
+                        <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>No dataset records found.</td>
                       </tr>
                     ) : (
                       datasetsList.map((d) => (
-                        <tr key={d.id} style={{ borderBottom: '1px solid #25283688' }}>
-                          <td style={{ padding: '14px 12px', color: 'white', fontWeight: 500 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <FileText size={16} color="#3b82f6" />
+                        <tr key={d.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '10px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <FileText size={14} color="var(--accent-primary)" />
                               {d.original_filename}
                             </div>
                           </td>
-                          <td style={{ padding: '14px 12px', color: '#a5b4fc' }}>{d.owner_email}</td>
-                          <td style={{ padding: '14px 12px' }}>
-                            {d.rows !== null ? `${d.rows.toLocaleString()} rows × ${d.columns} cols` : 'Loading...'}
+                          <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{d.owner_email}</td>
+                          <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
+                            {d.rows !== null ? `${d.rows.toLocaleString()} × ${d.columns}` : 'Loading...'}
                           </td>
-                          <td style={{ padding: '14px 12px' }}>
+                          <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
                             {roundSize(d.file_size_bytes)}
                           </td>
-                          <td style={{ padding: '14px 12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                              <Clock size={14} />
+                          <td style={{ padding: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.74rem' }}>
+                              <Clock size={12} />
                               {formatDateTime(d.created_at)}
                             </div>
                           </td>
-                          <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                              <button
-                                onClick={() => handleDownload('csv', d.id)}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '5px 12px',
-                                  borderRadius: '6px',
-                                  background: 'rgba(59, 130, 246, 0.1)',
-                                  color: '#60a5fa',
-                                  fontSize: '12px',
-                                  fontWeight: 600,
-                                  border: '1px solid rgba(59, 130, 246, 0.2)',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s'
-                                }}
-                              >
-                                <Download size={12} /> Processed CSV
-                              </button>
-                            </div>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => handleDownload('csv', d.id)}
+                              className="btn-secondary"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                fontSize: '0.72rem',
+                                height: '26px',
+                              }}
+                            >
+                              <Download size={11} /> CSV
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -599,46 +550,41 @@ const AdminPage: React.FC = () => {
           {activeTab === 'issues' && (
             <motion.div
               key="issues"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              style={{ padding: '24px' }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
             >
-              <h3 style={{ fontSize: '18px', color: 'white', fontWeight: 600, margin: '0 0 16px' }}>Reported Feedback Issues</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h3 style={{ fontSize: '0.94rem', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 14px' }}>Recorded User Inquiries &amp; Reports</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {issuesList.length === 0 ? (
-                  <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    <Inbox size={32} style={{ marginBottom: '12px', opacity: 0.5 }} />
-                    <p style={{ margin: 0 }}>No issues reported. System is healthy!</p>
+                  <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <Inbox size={28} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                    <p style={{ margin: 0, fontSize: '0.82rem' }}>No feedback inquiries recorded. System running nominally.</p>
                   </div>
                 ) : (
                   issuesList.map((issue) => (
                     <div
                       key={issue.id}
                       style={{
-                        background: '#0f111744',
-                        border: '1px solid #252836',
-                        borderRadius: '12px',
-                        padding: '20px',
-                        position: 'relative'
+                        background: 'var(--bg-canvas)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: '8px',
+                        padding: '14px',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-                        <h4 style={{ margin: 0, fontSize: '16px', color: 'white', fontWeight: 600 }}>
-                          #{issue.id} - {issue.title}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+                          #{issue.id} · {issue.title}
                         </h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span
-                            style={{
-                              padding: '3px 10px',
-                              borderRadius: '99px',
-                              background: getCategoryStyle(issue.category).bg,
-                              color: getCategoryStyle(issue.category).fg,
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              border: `1px solid ${getCategoryStyle(issue.category).border}`
-                            }}
+                            className={`badge-subtle ${
+                              issue.category === 'bug' ? 'badge-danger' :
+                              issue.category === 'feature' ? 'badge-success' :
+                              issue.category === 'performance' ? 'badge-warning' : 'badge-info'
+                            }`}
+                            style={{ fontSize: '0.68rem' }}
                           >
                             {issue.category.toUpperCase()}
                           </span>
@@ -646,35 +592,29 @@ const AdminPage: React.FC = () => {
                             onClick={() => handleDeleteIssue(issue.id)}
                             disabled={deletingIssueId === issue.id}
                             style={{
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.2)',
-                              color: '#f87171',
-                              borderRadius: '6px',
-                              padding: '4px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--status-danger)',
                               cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.2s',
-                              opacity: deletingIssueId === issue.id ? 0.5 : 1
+                              padding: '2px',
                             }}
                             title="Delete Issue"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </div>
                       
-                      <p style={{ fontSize: '14px', color: '#e2e8f0', margin: '0 0 16px', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 10px', whiteSpace: 'pre-wrap', lineHeight: '1.45' }}>
                         {issue.description}
                       </p>
 
-                      <div style={{ display: 'flex', gap: '20px', fontSize: '12px', color: '#64748b' }}>
+                      <div style={{ display: 'flex', gap: '16px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                         <div>
-                          Reporter: <span style={{ color: '#94a3b8' }}>{issue.email || 'Anonymous'}</span>
+                          Reporter: <span style={{ color: 'var(--text-secondary)' }}>{issue.email || 'Anonymous'}</span>
                         </div>
                         <div>
-                          Date: <span style={{ color: '#94a3b8' }}>{issue.created_at ? new Date(issue.created_at.endsWith('Z') ? issue.created_at : issue.created_at + 'Z').toLocaleString() : '-'}</span>
+                          Date: <span style={{ color: 'var(--text-secondary)' }}>{issue.created_at ? new Date(issue.created_at.endsWith('Z') ? issue.created_at : issue.created_at + 'Z').toLocaleString() : '-'}</span>
                         </div>
                       </div>
                     </div>
@@ -694,21 +634,6 @@ const roundSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-};
-
-const getCategoryStyle = (cat: string) => {
-  switch (cat) {
-    case 'bug':
-      return { bg: 'rgba(239,68,68,0.1)', fg: '#ef4444', border: 'rgba(239,68,68,0.2)' };
-    case 'feature':
-      return { bg: 'rgba(16,185,129,0.1)', fg: '#10b981', border: 'rgba(16,185,129,0.2)' };
-    case 'performance':
-      return { bg: 'rgba(245,158,11,0.1)', fg: '#f59e0b', border: 'rgba(245,158,11,0.2)' };
-    case 'docs':
-      return { bg: 'rgba(59,130,246,0.1)', fg: '#3b82f6', border: 'rgba(59,130,246,0.2)' };
-    default:
-      return { bg: 'rgba(148,163,184,0.1)', fg: '#94a3b8', border: 'rgba(148,163,184,0.2)' };
-  }
 };
 
 export default AdminPage;

@@ -16,15 +16,15 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 12,
-        marginBottom: 20,
+        marginBottom: 16,
         flexWrap: 'wrap',
       }}
     >
@@ -33,15 +33,15 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         {icon && (
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 9,
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.15))',
-              border: '1px solid rgba(99,102,241,0.25)',
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: 'var(--accent-primary-light)',
+              border: '1px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#818cf8',
+              color: 'var(--accent-primary)',
               flexShrink: 0,
             }}
           >
@@ -50,13 +50,12 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         )}
         <div>
           <h2
-            className="section-label"
             style={{
               margin: 0,
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: 700,
-              color: '#f1f5f9',
-              letterSpacing: '-0.25px',
+              color: 'var(--text-primary)',
+              letterSpacing: '-0.015em',
               lineHeight: 1.2,
             }}
           >
@@ -65,9 +64,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           {subtitle && (
             <p
               style={{
-                margin: '3px 0 0',
-                fontSize: 13,
-                color: 'rgba(148,163,184,0.6)',
+                margin: '2px 0 0',
+                fontSize: 12.5,
+                color: 'var(--text-secondary)',
                 lineHeight: 1.4,
               }}
             >
@@ -80,9 +79,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       {/* Right: Action slot */}
       {action && (
         <motion.div
-          initial={{ opacity: 0, x: 8 }}
+          initial={{ opacity: 0, x: 6 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.25, delay: 0.1 }}
+          transition={{ duration: 0.2, delay: 0.05 }}
         >
           {action}
         </motion.div>

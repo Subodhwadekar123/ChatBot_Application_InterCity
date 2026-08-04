@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Shield, Mail, Lock, User, RefreshCw, Info } from 'lucide-react';
+import { Shield, Mail, Lock, User, RefreshCw } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { login, registerUser } from '../../services/api';
 
@@ -44,10 +44,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
         if (onSuccess) onSuccess();
         navigate('/dashboard/upload');
       } else {
-        const registerRes = await registerUser({ email, password, full_name: fullName });
+        await registerUser({ email, password, full_name: fullName });
         toast.dismiss(loadingToast);
         toast.success('Account registered successfully! Please log in.');
-        // Auto-switch to login mode with details pre-filled
         setMode('login');
         setLoading(false);
       }
@@ -65,13 +64,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
   const handleForceLogin = async () => {
     setShowForceModal(false);
     setLoading(true);
-    const loadingToast = toast.loading('Forcing logout of other session...');
+    const loadingToast = toast.loading('Terminating prior session...');
     try {
       const res = await login({ email, password, force_login: true });
       setToken(res.access_token);
       setUser(res.user);
       toast.dismiss(loadingToast);
-      toast.success(`Successfully logged in and terminated old session!`);
+      toast.success(`Successfully authenticated!`);
       if (onSuccess) onSuccess();
       navigate('/dashboard/upload');
     } catch (err: any) {
@@ -84,70 +83,67 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
   return (
     <div style={{ width: '100%' }}>
       {/* Title */}
-      <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', margin: '0 0 8px', textAlign: 'center' }}>
-        {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px', textAlign: 'center', letterSpacing: '-0.02em' }}>
+        {mode === 'login' ? 'Sign In to Workspace' : 'Create an Account'}
       </h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', margin: '0 0 20px', textAlign: 'center' }}>
-        {mode === 'login' ? "Access your secure data analytics panel" : "Sign up to start analyzing datasets with AI"}
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: '0 0 18px', textAlign: 'center' }}>
+        {mode === 'login' ? "Enterprise analytics & automated machine learning" : "Join the collaborative intelligence platform"}
       </p>
 
       {/* Onboarding Info Alert */}
       <div
         style={{
           display: 'flex',
-          gap: '12px',
-          padding: '14px 16px',
-          background: 'rgba(99, 102, 241, 0.1)',
-          borderRadius: '12px',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
-          marginBottom: '24px',
+          gap: '10px',
+          padding: '10px 12px',
+          background: 'var(--accent-primary-light)',
+          borderRadius: '8px',
+          border: '1px solid var(--border-default)',
+          marginBottom: '18px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Shield size={20} color="#818cf8" style={{ flexShrink: 0 }} />
+          <Shield size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
         </div>
         <div>
-          <h4 style={{ margin: '0 0 3px', color: '#e2e8f0', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            Why do I need to login?
-          </h4>
-          <p style={{ margin: 0, color: '#a5b4fc', fontSize: '12px', lineHeight: '1.4' }}>
-            We require authentication to secure your private datasets, protect your machine learning pipelines, and keep your custom AI insights confidential.
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.74rem', lineHeight: '1.4' }}>
+            Protected with role-based session isolation, encrypted dataset pipelines, and secure model persistence.
           </p>
         </div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {mode === 'register' && (
           <div>
             <label
               htmlFor="reg-name"
               style={{
                 display: 'block',
-                fontSize: '12px',
-                color: '#94a3b8',
-                marginBottom: '6px',
-                fontWeight: 500,
+                fontSize: '0.72rem',
+                color: 'var(--text-secondary)',
+                marginBottom: '4px',
+                fontWeight: 600,
                 textTransform: 'uppercase',
-                letterSpacing: '0.06em',
+                letterSpacing: '0.04em',
               }}
             >
               Full Name *
             </label>
             <div style={{ position: 'relative' }}>
               <User
-                size={18}
-                color="#64748b"
-                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+                size={15}
+                color="var(--text-muted)"
+                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }}
               />
               <input
                 id="reg-name"
                 type="text"
-                className="input"
-                placeholder="John Doe"
+                className="input-precision"
+                placeholder="Jane Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                style={{ paddingLeft: '40px' }}
+                style={{ paddingLeft: '34px', fontSize: '0.82rem' }}
                 required
               />
             </div>
@@ -159,30 +155,30 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
             htmlFor="auth-email"
             style={{
               display: 'block',
-              fontSize: '12px',
-              color: '#94a3b8',
-              marginBottom: '6px',
-              fontWeight: 500,
+              fontSize: '0.72rem',
+              color: 'var(--text-secondary)',
+              marginBottom: '4px',
+              fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
             }}
           >
-            Email Address *
+            Work Email *
           </label>
           <div style={{ position: 'relative' }}>
             <Mail
-              size={18}
-              color="#64748b"
-              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+              size={15}
+              color="var(--text-muted)"
+              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }}
             />
             <input
               id="auth-email"
               type="email"
-              className="input"
-              placeholder="name@example.com"
+              className="input-precision"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{ paddingLeft: '40px' }}
+              style={{ paddingLeft: '34px', fontSize: '0.82rem' }}
               required
             />
           </div>
@@ -193,30 +189,30 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
             htmlFor="auth-password"
             style={{
               display: 'block',
-              fontSize: '12px',
-              color: '#94a3b8',
-              marginBottom: '6px',
-              fontWeight: 500,
+              fontSize: '0.72rem',
+              color: 'var(--text-secondary)',
+              marginBottom: '4px',
+              fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
             }}
           >
             Password *
           </label>
           <div style={{ position: 'relative' }}>
             <Lock
-              size={18}
-              color="#64748b"
-              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+              size={15}
+              color="var(--text-muted)"
+              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }}
             />
             <input
               id="auth-password"
               type="password"
-              className="input"
+              className="input-precision"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ paddingLeft: '40px' }}
+              style={{ paddingLeft: '34px', fontSize: '0.82rem' }}
               required
             />
           </div>
@@ -228,21 +224,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
           className="btn-primary"
           disabled={loading}
           style={{
-            marginTop: '8px',
-            padding: '12px',
-            fontSize: '14px',
+            marginTop: '6px',
+            height: '36px',
+            fontSize: '0.82rem',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
+            gap: '6px',
             width: '100%',
           }}
         >
           {loading ? (
-            <RefreshCw size={18} className="animate-spin" />
+            <RefreshCw size={15} className="animate-spin" />
           ) : mode === 'login' ? (
-            'Sign In'
+            'Authenticate'
           ) : (
             'Create Account'
           )}
@@ -250,22 +246,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
       </form>
 
       {/* Mode Switcher */}
-      <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
-        <span style={{ color: '#94a3b8' }}>
-          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+      <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.78rem' }}>
+        <span style={{ color: 'var(--text-secondary)' }}>
+          {mode === 'login' ? "Don't have an account? " : "Already registered? "}
         </span>
         <button
           onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#6366f1',
+            color: 'var(--accent-primary)',
             fontWeight: 600,
             cursor: 'pointer',
-            padding: '0',
+            padding: '0 2px',
+            fontSize: '0.78rem',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.color = '#818cf8'}
-          onMouseLeave={(e) => e.currentTarget.style.color = '#6366f1'}
         >
           {mode === 'login' ? 'Sign Up' : 'Log In'}
         </button>
@@ -274,29 +269,30 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, initialMode = 'login' })
       {/* Force Login Modal */}
       {showForceModal && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
         }}>
-          <div style={{
-            background: '#1e293b', border: '1px solid #334155', borderRadius: '16px',
-            padding: '30px', maxWidth: '400px', width: '90%', textAlign: 'center'
+          <div className="card-precision" style={{
+            padding: '24px', maxWidth: '380px', width: '90%', textAlign: 'center'
           }}>
-            <h3 style={{ margin: '0 0 16px', color: '#f87171', fontSize: '20px', fontWeight: 600 }}>Active Session Detected</h3>
-            <p style={{ color: '#cbd5e1', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>
-              Your account is already logged in on another device or browser. Do you want to forcefully logout the other session and login here?
+            <h3 style={{ margin: '0 0 10px', color: 'var(--status-danger)', fontSize: '1.05rem', fontWeight: 700 }}>Concurrent Session Active</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '18px', lineHeight: '1.45' }}>
+              Your account is logged in on another device. Would you like to terminate the previous session and proceed?
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
               <button
                 onClick={() => setShowForceModal(false)}
-                style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontWeight: 600 }}
+                className="btn-secondary"
+                style={{ height: '32px', padding: '0 14px', fontSize: '0.78rem' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleForceLogin}
-                style={{ padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#f87171', color: 'white', cursor: 'pointer', fontWeight: 600 }}
+                className="btn-primary"
+                style={{ height: '32px', padding: '0 14px', fontSize: '0.78rem', background: 'var(--status-danger)', borderColor: 'var(--status-danger)' }}
               >
-                Yes, Force Login
+                Terminate &amp; Sign In
               </button>
             </div>
           </div>

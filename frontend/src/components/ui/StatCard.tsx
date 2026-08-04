@@ -20,7 +20,7 @@ const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
   icon,
-  color = '#6366f1',
+  color = 'var(--accent-primary)',
   subtitle,
   trend,
 }) => {
@@ -43,68 +43,40 @@ const StatCard: React.FC<StatCardProps> = ({
     }
   }, [isNumeric, value, motionVal]);
 
-  const trendColor =
-    trend !== undefined ? (trend >= 0 ? '#22c55e' : '#ef4444') : undefined;
+  const isPositiveTrend = trend !== undefined && trend >= 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="metric-card"
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="card-precision"
       style={{
         position: 'relative',
-        padding: '20px 22px',
-        borderRadius: 14,
-        backgroundColor: '#1a1d27',
-        border: '1px solid rgba(99,102,241,0.15)',
+        padding: '18px 20px',
         overflow: 'hidden',
         cursor: 'default',
-        transition: 'border-color 0.25s, box-shadow 0.25s',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = `${color}55`;
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 28px ${color}22`;
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor =
-          'rgba(99,102,241,0.15)';
-        (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
       }}
     >
-      {/* Gradient background accent */}
-      <div
-        style={{
-          position: 'absolute',
-          top: -40,
-          right: -40,
-          width: 120,
-          height: 120,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${color}22 0%, transparent 70%)`,
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Icon + Title row */}
       <div
         style={{
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          marginBottom: 16,
+          marginBottom: 12,
         }}
       >
         <div>
           <div
             style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: 'rgba(148,163,184,0.65)',
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
               textTransform: 'uppercase',
-              letterSpacing: '0.07em',
-              marginBottom: 4,
+              letterSpacing: '0.04em',
+              marginBottom: 2,
             }}
           >
             {title}
@@ -113,7 +85,7 @@ const StatCard: React.FC<StatCardProps> = ({
             <div
               style={{
                 fontSize: 11,
-                color: 'rgba(148,163,184,0.4)',
+                color: 'var(--text-muted)',
               }}
             >
               {subtitle}
@@ -122,15 +94,15 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
         <div
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: `linear-gradient(135deg, ${color}30, ${color}15)`,
-            border: `1px solid ${color}35`,
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            background: 'var(--bg-canvas)',
+            border: '1px solid var(--border-default)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color,
+            color: color.startsWith('var') ? color : color,
             flexShrink: 0,
           }}
         >
@@ -138,15 +110,16 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
       </div>
 
-      {/* Value */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+      {/* Value & Trend */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div
           style={{
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: 800,
-            color: '#f1f5f9',
-            letterSpacing: '-0.5px',
-            lineHeight: 1,
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1,
+            fontFamily: "var(--font-family-heading)",
           }}
         >
           {isNumeric ? (
@@ -158,34 +131,20 @@ const StatCard: React.FC<StatCardProps> = ({
 
         {trend !== undefined && (
           <div
+            className={`badge-subtle ${isPositiveTrend ? 'badge-success' : 'badge-danger'}`}
             style={{
+              fontSize: 11,
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               gap: 3,
-              fontSize: 12,
-              fontWeight: 600,
-              color: trendColor,
-              paddingBottom: 2,
             }}
           >
-            {trend >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-            {Math.abs(trend)}%
+            {isPositiveTrend ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            <span>{isPositiveTrend ? `+${trend}%` : `${trend}%`}</span>
           </div>
         )}
       </div>
-
-      {/* Bottom gradient line */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 2,
-          background: `linear-gradient(90deg, ${color}, transparent)`,
-          opacity: 0.5,
-        }}
-      />
     </motion.div>
   );
 };

@@ -1,3 +1,4 @@
+import React from 'react';
 import { FileSearch } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -11,33 +12,48 @@ interface EmptyStateProps {
 
 export default function EmptyState({
   title = 'No Dataset Selected',
-  description = 'Upload or select a dataset to view this page.',
-  actionText = 'Go to Upload',
+  description = 'Upload or select a dataset from the header to analyze this workspace.',
+  actionText = 'Ingest Dataset',
   actionLink = '/dashboard/upload'
 }: EmptyStateProps) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      minHeight: '400px', background: '#1a1d27', border: '1px dashed #3d3f50',
-      borderRadius: '16px', padding: '40px', textAlign: 'center'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '380px',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px dashed var(--border-strong)',
+        borderRadius: '14px',
+        padding: '40px 24px',
+        textAlign: 'center',
+        boxShadow: 'var(--shadow-xs)',
+      }}
+    >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.2 }}
         style={{
-          width: '80px', height: '80px', borderRadius: '20px',
-          background: 'rgba(99,102,241,0.1)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', marginBottom: '24px',
-          border: '1px solid rgba(99,102,241,0.2)'
+          width: '64px',
+          height: '64px',
+          borderRadius: '16px',
+          background: 'var(--accent-primary-light)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '18px',
+          border: '1px solid var(--border-default)',
         }}
       >
-        <FileSearch size={40} color="#6366f1" />
+        <FileSearch size={30} color="var(--accent-primary)" />
       </motion.div>
-      <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#e2e8f0', marginBottom: '12px' }}>
+      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
         {title}
       </h3>
-      <p style={{ color: '#94a3b8', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--text-secondary)', maxWidth: '420px', marginBottom: '22px', fontSize: '13.5px', lineHeight: 1.5 }}>
         {description}
       </p>
       {actionLink && actionText && (

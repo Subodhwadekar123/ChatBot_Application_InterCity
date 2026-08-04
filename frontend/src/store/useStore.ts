@@ -121,7 +121,7 @@ export const useStore = create<AppStore>()(
   persist(
     (set, get) => ({
       // Theme
-      theme: 'dark',
+      theme: 'light',
       toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
 
       // Active dataset

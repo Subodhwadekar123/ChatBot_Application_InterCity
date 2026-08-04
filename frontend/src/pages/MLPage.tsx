@@ -8,18 +8,12 @@ import {
   Brain,
   Play,
   CheckCircle2,
-  AlertTriangle,
   TrendingUp,
   BarChart2,
   Sparkles,
-  Sliders,
   Table,
-  Target,
-  Percent,
   Check,
   X,
-  Layers,
-  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,8 +27,7 @@ export default function MLPage() {
   const [comparisonResults, setComparisonResults] = useState<any>(null);
 
   // What-If live simulator state
-  const [simulatorInputs, setSimulatorInputs] = useState<Record<string, number>>({});
-  const [simulatedPrediction, setSimulatedPrediction] = useState<any>(null);
+  const [, setSimulatorInputs] = useState<Record<string, number>>({});
 
   if (!activeDataset) return <EmptyState />;
 
@@ -118,21 +111,6 @@ export default function MLPage() {
     }
   };
 
-  // Helper to get formatted accuracy percentage
-  const getAccuracyRate = (res: any) => {
-    if (!res) return null;
-    if (res.accuracy_summary) return res.accuracy_summary;
-    if (res.metrics?.accuracy !== undefined) {
-      const pct = (res.metrics.accuracy * 100).toFixed(2);
-      return { overall_accuracy_pct: Number(pct), headline: `${pct}% Accuracy`, rating: 'Evaluated' };
-    }
-    if (res.metrics?.r2_score !== undefined) {
-      const pct = (Math.max(0, res.metrics.r2_score) * 100).toFixed(2);
-      return { overall_accuracy_pct: Number(pct), headline: `${pct}% R² Variance Explained`, rating: 'Evaluated' };
-    }
-    return null;
-  };
-
   return (
     <div style={{ paddingBottom: '60px', maxWidth: '1600px', margin: '0 auto' }}>
       <SectionHeader
@@ -141,23 +119,23 @@ export default function MLPage() {
         icon={<Brain />}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
         
         {/* ── STEP 1 & 2: SETUP & TRAINING ─────────────────────────────────── */}
-        <div className="card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+        <div className="card-precision" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             
             {/* Target Selector */}
-            <div style={{ flex: '1 1 320px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
+            <div style={{ flex: '1 1 300px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
                 1. Select Target Variable to Predict
               </label>
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
                 <select
-                  className="input"
+                  className="input-precision"
                   value={targetCol}
                   onChange={(e) => setTargetCol(e.target.value)}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, height: '36px', fontSize: '0.82rem' }}
                 >
                   <option value="">-- Choose Column to Predict --</option>
                   {cols.map((c) => (
@@ -170,25 +148,25 @@ export default function MLPage() {
                   className="btn-primary"
                   onClick={handleDetect}
                   disabled={!targetCol || loading}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 14px', fontSize: '0.82rem' }}
                 >
-                  <Sparkles size={16} /> Detect
+                  <Sparkles size={14} /> Detect
                 </button>
               </div>
             </div>
 
             {/* Algorithm Selector & Actions */}
             {problemType && (
-              <div style={{ flex: '2 1 450px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
+              <div style={{ flex: '2 1 420px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
                   2. Select Algorithm ({problemType.problem_type.toUpperCase()} • {problemType.reason})
                 </label>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <select
-                    className="input"
+                    className="input-precision"
                     value={algorithm}
                     onChange={(e) => setAlgorithm(e.target.value)}
-                    style={{ flex: '1 1 240px' }}
+                    style={{ flex: '1 1 220px', height: '36px', fontSize: '0.82rem' }}
                   >
                     {problemType.recommended_algorithms?.map((algo: any, idx: number) => (
                       <option key={algo.id} value={algo.id}>
@@ -201,17 +179,17 @@ export default function MLPage() {
                       className="btn-primary"
                       onClick={handleTrain}
                       disabled={loading || !algorithm}
-                      style={{ background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 14px', fontSize: '0.82rem' }}
                     >
-                      <Play size={16} /> Train & Predict
+                      <Play size={14} /> Train & Predict
                     </button>
                     <button
                       className="btn-secondary"
                       onClick={handleCompare}
                       disabled={loading}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 12px', fontSize: '0.82rem' }}
                     >
-                      <BarChart2 size={16} /> Compare All Models
+                      <BarChart2 size={14} /> Compare All
                     </button>
                   </div>
                 </div>
@@ -223,12 +201,12 @@ export default function MLPage() {
 
         {/* ── LOADING ANIMATION ────────────────────────────────────────────── */}
         {loading && (
-          <div className="card" style={{ padding: '48px', textAlign: 'center', color: '#818cf8' }}>
-            <Brain size={52} className="animate-float" style={{ margin: '0 auto 16px' }} />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '8px', color: '#f8fafc' }}>
+          <div className="card-precision" style={{ padding: '40px', textAlign: 'center', color: 'var(--accent-primary)' }}>
+            <Brain size={44} className="animate-spin" style={{ margin: '0 auto 14px', animationDuration: '4s' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
               Training & Evaluating ML Model...
             </h3>
-            <p style={{ color: '#94a3b8', maxWidth: '500px', margin: '0 auto', fontSize: '0.9rem' }}>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto', fontSize: '0.82rem' }}>
               Preprocessing features, performing 80/20 train-test split, fitting {algorithm}, calculating percentage accuracy, and computing actual prediction differences.
             </p>
           </div>
@@ -237,65 +215,55 @@ export default function MLPage() {
         {/* ── RESULTS: HERO ACCURACY & METRICS CARDS ───────────────────────── */}
         <AnimatePresence>
           {!loading && results && (
-            <motion.div variants={stagger} initial="hidden" animate="visible" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <motion.div variants={stagger} initial="hidden" animate="visible" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
               {/* 🌟 HERO ACCURACY RATE BANNER */}
               <motion.div
                 variants={fadeUp}
-                className="card"
+                className="card-precision"
                 style={{
-                  padding: '24px 28px',
-                  background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95))',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  padding: '20px 24px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: '20px'
+                  gap: '16px'
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent-primary)', fontWeight: 700 }}>
                       Model Performance Summary
                     </span>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      background: results.accuracy_summary?.rating === 'Outstanding' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(99, 102, 241, 0.2)',
-                      color: results.accuracy_summary?.rating === 'Outstanding' ? '#34d399' : '#a5b4fc',
-                      padding: '3px 8px',
-                      borderRadius: '12px',
-                      fontWeight: 600
-                    }}>
+                    <span className={`badge-subtle ${results.accuracy_summary?.rating === 'Outstanding' ? 'badge-success' : 'badge-info'}`} style={{ fontSize: '0.7rem' }}>
                       {results.accuracy_summary?.rating || 'Evaluated'}
                     </span>
                   </div>
-                  <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     {results.accuracy_summary?.headline || `${results.algorithm.toUpperCase()} Evaluation`}
                   </h2>
-                  <p style={{ color: '#94a3b8', fontSize: '0.88rem', margin: '6px 0 0 0' }}>
-                    Algorithm: <strong style={{ color: '#e2e8f0' }}>{results.algorithm}</strong> • Trained on {results.n_samples_train} samples • Tested on {results.n_samples_test} samples
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: '4px 0 0 0' }}>
+                    Algorithm: <strong style={{ color: 'var(--text-primary)' }}>{results.algorithm}</strong> • Trained on {results.n_samples_train} samples • Tested on {results.n_samples_test} samples
                   </p>
                 </div>
 
                 {/* Big Accuracy Percentage Box */}
                 <div style={{
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(99, 102, 241, 0.4)',
-                  borderRadius: '16px',
-                  padding: '16px 28px',
+                  background: 'var(--bg-canvas)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
                   textAlign: 'center',
-                  minWidth: '180px'
+                  minWidth: '160px'
                 }}>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>
                     {results.problem_type === 'regression' ? 'Variance Explained (R²)' : 'Overall Accuracy'}
                   </span>
-                  <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '-0.02em' }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent-primary)', letterSpacing: '-0.02em' }}>
                     {results.accuracy_summary?.overall_accuracy_pct != null ? `${results.accuracy_summary.overall_accuracy_pct}%` : 'N/A'}
                   </div>
                   {results.problem_type === 'regression' && results.accuracy_summary?.within_10pct_accuracy != null && (
-                    <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--status-success)', fontWeight: 600 }}>
                       {results.accuracy_summary.within_10pct_accuracy}% within ±10% error
                     </span>
                   )}
@@ -303,28 +271,28 @@ export default function MLPage() {
               </motion.div>
 
               {/* Detailed Metrics Grid & Feature Importance */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
                 
                 {/* Metrics Breakdown Card */}
-                <motion.div variants={fadeUp} className="card" style={{ padding: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                    <CheckCircle2 size={20} color="#10b981" />
-                    <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', margin: 0, fontWeight: 600 }}>
+                <motion.div variants={fadeUp} className="card-precision" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <CheckCircle2 size={18} color="var(--status-success)" />
+                    <h3 style={{ fontSize: '0.96rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                       Detailed Evaluation Metrics
                     </h3>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
                     {Object.entries(results.metrics || {})
                       .filter(([k]) => k !== 'confusion_matrix' && k !== 'roc_curve')
                       .map(([key, value]: [string, any]) => {
                         const isPercentage = key.includes('accuracy') || key.includes('precision') || key.includes('recall') || key.includes('f1') || key.includes('r2');
                         return (
-                          <div key={key} style={{ background: '#1e293b', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          <div key={key} style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
                               {key.replace('_', ' ')}
                             </div>
-                            <div style={{ fontSize: '1.35rem', fontWeight: 700, color: isPercentage ? '#818cf8' : '#e2e8f0' }}>
+                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                               {typeof value === 'number'
                                 ? (isPercentage ? `${(value * 100).toFixed(2)}%` : value.toFixed(4))
                                 : String(value)}
@@ -337,29 +305,28 @@ export default function MLPage() {
 
                 {/* Feature Importance Card */}
                 {results.feature_importances && results.feature_importances.length > 0 && (
-                  <motion.div variants={fadeUp} className="card" style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                      <TrendingUp size={20} color="#a855f7" />
-                      <h3 style={{ fontSize: '1.1rem', color: '#e2e8f0', margin: 0, fontWeight: 600 }}>
+                  <motion.div variants={fadeUp} className="card-precision" style={{ padding: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                      <TrendingUp size={18} color="var(--accent-primary)" />
+                      <h3 style={{ fontSize: '0.96rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                         Feature Importance (Impact Drivers)
                       </h3>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {results.feature_importances.slice(0, 7).map((item: any) => {
                         const pct = (item.importance * 100).toFixed(1);
                         return (
                           <div key={item.feature}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 500, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-primary)', marginBottom: '3px' }}>
+                              <span style={{ fontWeight: 500, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {item.feature}
                               </span>
-                              <span style={{ fontWeight: 600, color: '#c084fc' }}>{pct}%</span>
+                              <span style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>{pct}%</span>
                             </div>
-                            <div className="progress-bar" style={{ height: '7px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
                               <div
-                                className="progress-bar-fill"
-                                style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #a855f7, #ec4899)', borderRadius: '4px' }}
+                                style={{ width: `${pct}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '3px' }}
                               />
                             </div>
                           </div>
@@ -373,31 +340,31 @@ export default function MLPage() {
 
               {/* ── 🔍 ACTUAL VS. PREDICTED PREVIEW TABLE ─────────────────────── */}
               {results.predictions_preview && results.predictions_preview.length > 0 && (
-                <motion.div variants={fadeUp} className="card" style={{ padding: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Table size={20} color="#38bdf8" />
-                      <h3 style={{ fontSize: '1.15rem', color: '#f8fafc', margin: 0, fontWeight: 600 }}>
+                <motion.div variants={fadeUp} className="card-precision" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Table size={18} color="var(--accent-primary)" />
+                      <h3 style={{ fontSize: '0.96rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                         Actual vs. Predicted Sample Results
                       </h3>
                     </div>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                      Showing {results.predictions_preview.length} sample records from the holdout test dataset
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Showing {results.predictions_preview.length} sample records from holdout test dataset
                     </span>
                   </div>
 
-                  <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+                  <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
                       <thead>
-                        <tr style={{ background: '#1e293b', borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}>
-                          <th style={{ padding: '10px 14px' }}>#</th>
-                          <th style={{ padding: '10px 14px' }}>Actual Ground Truth</th>
-                          <th style={{ padding: '10px 14px' }}>Model Predicted</th>
-                          <th style={{ padding: '10px 14px' }}>
+                        <tr style={{ background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>#</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>Actual Ground Truth</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>Model Predicted</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>
                             {results.problem_type === 'regression' ? 'Absolute Difference' : 'Match Status'}
                           </th>
-                          <th style={{ padding: '10px 14px' }}>Accuracy Status</th>
-                          <th style={{ padding: '10px 14px' }}>Input Features Snapshot</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>Accuracy Status</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600 }}>Input Features Snapshot</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -405,45 +372,41 @@ export default function MLPage() {
                           <tr
                             key={row.row_id}
                             style={{
-                              borderBottom: '1px solid rgba(255,255,255,0.05)',
-                              background: row.row_id % 2 === 0 ? 'rgba(30, 41, 59, 0.2)' : 'transparent',
+                              borderBottom: '1px solid var(--border-subtle)',
+                              background: row.row_id % 2 === 0 ? 'var(--bg-canvas)' : 'transparent',
                             }}
                           >
-                            <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>{row.row_id}</td>
-                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#f8fafc' }}>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 600 }}>{row.row_id}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                               {String(row.actual)}
                             </td>
-                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#818cf8' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--accent-primary)' }}>
                               {String(row.predicted)}
                             </td>
-                            <td style={{ padding: '10px 14px', color: '#cbd5e1' }}>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>
                               {row.difference !== undefined ? (
-                                <span style={{ color: row.difference > 0 ? '#34d399' : '#f87171' }}>
+                                <span style={{ color: row.difference > 0 ? 'var(--status-success)' : 'var(--status-danger)' }}>
                                   {row.difference > 0 ? `+${row.difference}` : row.difference}
                                 </span>
                               ) : (
                                 row.status
                               )}
                             </td>
-                            <td style={{ padding: '10px 14px' }}>
+                            <td style={{ padding: '8px 12px' }}>
                               <span
+                                className={`badge-subtle ${row.is_correct ? 'badge-success' : 'badge-danger'}`}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '3px 8px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 600,
-                                  background: row.is_correct ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                  color: row.is_correct ? '#34d399' : '#f87171',
+                                  gap: '3px',
+                                  fontSize: '0.72rem',
                                 }}
                               >
-                                {row.is_correct ? <Check size={12} /> : <X size={12} />}
+                                {row.is_correct ? <Check size={11} /> : <X size={11} />}
                                 {row.is_correct ? 'Accurate' : (row.error_pct ? `${row.error_pct}% off` : 'Incorrect')}
                               </span>
                             </td>
-                            <td style={{ padding: '10px 14px', fontSize: '0.78rem', color: '#94a3b8' }}>
+                            <td style={{ padding: '8px 12px', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
                               {Object.entries(row.features)
                                 .slice(0, 3)
                                 .map(([k, v]) => `${k}: ${v}`)
@@ -468,22 +431,22 @@ export default function MLPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="card"
-              style={{ padding: '24px' }}
+              className="card-precision"
+              style={{ padding: '20px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <BarChart2 size={22} color="#6366f1" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <BarChart2 size={20} color="var(--accent-primary)" />
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', color: '#e2e8f0', margin: 0, fontWeight: 600 }}>
+                  <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                     Model Accuracy & Performance Benchmark
                   </h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: '2px 0 0 0' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', margin: '2px 0 0 0' }}>
                     Ranked by {problemType?.problem_type === 'regression' ? 'R² Variance Explained %' : 'Overall Accuracy %'}
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {comparisonResults.comparison
                   .filter((r: any) => !r.error)
                   .sort((a: any, b: any) => {
@@ -502,46 +465,46 @@ export default function MLPage() {
                       <div
                         key={r.algorithm}
                         style={{
-                          background: idx === 0 ? 'rgba(99, 102, 241, 0.12)' : 'rgba(30, 41, 59, 0.4)',
-                          border: `1px solid ${idx === 0 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255,255,255,0.06)'}`,
-                          borderRadius: '10px',
-                          padding: '16px',
+                          background: idx === 0 ? 'var(--accent-primary-light)' : 'var(--bg-canvas)',
+                          border: `1px solid ${idx === 0 ? 'var(--accent-primary)' : 'var(--border-default)'}`,
+                          borderRadius: '8px',
+                          padding: '14px',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {idx === 0 && (
-                              <span style={{ background: '#10b981', color: '#ffffff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                              <span className="badge-subtle badge-success" style={{ fontSize: '0.68rem', fontWeight: 700 }}>
                                 BEST
                               </span>
                             )}
-                            <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>{algoName}</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>{algoName}</span>
                           </div>
-                          <span style={{ fontWeight: 700, color: '#38bdf8', fontSize: '1.05rem' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--accent-primary)', fontSize: '0.92rem' }}>
                             {metricName}: {pct.toFixed(2)}%
                           </span>
                         </div>
 
                         {/* Progress Bar */}
-                        <div style={{ height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
+                        <div style={{ height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
                           <div
                             style={{
                               width: `${pct}%`,
                               height: '100%',
-                              background: idx === 0 ? 'linear-gradient(90deg, #10b981, #06b6d4)' : 'linear-gradient(90deg, #6366f1, #a855f7)',
-                              borderRadius: '4px',
+                              background: idx === 0 ? 'var(--status-success)' : 'var(--accent-primary)',
+                              borderRadius: '3px',
                             }}
                           />
                         </div>
 
                         {/* Secondary Metrics */}
-                        <div style={{ display: 'flex', gap: '16px', fontSize: '0.78rem', color: '#94a3b8', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '14px', fontSize: '0.74rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
                           {Object.entries(r.metrics || {})
                             .filter(([k]) => k !== (isReg ? 'r2_score' : 'accuracy') && k !== 'confusion_matrix' && k !== 'roc_curve')
                             .slice(0, 4)
                             .map(([k, v]: [string, any]) => (
                               <span key={k}>
-                                <strong style={{ color: '#cbd5e1' }}>{k.replace('_', ' ')}:</strong>{' '}
+                                <strong style={{ color: 'var(--text-primary)' }}>{k.replace('_', ' ')}:</strong>{' '}
                                 {typeof v === 'number' ? (v < 1 && v > 0 ? `${(v * 100).toFixed(1)}%` : v.toFixed(3)) : v}
                               </span>
                             ))}

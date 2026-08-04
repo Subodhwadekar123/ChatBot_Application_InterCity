@@ -1,21 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus, User } from 'lucide-react';
+import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus, User, Shield, Sparkles } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
 const routeTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/dashboard/upload': 'Upload Dataset',
+  '/dashboard': 'Executive Overview',
+  '/dashboard/upload': 'Dataset Ingestion',
   '/dashboard/eda': 'Exploratory Data Analysis',
-  '/dashboard/cleaning': 'Data Cleaning',
-  '/dashboard/visualization': 'Visualization',
+  '/dashboard/cleaning': 'Data Cleaning & Normalization',
+  '/dashboard/visualization': 'Visualization Studio',
   '/dashboard/features': 'Feature Engineering',
-  '/dashboard/statistics': 'Statistical Analysis',
-  '/dashboard/ml': 'Machine Learning',
-  '/dashboard/ai-insights': 'AI Insights',
-  '/dashboard/reports': 'Reports',
-  '/dashboard/settings': 'Settings',
+  '/dashboard/statistics': 'Statistical Hypothesis Suite',
+  '/dashboard/ml': 'AutoML & Model Studio',
+  '/dashboard/ai-insights': 'AI Executive Insights',
+  '/dashboard/reports': 'Report Generator',
+  '/dashboard/settings': 'Workspace Settings',
   '/dashboard/profile': 'Profile & Security',
 };
 
@@ -27,12 +27,14 @@ const Header: React.FC = () => {
     activeDataset,
     setActiveDataset,
     user,
+    theme,
+    toggleTheme,
   } = useStore();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const pageTitle = routeTitles[location.pathname] ?? 'Infinitics AI';
+  const pageTitle = routeTitles[location.pathname] ?? 'Data Analytics Platform';
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -51,14 +53,14 @@ const Header: React.FC = () => {
 
   return (
     <motion.header
-      initial={{ opacity: 0, y: -8 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
       style={{
-        height: 64,
-        backgroundColor: 'rgba(26, 29, 39, 0.8)',
+        height: 60,
+        backgroundColor: 'var(--bg-header)',
         backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(99, 102, 241, 0.15)',
+        borderBottom: '1px solid var(--border-default)',
         display: 'flex',
         alignItems: 'center',
         padding: '0 24px',
@@ -66,30 +68,32 @@ const Header: React.FC = () => {
         position: 'sticky',
         top: 0,
         zIndex: 50,
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
-      {/* Page Title */}
-      <AnimatePresence mode="wait">
-        <motion.h1
-          key={pageTitle}
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 8 }}
-          transition={{ duration: 0.2 }}
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: '#e2e8f0',
-            margin: 0,
-            flex: 1,
-            letterSpacing: '-0.3px',
-          }}
-        >
-          {pageTitle}
-        </motion.h1>
-      </AnimatePresence>
+      {/* Page Title & Breadcrumb */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <AnimatePresence mode="wait">
+          <motion.h1
+            key={pageTitle}
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 6 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+              letterSpacing: '-0.015em',
+            }}
+          >
+            {pageTitle}
+          </motion.h1>
+        </AnimatePresence>
+      </div>
 
-      {/* Dataset Selector — Center */}
+      {/* Dataset Selector — Precision Dropdown */}
       <div ref={dropdownRef} style={{ position: 'relative' }}>
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -97,36 +101,39 @@ const Header: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            padding: '7px 14px',
+            padding: '6px 12px',
             borderRadius: 8,
-            border: '1px solid rgba(99,102,241,0.25)',
-            backgroundColor: 'rgba(99,102,241,0.1)',
-            color: activeDataset ? '#a5b4fc' : 'rgba(148,163,184,0.6)',
+            border: '1px solid var(--border-default)',
+            backgroundColor: 'var(--bg-surface)',
+            color: activeDataset ? 'var(--text-primary)' : 'var(--text-muted)',
             cursor: 'pointer',
             fontSize: 13,
             fontWeight: 500,
-            transition: 'all 0.18s ease',
-            minWidth: 180,
+            transition: 'all 0.15s ease',
+            minWidth: 190,
             justifyContent: 'space-between',
+            boxShadow: 'var(--shadow-xs)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <Database size={14} />
+            <Database size={14} color={activeDataset ? 'var(--accent-primary)' : 'var(--text-muted)'} />
             <span
               style={{
-                maxWidth: 140,
+                maxWidth: 130,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: activeDataset ? 600 : 400,
               }}
             >
               {activeDataset
                 ? (activeDataset.filename || activeDataset.name || 'Active Dataset')
-                : 'No dataset loaded'}
+                : 'Select Dataset'}
             </span>
           </div>
           <ChevronDown
             size={13}
+            color="var(--text-muted)"
             style={{
               transition: 'transform 0.2s',
               transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -137,79 +144,95 @@ const Header: React.FC = () => {
         <AnimatePresence>
           {dropdownOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              initial={{ opacity: 0, y: -4, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={{ duration: 0.12 }}
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 8px)',
+                top: 'calc(100% + 6px)',
                 left: 0,
                 right: 0,
-                minWidth: 220,
-                backgroundColor: '#252836',
-                border: '1px solid rgba(99,102,241,0.2)',
+                minWidth: 230,
+                backgroundColor: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
                 borderRadius: 10,
-                boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+                boxShadow: 'var(--shadow-lg)',
                 zIndex: 200,
                 overflow: 'hidden',
               }}
             >
-              {datasets.length === 0 ? (
-                <div
-                  style={{
-                    padding: '16px',
-                    textAlign: 'center',
-                    color: 'rgba(148,163,184,0.5)',
-                    fontSize: 13,
-                  }}
-                >
-                  No datasets available
-                </div>
-              ) : (
-                datasets.map((ds: any) => (
-                  <button
-                    key={ds.id}
-                    onClick={() => {
-                      setActiveDataset(ds);
-                      setDropdownOpen(false);
-                    }}
+              <div style={{ padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Loaded Datasets ({datasets.length})
+              </div>
+
+              <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                {datasets.length === 0 ? (
+                  <div
                     style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '10px 14px',
-                      border: 'none',
-                      backgroundColor:
-                        activeDataset?.id === ds.id
-                          ? 'rgba(99,102,241,0.15)'
-                          : 'transparent',
-                      color:
-                        activeDataset?.id === ds.id ? '#a5b4fc' : '#cbd5e1',
-                      cursor: 'pointer',
-                      fontSize: 13,
-                      textAlign: 'left',
-                      transition: 'background 0.15s',
+                      padding: '16px',
+                      textAlign: 'center',
+                      color: 'var(--text-muted)',
+                      fontSize: 12.5,
                     }}
                   >
-                    <Database size={13} />
-                    <span
+                    No datasets loaded yet
+                  </div>
+                ) : (
+                  datasets.map((ds: any) => (
+                    <button
+                      key={ds.id}
+                      onClick={() => {
+                        setActiveDataset(ds);
+                        setDropdownOpen(false);
+                      }}
                       style={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        border: 'none',
+                        backgroundColor:
+                          activeDataset?.id === ds.id
+                            ? 'var(--accent-primary-light)'
+                            : 'transparent',
+                        color:
+                          activeDataset?.id === ds.id ? 'var(--accent-primary)' : 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        fontWeight: activeDataset?.id === ds.id ? 600 : 400,
+                        textAlign: 'left',
+                        transition: 'background 0.12s',
                       }}
                     >
-                      {ds.filename || ds.name}
-                    </span>
-                  </button>
-                ))
-              )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Database size={13} />
+                        <span
+                          style={{
+                            maxWidth: 140,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {ds.filename || ds.name}
+                        </span>
+                      </div>
+                      {ds.file_size_mb && (
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {ds.file_size_mb.toFixed(1)}MB
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+
               <div
                 style={{
-                  borderTop: '1px solid rgba(99,102,241,0.1)',
-                  padding: '8px',
+                  borderTop: '1px solid var(--border-subtle)',
+                  padding: '6px',
                 }}
               >
                 <button
@@ -221,20 +244,21 @@ const Header: React.FC = () => {
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 10px',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '7px 10px',
                     borderRadius: 6,
-                    border: '1px dashed rgba(99,102,241,0.3)',
+                    border: '1px dashed var(--border-strong)',
                     backgroundColor: 'transparent',
-                    color: '#818cf8',
+                    color: 'var(--accent-primary)',
                     cursor: 'pointer',
-                    fontSize: 13,
-                    fontWeight: 500,
+                    fontSize: 12.5,
+                    fontWeight: 600,
                     transition: 'all 0.15s',
                   }}
                 >
                   <Plus size={13} />
-                  Upload New Dataset
+                  Ingest New Dataset
                 </button>
               </div>
             </motion.div>
@@ -242,100 +266,121 @@ const Header: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Right Actions */}
+      {/* Right Header Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Refresh */}
+        {/* Theme Switcher Button */}
         <button
-          onClick={handleRefresh}
-          title="Refresh"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           style={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 8,
-            border: '1px solid rgba(99,102,241,0.15)',
-            backgroundColor: 'rgba(99,102,241,0.07)',
-            color: 'rgba(148,163,184,0.7)',
+            border: '1px solid var(--border-default)',
+            backgroundColor: 'var(--bg-surface)',
+            color: 'var(--text-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'all 0.18s ease',
+            transition: 'all 0.15s ease',
+            boxShadow: 'var(--shadow-xs)',
           }}
         >
-          <RefreshCw size={15} />
+          {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="#64748b" />}
         </button>
 
-        {/* User Profile Quick Access */}
+        {/* Refresh Page */}
+        <button
+          onClick={handleRefresh}
+          title="Refresh Data"
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            border: '1px solid var(--border-default)',
+            backgroundColor: 'var(--bg-surface)',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            boxShadow: 'var(--shadow-xs)',
+          }}
+        >
+          <RefreshCw size={14} />
+        </button>
+
+        {/* User Profile Pill */}
         {user && (
           <button
             onClick={() => navigate('/dashboard/profile')}
             title="Profile & Security Settings"
             style={{
-              height: 36,
-              padding: '0 12px',
+              height: 34,
+              padding: '0 10px',
               borderRadius: 8,
-              border: '1px solid rgba(99,102,241,0.25)',
-              backgroundColor: 'rgba(99,102,241,0.1)',
-              color: '#c7d2fe',
+              border: '1px solid var(--border-default)',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: 12.5,
               fontWeight: 600,
-              transition: 'all 0.18s ease',
+              transition: 'all 0.15s ease',
+              boxShadow: 'var(--shadow-xs)',
             }}
           >
             <div
               style={{
-                width: 22,
-                height: 22,
+                width: 20,
+                height: 20,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: user.is_admin ? 'var(--accent-amber)' : 'var(--accent-primary)',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: 700,
               }}
             >
               {(user.full_name || user.email || 'U')[0].toUpperCase()}
             </div>
-            <span>{user.full_name ? user.full_name.split(' ')[0] : 'Profile'}</span>
+            <span>{user.full_name ? user.full_name.split(' ')[0] : 'Analyst'}</span>
           </button>
         )}
 
-        {/* Active Dataset Badge */}
+        {/* Active Dataset Status Indicator */}
         {activeDataset && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              padding: '5px 11px',
-              borderRadius: 20,
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.2))',
-              border: '1px solid rgba(99,102,241,0.35)',
+              padding: '4px 9px',
+              borderRadius: 6,
+              background: 'var(--color-success-bg)',
+              border: '1px solid var(--color-success-border)',
               fontSize: 12,
               fontWeight: 600,
-              color: '#a5b4fc',
+              color: 'var(--color-success)',
             }}
           >
             <div
               style={{
-                width: 7,
-                height: 7,
+                width: 6,
+                height: 6,
                 borderRadius: '50%',
-                backgroundColor: '#22c55e',
-                boxShadow: '0 0 6px rgba(34,197,94,0.7)',
+                backgroundColor: 'var(--color-success)',
               }}
             />
             <span
               style={{
-                maxWidth: 120,
+                maxWidth: 110,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -343,7 +388,7 @@ const Header: React.FC = () => {
             >
               {activeDataset.filename || activeDataset.name}
             </span>
-          </motion.div>
+          </div>
         )}
       </div>
     </motion.header>

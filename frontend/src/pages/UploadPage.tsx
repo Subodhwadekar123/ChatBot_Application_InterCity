@@ -1,67 +1,35 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import {
+  Link as LinkIcon,
+  CheckCircle,
+  FileSpreadsheet,
+  FileCode,
+  FileType,
+  Sparkles,
+  Info,
+  Layers,
+  Database,
+  ArrowRight,
+} from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { uploadDataset, uploadFromUrl } from '../services/api';
 import DropZone from '../components/upload/DropZone';
 import DataTable from '../components/ui/DataTable';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-// import type { UploadedDataset } from '../types';
 
-// ---------------------------------------------------------------------------
-// Icon helper
-// ---------------------------------------------------------------------------
-const Icon: React.FC<{ d: string; color?: string; size?: number }> = ({ d, color = '#6366f1', size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-
-// ---------------------------------------------------------------------------
-// Info card for dataset_info after upload
-// ---------------------------------------------------------------------------
-interface InfoCardProps { label: string; value: string | number; color?: string }
-const InfoCard: React.FC<InfoCardProps> = ({ label, value, color = '#6366f1' }) => (
-  <div
-    style={{
-      background: 'rgba(26, 29, 39, 0.8)',
-      border: '1px solid #2d2f3e',
-      borderRadius: '12px',
-      padding: '14px 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '4px',
-      minWidth: 0,
-    }}
-  >
-    <p style={{ margin: 0, color: '#6b7090', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-      {label}
-    </p>
-    <p style={{ margin: 0, color, fontSize: '1.35rem', fontWeight: 700 }}>
-      {value}
-    </p>
-  </div>
-);
-
-// ---------------------------------------------------------------------------
-// Tips data
-// ---------------------------------------------------------------------------
 const TIPS = [
-  { icon: 'M3 6h18M7 6v14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6M11 6V4h2v2', text: 'CSV files process fastest. Keep headers in the first row.' },
-  { icon: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12', text: 'Excel files support multiple sheets — the first sheet is used.' },
-  { icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', text: 'JSON arrays or objects are both supported. Nested data is flattened.' },
-  { icon: 'M9 12l2 2 4-4M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0z', text: 'Maximum file size is 200 MB. Larger files? Pre-filter before upload.' },
+  'CSV format provides the fastest ingestion speeds. Keep column headers in the first row.',
+  'Excel workbooks (.xlsx/.xls) support multi-sheet data; the active primary sheet is parsed.',
+  'JSON records and nested hierarchies are flattened into standardized columnar structures automatically.',
+  'Data privacy note: files are securely parsed in memory for exploratory analysis and model training.',
 ];
 
-// ---------------------------------------------------------------------------
-// Supported format card
-// ---------------------------------------------------------------------------
 const FormatCard: React.FC<{ ext: string; label: string; color: string; description: string }> = ({ ext, label, color, description }) => (
   <div
+    className="card-precision"
     style={{
-      background: 'rgba(26, 29, 39, 0.8)',
-      border: '1px solid #2d2f3e',
-      borderRadius: '12px',
       padding: '16px',
       display: 'flex',
       flexDirection: 'column',
@@ -73,26 +41,24 @@ const FormatCard: React.FC<{ ext: string; label: string; color: string; descript
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 40,
-        height: 40,
+        width: 38,
+        height: 38,
         borderRadius: '8px',
-        background: `${color}20`,
+        background: 'var(--bg-canvas)',
+        border: '1px solid var(--border-default)',
         color,
         fontWeight: 700,
-        fontSize: '0.8rem',
+        fontSize: '0.78rem',
         letterSpacing: '0.04em',
       }}
     >
       {ext}
     </div>
-    <p style={{ margin: 0, color: '#e2e8f0', fontWeight: 600, fontSize: '0.9rem' }}>{label}</p>
-    <p style={{ margin: 0, color: '#6b7090', fontSize: '0.78rem', lineHeight: 1.5 }}>{description}</p>
+    <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.88rem' }}>{label}</p>
+    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.45 }}>{description}</p>
   </div>
 );
 
-// ---------------------------------------------------------------------------
-// Main page
-// ---------------------------------------------------------------------------
 const UploadPage: React.FC = () => {
   const { isUploading, setIsUploading, uploadProgress, setUploadProgress, addDataset, setActiveDataset } = useStore();
   const [uploadedDataset, setUploadedDataset] = useState<any>(null);
@@ -107,22 +73,16 @@ const UploadPage: React.FC = () => {
       const result = await uploadDataset(file, (pct: number) => {
         setUploadProgress(pct);
       });
-      // Keep progress at 100 so the DropZone shows a completed state
       setUploadProgress(100);
-      // Set the uploaded dataset FIRST, then stop the uploading state
-      // with a small delay so React renders the preview before the
-      // DropZone transitions out of its uploading animation.
       setUploadedDataset(result);
       addDataset(result as any);
       setActiveDataset(result as any);
-      // Use setTimeout to let React flush the uploadedDataset render
-      // before we switch isUploading off (which changes DropZone UI)
       setTimeout(() => {
         setIsUploading(false);
       }, 300);
-      toast.success('Dataset uploaded successfully!');
+      toast.success('Dataset ingested successfully!');
     } catch (err: any) {
-      toast.error(err?.message ?? 'Upload failed. Please try again.');
+      toast.error(err?.message ?? 'Upload failed. Please check file format.');
       setIsUploading(false);
       setUploadProgress(0);
     }
@@ -143,257 +103,155 @@ const UploadPage: React.FC = () => {
       addDataset(result as any);
       setActiveDataset(result as any);
       setTimeout(() => setIsUploading(false), 300);
-      toast.success('Dataset imported from URL successfully!');
+      toast.success('Dataset imported from public URL!');
       setUrlInput('');
     } catch (err: any) {
-      toast.error(err?.message ?? 'Import failed. Please check the URL and try again.');
+      toast.error(err?.message ?? 'Import failed. Verify public URL and structure.');
       setIsUploading(false);
       setUploadProgress(0);
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-  const stagger: any = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.07 } },
-  };
-  const fadeUp: any = {
-    hidden: { opacity: 0, y: 18 },
-    show:   { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } },
-  };
-
   return (
-    <div style={{ padding: '24px', maxWidth: 900, margin: '0 auto' }}>
-      {/* ------------------------------------------------------------------ */}
-      {/* Header                                                              */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '28px' }}>
-        <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#e2e8f0' }}>Upload Dataset</h1>
-        <p style={{ margin: '6px 0 0', color: '#6b7090', fontSize: '0.9rem' }}>
-          Drag & drop or browse to upload your data file for AI-powered analysis.
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '22px' }}>
+        <h1 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Ingest Dataset
+        </h1>
+        <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+          Upload local tabular files or import remote HTTP endpoints to initialize analytics
         </p>
       </motion.div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Drop zone                                                           */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} style={{ marginBottom: '16px' }}>
+      {/* Drop zone */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ marginBottom: '16px' }}>
         <DropZone onFileDrop={handleFileDrop} isUploading={isUploading} progress={uploadProgress} />
       </motion.div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* URL Import                                                          */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} style={{ marginBottom: '32px' }}>
-        <form onSubmit={handleUrlSubmit} style={{ display: 'flex', gap: '12px' }}>
-          <input
-            type="url"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="Or import from public URL (GitHub Raw, CSV, JSON...)"
-            disabled={isUploading}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              borderRadius: '10px',
-              border: '1px solid #2d2f3e',
-              background: '#1a1d27',
-              color: '#e2e8f0',
-              fontSize: '0.95rem',
-              outline: 'none',
-              transition: 'all 0.2s',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = '#6366f1')}
-            onBlur={(e) => (e.target.style.borderColor = '#2d2f3e')}
-          />
-          <button
-            type="submit"
-            disabled={isUploading || !urlInput}
-            style={{
-              padding: '0 24px',
-              borderRadius: '10px',
-              background: isUploading || !urlInput ? '#334155' : '#6366f1',
-              color: '#fff',
-              fontWeight: 600,
-              border: 'none',
-              cursor: isUploading || !urlInput ? 'not-allowed' : 'pointer',
-              transition: 'background 0.2s',
-            }}
-          >
-            Import
-          </button>
-        </form>
+      {/* URL Import */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ marginBottom: '26px' }}>
+        <div className="card-precision" style={{ padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <LinkIcon size={14} color="var(--accent-primary)" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Import via Public HTTP URL
+            </span>
+          </div>
+          <form onSubmit={handleUrlSubmit} style={{ display: 'flex', gap: '10px' }}>
+            <input
+              type="url"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="https://raw.githubusercontent.com/dataset.csv"
+              disabled={isUploading}
+              className="input-precision"
+              style={{ flex: 1, fontSize: '0.86rem' }}
+            />
+            <button
+              type="submit"
+              disabled={isUploading || !urlInput}
+              className="btn-primary"
+              style={{
+                padding: '0 20px',
+                fontSize: '0.84rem',
+                opacity: isUploading || !urlInput ? 0.5 : 1,
+                cursor: isUploading || !urlInput ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Fetch & Ingest
+            </button>
+          </form>
+        </div>
       </motion.div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Dataset preview after upload                                        */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Preview Section */}
       <AnimatePresence>
         {uploadedDataset && (
           <motion.div
             key="preview"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            style={{ marginBottom: '32px' }}
+            style={{ marginBottom: '26px' }}
           >
-            {/* Dataset info cards */}
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ margin: '0 0 14px', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0' }}>
-                Dataset Summary
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                <InfoCard label="Rows" value={uploadedDataset.dataset_info.rows.toLocaleString()} color="#6366f1" />
-                <InfoCard label="Columns" value={uploadedDataset.dataset_info.columns} color="#8b5cf6" />
-                <InfoCard label="Size" value={`${uploadedDataset.file_size_mb.toFixed(2)} MB`} color="#a855f7" />
-                <InfoCard label="Missing" value={uploadedDataset.dataset_info.missing_values_total.toLocaleString()} color="#f59e0b" />
-                <InfoCard label="Duplicates" value={uploadedDataset.dataset_info.duplicate_rows.toLocaleString()} color="#ef4444" />
-                <InfoCard label="Completeness" value={`${uploadedDataset.dataset_info.completeness_score.toFixed(1)}%`} color="#22c55e" />
-              </div>
-
-              {/* Column type breakdown */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  padding: '14px 16px',
-                  background: 'rgba(26, 29, 39, 0.8)',
-                  border: '1px solid #2d2f3e',
-                  borderRadius: '12px',
-                  marginBottom: '20px',
-                }}
-              >
-                {[
-                  { key: 'numeric',     color: '#06b6d4' },
-                  { key: 'categorical', color: '#f97316' },
-                  { key: 'datetime',    color: '#8b5cf6' },
-                  { key: 'boolean',     color: '#22c55e' },
-                ].map(({ key, color }) => {
-                  const cols = (uploadedDataset.dataset_info.column_types as any)[key] as string[];
-                  if (!cols?.length) return null;
-                  return (
-                    <span
-                      key={key}
-                      style={{
-                        padding: '4px 12px',
-                        borderRadius: 999,
-                        background: `${color}18`,
-                        border: `1px solid ${color}40`,
-                        color,
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {cols.length} {key}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Preview table */}
-            <div>
-              <h2 style={{ margin: '0 0 14px', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0' }}>
-                Data Preview <span style={{ color: '#6b7090', fontWeight: 400, fontSize: '0.85rem' }}>
-                  (first {uploadedDataset.preview.records.length} rows)
+            <div className="card-precision" style={{ padding: '20px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CheckCircle size={18} color="var(--color-success)" />
+                  <h2 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Schema Profile: {uploadedDataset.filename}
+                  </h2>
+                </div>
+                <span className="badge-subtle badge-success">
+                  {uploadedDataset.dataset_info?.rows?.toLocaleString()} Rows Ingested
                 </span>
-              </h2>
-              <DataTable
-                columns={uploadedDataset.preview.columns}
-                data={uploadedDataset.preview.records}
-              />
+              </div>
+
+              {/* Stat Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', padding: '10px 14px', borderRadius: '8px' }}>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Columns</p>
+                  <p style={{ margin: '2px 0 0', color: 'var(--text-primary)', fontSize: '1.15rem', fontWeight: 800 }}>{uploadedDataset.dataset_info?.columns}</p>
+                </div>
+                <div style={{ background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', padding: '10px 14px', borderRadius: '8px' }}>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>File Size</p>
+                  <p style={{ margin: '2px 0 0', color: 'var(--text-primary)', fontSize: '1.15rem', fontWeight: 800 }}>{uploadedDataset.file_size_mb?.toFixed(2)} MB</p>
+                </div>
+                <div style={{ background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', padding: '10px 14px', borderRadius: '8px' }}>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Missing Values</p>
+                  <p style={{ margin: '2px 0 0', color: 'var(--accent-amber)', fontSize: '1.15rem', fontWeight: 800 }}>{uploadedDataset.dataset_info?.missing_values_total?.toLocaleString()}</p>
+                </div>
+                <div style={{ background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', padding: '10px 14px', borderRadius: '8px' }}>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Completeness</p>
+                  <p style={{ margin: '2px 0 0', color: 'var(--color-success)', fontSize: '1.15rem', fontWeight: 800 }}>{uploadedDataset.dataset_info?.completeness_score?.toFixed(1)}%</p>
+                </div>
+              </div>
+
+              {/* Preview table */}
+              <div style={{ marginTop: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>Tabular Preview</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>First {uploadedDataset.preview?.records?.length} records</p>
+                </div>
+                <DataTable
+                  columns={uploadedDataset.preview?.columns || []}
+                  data={uploadedDataset.preview?.records || []}
+                />
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Loading indicator (full-page, while processing)                    */}
-      {/* ------------------------------------------------------------------ */}
-      <AnimatePresence>
-        {isUploading && !uploadedDataset && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}
-          >
-            <LoadingSpinner size="md" text="Processing dataset…" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Supported formats                                                   */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div variants={stagger} initial="hidden" animate="show" style={{ marginBottom: '32px' }}>
-        <motion.h2 variants={fadeUp} style={{ margin: '0 0 14px', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0' }}>
-          Supported Formats
-        </motion.h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-          <motion.div variants={fadeUp}>
-            <FormatCard ext="CSV" label="Comma-Separated Values" color="#22c55e" description="Most common tabular format. UTF-8 encoding recommended." />
-          </motion.div>
-          <motion.div variants={fadeUp}>
-            <FormatCard ext="XLSX" label="Excel Workbook" color="#16a34a" description="Microsoft Excel 2007+ format. First sheet is imported." />
-          </motion.div>
-          <motion.div variants={fadeUp}>
-            <FormatCard ext="XLS" label="Excel 97-2003" color="#15803d" description="Legacy Excel format. Converted automatically on upload." />
-          </motion.div>
-          <motion.div variants={fadeUp}>
-            <FormatCard ext="JSON" label="JSON Array / Object" color="#f59e0b" description="Array of records or object of arrays. Nested data is flattened." />
-          </motion.div>
+      {/* Supported Formats */}
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          Supported Schema Types
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '12px' }}>
+          <FormatCard ext="CSV" label="Comma-Separated Values" color="var(--accent-primary)" description="Standard UTF-8 formatted comma or tab delimited tabular datasets." />
+          <FormatCard ext="XLSX" label="Excel Workbook" color="var(--color-success)" description="Modern Microsoft Excel spreadsheets with automated multi-sheet parsing." />
+          <FormatCard ext="XLS" label="Legacy Excel" color="var(--accent-teal)" description="Excel 97-2003 binary formats automatically mapped to structured memory." />
+          <FormatCard ext="JSON" label="JSON Records / Objects" color="var(--accent-amber)" description="Array of objects or dictionary series parsed into columnar tables." />
         </div>
-      </motion.div>
+      </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Tips                                                                */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-        <h2 style={{ margin: '0 0 14px', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0' }}>Tips for Best Results</h2>
-        <div
-          style={{
-            background: 'rgba(26, 29, 39, 0.8)',
-            border: '1px solid #2d2f3e',
-            borderRadius: '14px',
-            overflow: 'hidden',
-          }}
-        >
+      {/* Tips */}
+      <div className="card-precision" style={{ padding: '16px 20px' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Info size={15} color="var(--accent-primary)" />
+          Best Practices & Performance Guidelines
+        </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {TIPS.map((tip, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '14px',
-                padding: '14px 20px',
-                borderBottom: i < TIPS.length - 1 ? '1px solid #2d2f3e' : 'none',
-              }}
-            >
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '8px',
-                  background: 'rgba(99,102,241,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  marginTop: 1,
-                }}
-              >
-                <Icon d={tip.icon} color="#6366f1" size={16} />
-              </div>
-              <p style={{ margin: 0, color: '#6b7090', fontSize: '0.87rem', lineHeight: 1.6 }}>{tip.text}</p>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>•</span>
+              <p style={{ margin: 0, lineHeight: 1.5 }}>{tip}</p>
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

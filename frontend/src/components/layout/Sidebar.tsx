@@ -38,36 +38,36 @@ interface NavSection {
 
 const navSections: NavSection[] = [
   {
-    heading: 'Main',
+    heading: 'Core',
     items: [
-      { icon: <Home size={18} />, label: 'Home', path: '/' },
-      { icon: <Upload size={18} />, label: 'Upload Dataset', path: '/dashboard/upload' },
-      { icon: <Database size={18} />, label: 'Dashboard', path: '/dashboard' },
+      { icon: <Home size={17} />, label: 'Home', path: '/' },
+      { icon: <Database size={17} />, label: 'Overview', path: '/dashboard' },
+      { icon: <Upload size={17} />, label: 'Ingest Dataset', path: '/dashboard/upload' },
     ],
   },
   {
-    heading: 'Analysis',
+    heading: 'Data Suite',
     items: [
-      { icon: <Layers size={18} />, label: 'EDA', path: '/dashboard/eda' },
-      { icon: <Wand2 size={18} />, label: 'Data Cleaning', path: '/dashboard/cleaning' },
-      { icon: <BarChart2 size={18} />, label: 'Visualization', path: '/dashboard/visualization' },
-      { icon: <FlaskConical size={18} />, label: 'Feature Engineering', path: '/dashboard/features' },
-      { icon: <TrendingUp size={18} />, label: 'Statistics', path: '/dashboard/statistics' },
+      { icon: <Layers size={17} />, label: 'EDA Studio', path: '/dashboard/eda' },
+      { icon: <Wand2 size={17} />, label: 'Data Cleaning', path: '/dashboard/cleaning' },
+      { icon: <BarChart2 size={17} />, label: 'Visualizations', path: '/dashboard/visualization' },
+      { icon: <FlaskConical size={17} />, label: 'Feature Engineering', path: '/dashboard/features' },
+      { icon: <TrendingUp size={17} />, label: 'Statistics', path: '/dashboard/statistics' },
     ],
   },
   {
-    heading: 'AI & ML',
+    heading: 'AI & Intelligence',
     items: [
-      { icon: <Brain size={18} />, label: 'Machine Learning', path: '/dashboard/ml' },
-      { icon: <Sparkles size={18} />, label: 'AI Insights', path: '/dashboard/ai-insights' },
+      { icon: <Brain size={17} />, label: 'AutoML Studio', path: '/dashboard/ml' },
+      { icon: <Sparkles size={17} />, label: 'AI Executive Brief', path: '/dashboard/ai-insights' },
     ],
   },
   {
-    heading: 'Account & Output',
+    heading: 'Outputs & Config',
     items: [
-      { icon: <FileText size={18} />, label: 'Reports', path: '/dashboard/reports' },
-      { icon: <User size={18} />, label: 'Profile & Security', path: '/dashboard/profile' },
-      { icon: <Settings size={18} />, label: 'Settings', path: '/dashboard/settings' },
+      { icon: <FileText size={17} />, label: 'Reports & Export', path: '/dashboard/reports' },
+      { icon: <User size={17} />, label: 'Profile & Security', path: '/dashboard/profile' },
+      { icon: <Settings size={17} />, label: 'Settings', path: '/dashboard/settings' },
     ],
   },
 ];
@@ -81,12 +81,12 @@ const Sidebar: React.FC = () => {
     dynamicSections.push({
       heading: 'Administration',
       items: [
-        { icon: <Shield size={18} />, label: 'Admin Portal', path: '/admin' },
+        { icon: <Shield size={17} />, label: 'Admin Portal', path: '/admin' },
       ],
     });
   }
 
-  const width = sidebarCollapsed ? 68 : 240;
+  const width = sidebarCollapsed ? 64 : 230;
 
   return (
     <motion.aside
@@ -100,70 +100,67 @@ const Sidebar: React.FC = () => {
         zIndex: 100,
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#0f1117',
-        borderRight: '1px solid #2d2f3e',
-        boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
+        backgroundColor: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-default)',
+        boxShadow: 'var(--shadow-sm)',
         overflow: 'hidden',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
-      {/* Logo */}
+      {/* Platform Branding */}
       <div
         style={{
-          padding: sidebarCollapsed ? '20px 0' : '20px 16px',
+          padding: sidebarCollapsed ? '16px 0' : '16px',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
           cursor: 'pointer',
-          borderBottom: '1px solid rgba(99,102,241,0.1)',
-          minHeight: 68,
+          borderBottom: '1px solid var(--border-subtle)',
+          minHeight: 60,
           justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
         }}
         onClick={() => navigate('/dashboard')}
       >
         <img 
           src="/logo.jpg" 
-          alt="Infinitics AI Logo" 
+          alt="Infinitics AI" 
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
+            width: 30,
+            height: 30,
+            borderRadius: 7,
             objectFit: 'cover',
-            mixBlendMode: 'screen',
-            boxShadow: '0 0 16px rgba(99,102,241,0.4)',
-            flexShrink: 0
+            boxShadow: 'var(--shadow-xs)',
+            flexShrink: 0,
           }} 
         />
         <AnimatePresence>
           {!sidebarCollapsed && (
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.15 }}
               style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
             >
               <span
                 style={{
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  letterSpacing: '-0.3px',
+                  color: 'var(--text-primary)',
+                  letterSpacing: '-0.02em',
                 }}
               >
-                Infinitics AI
+                DataMind <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>AI</span>
               </span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Nav Sections */}
-      <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
+      {/* Nav Sections List */}
+      <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0' }}>
         {dynamicSections.map((section) => (
-          <div key={section.heading} style={{ marginBottom: 4 }}>
+          <div key={section.heading} style={{ marginBottom: 8 }}>
             <AnimatePresence>
               {!sidebarCollapsed && (
                 <motion.div
@@ -172,12 +169,12 @@ const Sidebar: React.FC = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   style={{
-                    padding: '12px 16px 4px',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
+                    padding: '8px 16px 4px',
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
-                    color: 'rgba(148,163,184,0.5)',
+                    color: 'var(--text-muted)',
                   }}
                 >
                   {section.heading}
@@ -194,26 +191,20 @@ const Sidebar: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: sidebarCollapsed ? '10px 0' : '9px 14px',
+                  padding: sidebarCollapsed ? '9px 0' : '8px 12px',
                   margin: '2px 8px',
-                  borderRadius: 8,
+                  borderRadius: 7,
                   textDecoration: 'none',
                   justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                  fontSize: 13.5,
-                  fontWeight: 500,
-                  color: isActive ? '#e2e8f0' : 'rgba(148,163,184,0.75)',
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
                   backgroundColor: isActive
-                    ? 'rgba(99,102,241,0.18)'
+                    ? 'var(--accent-primary-light)'
                     : 'transparent',
-                  borderLeft: isActive
-                    ? '3px solid #6366f1'
-                    : '3px solid transparent',
-                  transition: 'all 0.18s ease',
+                  transition: 'all 0.12s ease',
                   position: 'relative',
                 })}
-                className={({ isActive }) =>
-                  `sidebar-item${isActive ? ' active' : ''}`
-                }
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 {({ isActive }) => (
@@ -221,8 +212,10 @@ const Sidebar: React.FC = () => {
                     <span
                       style={{
                         flexShrink: 0,
-                        color: isActive ? '#818cf8' : 'rgba(148,163,184,0.7)',
-                        transition: 'color 0.18s',
+                        color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        transition: 'color 0.12s',
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
                     >
                       {item.icon}
@@ -230,11 +223,11 @@ const Sidebar: React.FC = () => {
                     <AnimatePresence>
                       {!sidebarCollapsed && (
                         <motion.span
-                          initial={{ opacity: 0, x: -8 }}
+                          initial={{ opacity: 0, x: -6 }}
                           animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -8 }}
-                          transition={{ duration: 0.18 }}
-                          style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+                          exit={{ opacity: 0, x: -6 }}
+                          transition={{ duration: 0.15 }}
+                          style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                         >
                           {item.label}
                         </motion.span>
@@ -248,20 +241,20 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      {/* Active Dataset Indicator */}
+      {/* Active Dataset Drawer */}
       <AnimatePresence>
         {activeDataset && !sidebarCollapsed && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.15 }}
             style={{
               margin: '0 8px 8px',
-              padding: '10px 12px',
+              padding: '8px 10px',
               borderRadius: 8,
-              background: 'rgba(99,102,241,0.1)',
-              border: '1px solid rgba(99,102,241,0.2)',
+              background: 'var(--bg-canvas)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div
@@ -271,24 +264,24 @@ const Sidebar: React.FC = () => {
                 gap: 8,
               }}
             >
-              <Database size={13} color="#818cf8" />
+              <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--color-success)' }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     fontSize: 10,
-                    color: 'rgba(148,163,184,0.6)',
-                    marginBottom: 2,
+                    color: 'var(--text-muted)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
+                    letterSpacing: '0.04em',
+                    fontWeight: 700,
                   }}
                 >
-                  Active Dataset
+                  Active Workspace
                 </div>
                 <div
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: '#a5b4fc',
+                    color: 'var(--text-primary)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -302,61 +295,69 @@ const Sidebar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* User Profile & Sign Out */}
+      {/* User Profile & Sign Out Footer */}
       {!sidebarCollapsed && user && (
         <div
           style={{
             marginTop: 'auto',
-            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-            padding: '16px 12px 8px',
+            borderTop: '1px solid var(--border-subtle)',
+            padding: '10px 10px 6px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: 6,
           }}
         >
           <div
             onClick={() => navigate('/dashboard/profile')}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, cursor: 'pointer', padding: '4px', borderRadius: '8px' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              minWidth: 0,
+              cursor: 'pointer',
+              padding: '5px 6px',
+              borderRadius: 7,
+              transition: 'background 0.12s',
+            }}
             title="View Profile & Settings"
           >
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: '#6366f120',
-                border: '1px solid #6366f140',
+                width: 28,
+                height: 28,
+                borderRadius: 7,
+                background: user.is_admin ? 'var(--accent-amber)' : 'var(--accent-primary)',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#818cf8',
-                fontWeight: 600,
-                fontSize: '14px',
-                flexShrink: 0
+                fontWeight: 700,
+                fontSize: 12,
+                flexShrink: 0,
               }}
             >
               {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
             </div>
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <div
                 style={{
-                  fontSize: '13px',
+                  fontSize: 12.5,
                   fontWeight: 600,
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {user.full_name || 'User'}
+                {user.full_name || 'Analyst'}
               </div>
               <div
                 style={{
-                  fontSize: '11px',
-                  color: '#64748b',
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {user.email}
@@ -372,17 +373,22 @@ const Sidebar: React.FC = () => {
               }
               logout();
               navigate('/');
-              toast.success('Logged out successfully.');
+              toast.success('Signed out successfully.');
             }}
             className="btn-secondary"
             style={{
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '5px 10px',
+              fontSize: 11.5,
               fontWeight: 600,
               width: '100%',
-              textAlign: 'center'
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
             }}
           >
+            <LogOut size={12} />
             Sign Out
           </button>
         </div>
@@ -392,10 +398,10 @@ const Sidebar: React.FC = () => {
         <div
           style={{
             marginTop: 'auto',
-            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-            padding: '12px 0',
+            borderTop: '1px solid var(--border-subtle)',
+            padding: '10px 0',
             display: 'flex',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <button
@@ -407,52 +413,51 @@ const Sidebar: React.FC = () => {
               }
               logout();
               navigate('/');
-              toast.success('Logged out successfully.');
+              toast.success('Signed out successfully.');
             }}
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'rgba(148, 163, 184, 0.7)',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
-              padding: '8px'
+              padding: '6px',
+              borderRadius: 6,
             }}
             title="Sign Out"
-            onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)'}
           >
-            <LogOut size={18} />
+            <LogOut size={16} />
           </button>
         </div>
       )}
 
-      {/* Collapse Toggle */}
+      {/* Collapse/Expand Action */}
       <div
         style={{
-          borderTop: '1px solid rgba(99,102,241,0.1)',
-          padding: '12px 0',
+          borderTop: '1px solid var(--border-subtle)',
+          padding: '8px 0',
           display: 'flex',
           justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
-          paddingRight: sidebarCollapsed ? 0 : 12,
+          paddingRight: sidebarCollapsed ? 0 : 10,
         }}
       >
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            border: '1px solid rgba(99,102,241,0.2)',
-            backgroundColor: 'rgba(99,102,241,0.1)',
-            color: '#818cf8',
+            width: 28,
+            height: 28,
+            borderRadius: 6,
+            border: '1px solid var(--border-default)',
+            backgroundColor: 'var(--bg-canvas)',
+            color: 'var(--text-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'all 0.18s ease',
+            transition: 'all 0.15s ease',
           }}
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
         >
-          {sidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          {sidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
     </motion.aside>

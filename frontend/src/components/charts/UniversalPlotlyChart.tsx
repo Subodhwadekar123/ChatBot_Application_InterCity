@@ -71,16 +71,18 @@ export interface UniversalPlotlyChartProps {
 
 // ── Color Palettes ─────────────────────────────────────────────────────────────
 const PALETTES: Record<string, string[]> = {
+  precision: ['#0284c7', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#14b8a6', '#8b5cf6', '#0891b2'],
+  tableau: ['#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f', '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'],
+  stripe: ['#6366f1', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
   viridis: ['#440154', '#482878', '#3e4989', '#31688e', '#26828e', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
   plasma: ['#0d0887', '#46039f', '#7201a8', '#9c179e', '#bd3786', '#d8576b', '#ed7953', '#fb9f3a', '#fdca26', '#f0f921'],
   turbo: ['#30123b', '#4662d8', '#35abf8', '#1ae4b6', '#72fe5e', '#c7f135', '#faba39', '#f66b19', '#ca280c', '#7a0403'],
   coolwarm: ['#3b4cc0', '#6788ee', '#9abbff', '#c9d7f0', '#edd1c2', '#f7a889', '#e26952', '#b40426'],
   spectral: ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'],
-  plotly: ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52'],
-  cyberpunk: ['#ff007f', '#00f0ff', '#ffe600', '#7000ff', '#00ff66', '#ff003c', '#05d9e8', '#d300c5'],
+  plotly: ['#0284C7', '#10B981', '#F59E0B', '#6366F1', '#EC4899', '#14B8A6', '#8B5CF6', '#0891B2'],
   emerald: ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#064e3b', '#065f46'],
   sunset: ['#f97316', '#fb923c', '#fdba74', '#f43f5e', '#fb7185', '#fda4af', '#e11d48', '#be123c'],
-  minimalist: ['#94a3b8', '#64748b', '#475569', '#334155', '#cbd5e1', '#e2e8f0', '#0ea5e9', '#6366f1']
+  minimalist: ['#0f172a', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1', '#0284c7', '#0d9488']
 };
 
 export const UniversalPlotlyChart: React.FC<UniversalPlotlyChartProps> = ({
@@ -98,17 +100,24 @@ export const UniversalPlotlyChart: React.FC<UniversalPlotlyChartProps> = ({
   const [plotlyLoaded, setPlotlyLoaded] = useState(false);
 
   useEffect(() => {
-    if (Plotly) {
-      PlotlyLib = Plotly.default || Plotly;
+    if (PlotlyLib) {
       setPlotlyLoaded(true);
+      return;
     }
+    import('plotly.js/dist/plotly.js')
+      .then((mod) => {
+        PlotlyLib = mod.default || mod;
+        setPlotlyLoaded(true);
+      })
+      .catch((err) => console.error('Failed to load Plotly library', err));
   }, []);
 
   useEffect(() => {
-    if (!plotlyLoaded || !containerRef.current || !chartData) return;
+    if (!plotlyLoaded || !containerRef.current || !chartData || !PlotlyLib) return;
 
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
     const el = containerRef.current;
-    const palette = PALETTES[colorControls.palette] || PALETTES.plotly;
+    const palette = PALETTES[colorControls.palette] || PALETTES.precision;
     const primary = colorControls.primaryColor || palette[0];
     const alpha = colorControls.alpha ?? 0.85;
 
@@ -119,16 +128,16 @@ export const UniversalPlotlyChart: React.FC<UniversalPlotlyChartProps> = ({
       paper_bgcolor: figureSettings.bgColor || 'transparent',
       plot_bgcolor: figureSettings.bgColor || 'transparent',
       font: {
-        family: figureSettings.fontFamily || 'Inter, sans-serif',
+        family: figureSettings.fontFamily || 'Inter, -apple-system, sans-serif',
         size: figureSettings.fontSize || 12,
-        color: figureSettings.theme === 'light' ? '#1e293b' : '#e2e8f0',
+        color: isDarkMode ? '#f8fafc' : '#0f172a',
       },
-      margin: figureSettings.margins || { t: 40, r: 30, b: 60, l: 60 },
+      margin: figureSettings.margins || { t: 36, r: 24, b: 50, l: 54 },
       showlegend: legendSettings.show,
       legend: {
-        font: { size: legendSettings.fontSize || 11 },
-        bgcolor: legendSettings.background || 'rgba(0,0,0,0.2)',
-        bordercolor: legendSettings.border ? '#334155' : 'transparent',
+        font: { size: legendSettings.fontSize || 11, color: isDarkMode ? '#94a3b8' : '#475569' },
+        bgcolor: legendSettings.background || 'transparent',
+        bordercolor: legendSettings.border ? (isDarkMode ? '#334155' : '#e2e8f0') : 'transparent',
         borderwidth: legendSettings.border ? 1 : 0,
         orientation: legendSettings.position === 'top' || legendSettings.position === 'bottom' ? 'h' : 'v',
         x: legendSettings.position === 'top' ? 0.5 : legendSettings.position === 'bottom' ? 0.5 : legendSettings.position === 'inside' ? 0.85 : 1.02,
@@ -141,25 +150,32 @@ export const UniversalPlotlyChart: React.FC<UniversalPlotlyChartProps> = ({
     // Grid formatting
     const gridConfig = {
       showgrid: gridSettings.majorGrid,
-      gridcolor: gridSettings.color || 'rgba(255,255,255,0.08)',
+      gridcolor: gridSettings.color || (isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
       gridwidth: gridSettings.lineWidth || 1,
       griddash: gridSettings.lineStyle || 'solid',
       zeroline: true,
-      zerolinecolor: 'rgba(255,255,255,0.15)',
+      zerolinecolor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
       tickangle: axisControls.axisRotation || 0,
       type: axisControls.axisScale === 'log' ? 'log' : 'linear',
       autorange: axisControls.reverseAxis ? 'reversed' : true,
+      tickfont: { color: isDarkMode ? '#94a3b8' : '#64748b', size: 11 },
     };
 
     layout.xaxis = {
       ...gridConfig,
-      title: axisControls.xLabel || chartData.x_col || chartData.column || '',
+      title: {
+        text: axisControls.xLabel || chartData.x_col || chartData.column || '',
+        font: { color: isDarkMode ? '#e2e8f0' : '#1e293b', size: 12, weight: 600 },
+      },
       range: axisControls.xMin !== undefined && axisControls.xMax !== undefined ? [axisControls.xMin, axisControls.xMax] : undefined,
     };
 
     layout.yaxis = {
       ...gridConfig,
-      title: axisControls.yLabel || chartData.y_col || 'Value',
+      title: {
+        text: axisControls.yLabel || chartData.y_col || 'Value',
+        font: { color: isDarkMode ? '#e2e8f0' : '#1e293b', size: 12, weight: 600 },
+      },
       range: axisControls.yMin !== undefined && axisControls.yMax !== undefined ? [axisControls.yMin, axisControls.yMax] : undefined,
     };
 

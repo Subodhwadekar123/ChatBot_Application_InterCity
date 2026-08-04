@@ -23,15 +23,15 @@ const CustomTooltip: React.FC<TooltipProps<any, any>> = ({ active, payload, labe
     return (
       <div
         style={{
-          background: '#252836',
-          border: '1px solid #2d2f3e',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
-          padding: '10px 14px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+          padding: '8px 12px',
+          boxShadow: 'var(--shadow-md)',
         }}
       >
-        <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0, marginBottom: '4px' }}>{label}</p>
-        <p style={{ color: '#e2e8f0', fontSize: '14px', fontWeight: 600, margin: 0 }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '11px', margin: 0, marginBottom: '2px', fontWeight: 600 }}>{label}</p>
+        <p style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700, margin: 0 }}>
           {typeof payload[0].value === 'number'
             ? payload[0].value.toLocaleString(undefined, { maximumFractionDigits: 4 })
             : payload[0].value}
@@ -46,7 +46,7 @@ const LineChartComponent: React.FC<LineChartComponentProps> = ({
   data,
   xLabel,
   yLabel,
-  color = '#6366f1',
+  color = '#0284c7',
   height = 320,
 }) => {
   return (
@@ -57,32 +57,32 @@ const LineChartComponent: React.FC<LineChartComponentProps> = ({
       >
         <defs>
           <linearGradient id="lineAreaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.15} />
+            <stop offset="5%" stopColor={color} stopOpacity={0.12} />
             <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2d2f3e" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fill: '#94a3b8', fontSize: 11 }}
-          axisLine={{ stroke: '#2d2f3e' }}
+          tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+          axisLine={{ stroke: 'var(--border-default)' }}
           tickLine={false}
           interval="preserveStartEnd"
           label={
             xLabel
-              ? { value: xLabel, position: 'insideBottom', offset: -16, fill: '#94a3b8', fontSize: 12 }
+              ? { value: xLabel, position: 'insideBottom', offset: -16, fill: 'var(--text-secondary)', fontSize: 11 }
               : undefined
           }
         />
         <YAxis
-          tick={{ fill: '#94a3b8', fontSize: 12 }}
+          tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           width={yLabel ? 60 : 45}
           domain={['auto', 'auto']}
           label={
             yLabel
-              ? { value: yLabel, angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }
+              ? { value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)', fontSize: 11 }
               : undefined
           }
           tickFormatter={(v: number) =>
@@ -99,8 +99,8 @@ const LineChartComponent: React.FC<LineChartComponentProps> = ({
           dataKey="value"
           stroke={color}
           strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 5, fill: color, stroke: '#0f1117', strokeWidth: 2 }}
+          dot={{ r: 3, fill: color, stroke: 'var(--bg-surface)', strokeWidth: 1.5 }}
+          activeDot={{ r: 5, fill: color, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
         />
       </LineChart>
     </ResponsiveContainer>

@@ -22,17 +22,13 @@ const SkeletonRow: React.FC<{ cols: number }> = ({ cols }) => (
     {Array.from({ length: cols }).map((_, i) => (
       <td
         key={i}
-        style={{ padding: '10px 14px', borderBottom: '1px solid rgba(99,102,241,0.08)' }}
+        style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}
       >
         <div
-          className="skeleton"
+          className="skeleton-shimmer"
           style={{
             height: 14,
-            borderRadius: 4,
-            width: `${50 + Math.random() * 40}%`,
-            background: 'linear-gradient(90deg, rgba(37,40,54,1) 25%, rgba(45,47,62,1) 50%, rgba(37,40,54,1) 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s infinite',
+            width: `${50 + (i % 3) * 18}%`,
           }}
         />
       </td>
@@ -57,15 +53,15 @@ const DataTable: React.FC<DataTableProps> = ({
 
   return (
     <div style={{ width: '100%' }}>
-      {/* Add shimmer keyframes */}
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
-
-      <div style={{ overflowX: 'auto', borderRadius: 10, border: '1px solid rgba(99,102,241,0.15)' }}>
+      <div
+        style={{
+          overflowX: 'auto',
+          borderRadius: 10,
+          border: '1px solid var(--border-default)',
+          backgroundColor: 'var(--bg-surface)',
+          boxShadow: 'var(--shadow-xs)',
+        }}
+      >
         <table
           className="data-table"
           style={{
@@ -81,15 +77,15 @@ const DataTable: React.FC<DataTableProps> = ({
                 <th
                   key={col}
                   style={{
-                    padding: '11px 14px',
+                    padding: '10px 14px',
                     textAlign: 'left',
                     fontSize: 11,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.07em',
-                    color: 'rgba(148,163,184,0.6)',
-                    backgroundColor: '#252836',
-                    borderBottom: '1px solid rgba(99,102,241,0.15)',
+                    letterSpacing: '0.05em',
+                    color: 'var(--text-secondary)',
+                    backgroundColor: 'var(--bg-canvas)',
+                    borderBottom: '1px solid var(--border-default)',
                     whiteSpace: 'nowrap',
                     position: 'sticky',
                     top: 0,
@@ -111,13 +107,13 @@ const DataTable: React.FC<DataTableProps> = ({
                 <td
                   colSpan={columns.length}
                   style={{
-                    padding: '32px',
+                    padding: '36px',
                     textAlign: 'center',
-                    color: 'rgba(148,163,184,0.45)',
+                    color: 'var(--text-muted)',
                     fontSize: 13,
                   }}
                 >
-                  No data to display
+                  No rows found in this view
                 </td>
               </tr>
             ) : (
@@ -126,38 +122,43 @@ const DataTable: React.FC<DataTableProps> = ({
                   key={startIdx + rowIdx}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: rowIdx * 0.025, duration: 0.2 }}
+                  transition={{ delay: rowIdx * 0.015, duration: 0.15 }}
                   style={{
                     backgroundColor:
-                      rowIdx % 2 === 0 ? '#1a1d27' : 'rgba(37,40,54,0.5)',
-                    transition: 'background 0.15s',
+                      rowIdx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)',
+                    transition: 'background 0.12s ease',
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                      'rgba(99,102,241,0.08)';
+                      'var(--accent-primary-light)';
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                      rowIdx % 2 === 0 ? '#1a1d27' : 'rgba(37,40,54,0.5)';
+                      rowIdx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)';
                   }}
                 >
-                  {columns.map((col) => (
-                    <td
-                      key={col}
-                      title={String(row[col] ?? '')}
-                      style={{
-                        padding: '9px 14px',
-                        borderBottom: '1px solid rgba(99,102,241,0.07)',
-                        color: '#cbd5e1',
-                        maxWidth: 220,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {truncate(row[col])}
-                    </td>
-                  ))}
+                  {columns.map((col) => {
+                    const isNum = typeof row[col] === 'number';
+                    return (
+                      <td
+                        key={col}
+                        title={String(row[col] ?? '')}
+                        style={{
+                          padding: '9px 14px',
+                          borderBottom: '1px solid var(--border-subtle)',
+                          color: 'var(--text-primary)',
+                          fontFamily: isNum ? 'var(--font-family-mono)' : 'inherit',
+                          fontSize: isNum ? 12 : 13,
+                          maxWidth: 240,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {truncate(row[col])}
+                      </td>
+                    );
+                  })}
                 </motion.tr>
               ))
             )}
@@ -165,7 +166,7 @@ const DataTable: React.FC<DataTableProps> = ({
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination Footer */}
       <div
         style={{
           display: 'flex',
@@ -178,33 +179,32 @@ const DataTable: React.FC<DataTableProps> = ({
         <span
           style={{
             fontSize: 12,
-            color: 'rgba(148,163,184,0.55)',
+            color: 'var(--text-secondary)',
+            fontWeight: 500,
           }}
         >
           {loading
-            ? 'Loading…'
+            ? 'Loading dataset preview…'
             : `Showing ${data.length === 0 ? 0 : startIdx + 1}–${Math.min(
                 startIdx + pageSize,
                 data.length
-              )} of ${data.length} rows`}
+              )} of ${data.length} records`}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             onClick={handlePrev}
             disabled={currentPage === 1 || loading}
+            className="btn-secondary"
             style={{
               width: 30,
               height: 30,
-              borderRadius: 6,
-              border: '1px solid rgba(99,102,241,0.2)',
-              backgroundColor: 'rgba(99,102,241,0.08)',
-              color:
-                currentPage === 1 ? 'rgba(148,163,184,0.3)' : '#818cf8',
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              borderRadius: 6,
+              opacity: currentPage === 1 ? 0.4 : 1,
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              transition: 'all 0.15s',
             }}
           >
             <ChevronLeft size={14} />
@@ -213,9 +213,9 @@ const DataTable: React.FC<DataTableProps> = ({
           <span
             style={{
               fontSize: 12,
-              color: '#a5b4fc',
+              color: 'var(--text-primary)',
               fontWeight: 600,
-              minWidth: 60,
+              minWidth: 50,
               textAlign: 'center',
             }}
           >
@@ -225,22 +225,17 @@ const DataTable: React.FC<DataTableProps> = ({
           <button
             onClick={handleNext}
             disabled={currentPage === totalPages || loading}
+            className="btn-secondary"
             style={{
               width: 30,
               height: 30,
-              borderRadius: 6,
-              border: '1px solid rgba(99,102,241,0.2)',
-              backgroundColor: 'rgba(99,102,241,0.08)',
-              color:
-                currentPage === totalPages
-                  ? 'rgba(148,163,184,0.3)'
-                  : '#818cf8',
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor:
-                currentPage === totalPages ? 'not-allowed' : 'pointer',
-              transition: 'all 0.15s',
+              borderRadius: 6,
+              opacity: currentPage === totalPages ? 0.4 : 1,
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
             }}
           >
             <ChevronRight size={14} />

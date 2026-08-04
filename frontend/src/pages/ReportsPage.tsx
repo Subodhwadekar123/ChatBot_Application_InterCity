@@ -8,9 +8,7 @@ import {
   Sparkles,
   CheckCircle,
   Clock,
-  BarChart2,
   Database,
-  ArrowDown,
   Code,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -33,20 +31,20 @@ interface QualityScore {
 
 const ContentItem: React.FC<{ label: string; index: number }> = ({ label, index }) => (
   <motion.div
-    initial={{ opacity: 0, x: -10 }}
+    initial={{ opacity: 0, x: -6 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: index * 0.06 }}
+    transition={{ delay: index * 0.04 }}
     style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      padding: '9px 0',
-      borderBottom: '1px solid #1a1d2788',
-      fontSize: '14px',
-      color: '#94a3b8',
+      gap: '8px',
+      padding: '7px 0',
+      borderBottom: '1px solid var(--border-subtle)',
+      fontSize: '0.8rem',
+      color: 'var(--text-secondary)',
     }}
   >
-    <CheckCircle size={14} color="#34d399" style={{ flexShrink: 0 }} />
+    <CheckCircle size={13} color="var(--status-success)" style={{ flexShrink: 0 }} />
     {label}
   </motion.div>
 );
@@ -59,7 +57,6 @@ interface DownloadCardProps {
   description: string;
   badgeLabel: string;
   estimatedSize: string;
-  gradient: string;
   buttonLabel: string;
   onClick: () => void;
   delay?: number;
@@ -71,93 +68,68 @@ const DownloadCard: React.FC<DownloadCardProps> = ({
   description,
   badgeLabel,
   estimatedSize,
-  gradient,
   buttonLabel,
   onClick,
   delay = 0,
 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 24 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.45, delay }}
-    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    transition={{ duration: 0.35, delay }}
+    className="card-precision"
     style={{
-      background: 'linear-gradient(145deg, #1a1d27, #252836)',
-      borderRadius: '20px',
-      overflow: 'hidden',
-      border: '1px solid #2d2f3e',
-      position: 'relative',
+      padding: '22px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
     }}
   >
-    {/* Gradient top bar */}
-    <div style={{ height: '4px', background: gradient }} />
-
-    <div style={{ padding: '28px' }}>
-      {/* Icon */}
-      <div
-        style={{
-          width: 72,
-          height: 72,
-          borderRadius: '20px',
-          background: gradient,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '20px',
-          boxShadow: `0 8px 24px ${gradient.split(',')[0].replace('linear-gradient(135deg,', '').trim()}44`,
-        }}
-      >
-        {icon}
-      </div>
-
-      {/* Badges row */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
-        <span
+    <div>
+      {/* Icon & Badge */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div
           style={{
-            padding: '3px 10px',
-            borderRadius: '99px',
-            fontSize: '11px',
-            fontWeight: 600,
-            background: '#ffffff18',
-            color: '#e2e8f0',
-            letterSpacing: '0.06em',
+            width: 44,
+            height: 44,
+            borderRadius: '10px',
+            background: 'var(--accent-primary-light)',
+            color: 'var(--accent-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
+          {icon}
+        </div>
+        <span className="badge-subtle badge-info" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
           {badgeLabel}
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b' }}>
-          <Database size={12} />
-          {estimatedSize}
         </span>
       </div>
 
-      <h2 style={{ margin: '0 0 10px', fontSize: '20px', fontWeight: 700, color: '#f1f5f9' }}>{title}</h2>
-      <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#94a3b8', lineHeight: 1.7 }}>{description}</p>
+      <h2 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
+      <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{description}</p>
+    </div>
+
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+        <Database size={11} />
+        Estimated size: {estimatedSize}
+      </div>
 
       <button
         onClick={onClick}
+        className="btn-primary"
         style={{
           width: '100%',
-          padding: '13px 20px',
-          borderRadius: '12px',
-          background: gradient,
-          border: 'none',
-          color: '#fff',
-          fontWeight: 600,
-          fontSize: '15px',
-          cursor: 'pointer',
+          height: '38px',
+          fontSize: '0.84rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '10px',
-          transition: 'opacity 0.2s, transform 0.15s',
+          gap: '8px',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.88')}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-        onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-        onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       >
-        <Download size={18} />
+        <Download size={14} />
         {buttonLabel}
       </button>
     </div>
@@ -173,20 +145,22 @@ const StatBox: React.FC<{ label: string; value: string | number; icon: React.Rea
 }) => (
   <div
     style={{
-      background: '#0f111788',
-      borderRadius: '12px',
-      padding: '14px 16px',
+      background: 'var(--bg-canvas)',
+      borderRadius: '8px',
+      border: '1px solid var(--border-default)',
+      padding: '10px 14px',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
+      gap: '10px',
     }}
   >
     <div
       style={{
-        width: 36,
-        height: 36,
-        borderRadius: '10px',
-        background: '#6366f122',
+        width: 32,
+        height: 32,
+        borderRadius: '6px',
+        background: 'var(--accent-primary-light)',
+        color: 'var(--accent-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -196,10 +170,10 @@ const StatBox: React.FC<{ label: string; value: string | number; icon: React.Rea
       {icon}
     </div>
     <div>
-      <p style={{ margin: 0, fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
       </p>
-      <p style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#e2e8f0' }}>{value}</p>
+      <p style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</p>
     </div>
   </div>
 );
@@ -214,8 +188,8 @@ const ReportsPage: React.FC = () => {
     if (!activeDataset) return;
     getQualityScore(activeDataset.id)
       .then(setQualityScore)
-      .catch(() => {/* silent – quality score is optional */});
-  }, [activeDataset?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+      .catch(() => {});
+  }, [activeDataset?.id]);
 
   if (!activeDataset) {
     return (
@@ -231,7 +205,7 @@ const ReportsPage: React.FC = () => {
       toast.loading('Generating PDF...', { id: 'pdf' });
       await downloadPDFReport(activeDataset.id);
       toast.success('PDF report downloaded!', { id: 'pdf' });
-    } catch (error) {
+    } catch {
       toast.error('Failed to download PDF', { id: 'pdf' });
     }
   };
@@ -241,7 +215,7 @@ const ReportsPage: React.FC = () => {
       toast.loading('Generating Excel...', { id: 'excel' });
       await downloadExcelReport(activeDataset.id);
       toast.success('Excel report downloaded!', { id: 'excel' });
-    } catch (error) {
+    } catch {
       toast.error('Failed to download Excel', { id: 'excel' });
     }
   };
@@ -251,7 +225,7 @@ const ReportsPage: React.FC = () => {
       toast.loading('Generating Notebook...', { id: 'jupyter' });
       await downloadJupyterReport(activeDataset.id);
       toast.success('Jupyter Notebook downloaded!', { id: 'jupyter' });
-    } catch (error) {
+    } catch {
       toast.error('Failed to download Notebook', { id: 'jupyter' });
     }
   };
@@ -284,60 +258,52 @@ const ReportsPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ paddingBottom: '40px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Page header */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: '32px' }}
-      >
-        <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#f1f5f9' }}>
-          <span className="text-gradient">Reports &amp; Export</span>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Reports & Export Center
         </h1>
-        <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '15px' }}>
-          Download comprehensive reports for{' '}
-          <strong style={{ color: '#e2e8f0' }}>{activeDataset.filename}</strong>
+        <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '0.84rem' }}>
+          Generate and download executive reports for <strong style={{ color: 'var(--text-primary)' }}>{activeDataset.filename}</strong>
         </p>
-      </motion.div>
+      </div>
 
       {/* ── Download cards ──────────────────────────────────────────────────── */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '24px',
-          marginBottom: '32px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '18px',
+          marginBottom: '24px',
         }}
       >
         <DownloadCard
-          icon={<FileText size={32} />}
+          icon={<FileText size={22} />}
           title="Executive PDF Report"
-          description="A beautiful, print-ready document containing executive summaries, structured statistics, data quality assessments, and ML recommendations."
+          description="A publication-grade document containing executive summaries, structured statistics, data quality assessments, and ML recommendations."
           badgeLabel="PDF"
           estimatedSize="~1-2 MB"
-          gradient="linear-gradient(135deg, #6366f1, #8b5cf6)"
           buttonLabel="Download PDF Report"
           onClick={handlePDFDownload}
           delay={0}
         />
         <DownloadCard
-          icon={<Database size={32} />}
+          icon={<Database size={22} />}
           title="Excel Workbook Report"
           description="Multi-sheet Excel workbook with raw data, descriptive statistics, correlation matrix, and summary sheets."
           badgeLabel="XLSX"
           estimatedSize="~1-3 MB"
-          gradient="linear-gradient(135deg, #10b981, #059669)"
           buttonLabel="Download Excel Report"
           onClick={handleExcelDownload}
           delay={0.1}
         />
         <DownloadCard
-          icon={<Code size={32} />}
+          icon={<Code size={22} />}
           title="Jupyter Notebook"
-          description="A programmatic Kaggle-style notebook containing the Python code to reproduce your cleaning and visualization steps."
+          description="A programmatic notebook containing the Python code to reproduce your cleaning, transformations, and visualization steps."
           badgeLabel="IPYNB"
           estimatedSize="~10-50 KB"
-          gradient="linear-gradient(135deg, #eab308, #d97706)"
           buttonLabel="Generate Notebook"
           onClick={handleJupyterDownload}
           delay={0.2}
@@ -345,37 +311,20 @@ const ReportsPage: React.FC = () => {
       </div>
 
       {/* ── What's included ─────────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        style={{ marginBottom: '28px' }}
-      >
-        <h2 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: 600, color: '#e2e8f0' }}>
-          <Sparkles size={18} style={{ marginRight: 8, verticalAlign: 'middle', color: '#6366f1' }} />
-          What's Included
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
+          <Sparkles size={16} color="var(--accent-primary)" />
+          <h2 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            Report Specifications & Breakdown
+          </h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
           {/* PDF contents */}
-          <div
-            className="card"
-            style={{ border: '1px solid #6366f133' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <FileText size={16} color="#fff" />
-              </div>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>PDF Report</h3>
+          <div className="card-precision" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <FileText size={16} color="var(--accent-primary)" />
+              <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>PDF Structure</h3>
             </div>
             {pdfContents.map((item, i) => (
               <ContentItem key={i} label={item} index={i} />
@@ -383,25 +332,10 @@ const ReportsPage: React.FC = () => {
           </div>
 
           {/* Excel contents */}
-          <div
-            className="card"
-            style={{ border: '1px solid #10b98133' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Table2 size={16} color="#fff" />
-              </div>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>Excel Workbook</h3>
+          <div className="card-precision" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Table2 size={16} color="var(--status-success)" />
+              <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>Workbook Sheets</h3>
             </div>
             {excelContents.map((item, i) => (
               <ContentItem key={i} label={item} index={i} />
@@ -409,124 +343,93 @@ const ReportsPage: React.FC = () => {
           </div>
 
           {/* Jupyter contents */}
-          <div
-            className="card"
-            style={{ border: '1px solid #eab30833' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #eab308, #d97706)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Code size={16} color="#fff" />
-              </div>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>Jupyter Notebook</h3>
+          <div className="card-precision" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Code size={16} color="var(--status-warning)" />
+              <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>Notebook Sequence</h3>
             </div>
             {jupyterContents.map((item, i) => (
               <ContentItem key={i} label={item} index={i} />
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ── Dataset info card ───────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        style={{ marginBottom: '24px' }}
-      >
-        <div
-          className="card"
-          style={{ border: '1px solid #2d2f3e' }}
-        >
-          <h3 style={{ margin: '0 0 18px', fontSize: '15px', fontWeight: 600, color: '#e2e8f0' }}>
-            <Database size={16} style={{ marginRight: 8, verticalAlign: 'middle', color: '#6366f1' }} />
-            Dataset Information
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-            <StatBox
-              label="Filename"
-              value={activeDataset.filename.length > 14 ? activeDataset.filename.slice(0, 14) + '...' : activeDataset.filename}
-              icon={<Database size={16} color="#6366f1" />}
-            />
-            <StatBox
-              label="Rows"
-              value={dataset_info.rows.toLocaleString()}
-              icon={<Database size={16} color="#6366f1" />}
-            />
-            <StatBox
-              label="Columns"
-              value={dataset_info.columns}
-              icon={<Database size={16} color="#6366f1" />}
-            />
-            <StatBox
-              label="Quality Score"
-              value={
-                qualityScore
-                  ? `${qualityScore.score.toFixed(1)}%`
-                  : `${(dataset_info.completeness_score * 100).toFixed(1)}%`
-              }
-              icon={<Database size={16} color="#6366f1" />}
-            />
-          </div>
-
-          {/* Quality breakdown */}
-          {qualityScore && (
-            <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-              {Object.entries(qualityScore.breakdown).map(([key, val]) => (
-                <div key={key}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'capitalize' }}>{key}</span>
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>{val.toFixed(0)}%</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${val}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+      <div className="card-precision" style={{ padding: '18px', marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 14px', fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <Database size={15} style={{ marginRight: 6, verticalAlign: 'middle', color: 'var(--accent-primary)' }} />
+          Target Dataset Metadata
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+          <StatBox
+            label="Filename"
+            value={activeDataset.filename.length > 18 ? activeDataset.filename.slice(0, 18) + '...' : activeDataset.filename}
+            icon={<Database size={15} />}
+          />
+          <StatBox
+            label="Total Rows"
+            value={dataset_info.rows.toLocaleString()}
+            icon={<Database size={15} />}
+          />
+          <StatBox
+            label="Total Columns"
+            value={dataset_info.columns}
+            icon={<Database size={15} />}
+          />
+          <StatBox
+            label="Quality Score"
+            value={
+              qualityScore
+                ? `${qualityScore.score.toFixed(1)}%`
+                : `${(dataset_info.completeness_score * 100).toFixed(1)}%`
+            }
+            icon={<Database size={15} />}
+          />
         </div>
-      </motion.div>
+
+        {/* Quality breakdown */}
+        {qualityScore && (
+          <div style={{ marginTop: '14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+            {Object.entries(qualityScore.breakdown).map(([key, val]) => (
+              <div key={key}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{key}</span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-primary)', fontWeight: 600 }}>{val.toFixed(0)}%</span>
+                </div>
+                <div style={{ height: '5px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div
+                    style={{ width: `${val}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '3px' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ── Tip box ─────────────────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+      <div
+        className="card-precision"
         style={{
           display: 'flex',
           alignItems: 'flex-start',
-          gap: '12px',
-          padding: '16px 20px',
-          background: '#f59e0b11',
-          border: '1px solid #f59e0b33',
-          borderRadius: '14px',
+          gap: '10px',
+          padding: '14px 18px',
+          background: 'var(--bg-surface-raised)',
         }}
       >
-        <Clock size={18} color="#fbbf24" style={{ flexShrink: 0, marginTop: '1px' }} />
+        <Clock size={16} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#fbbf24', marginBottom: '4px' }}>
-            Performance Note
+          <p style={{ margin: '0 0 2px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            Processing Pipeline Notice
           </p>
-          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>
-            Report generation may take <strong style={{ color: '#e2e8f0' }}>15–30 seconds</strong> for large
-            datasets. The report will open in a new tab when ready. Please do not close this page while
-            downloading.
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            Report generation may take <strong style={{ color: 'var(--text-primary)' }}>10–20 seconds</strong> for comprehensive datasets.
+            Files are compiled and streamed directly to your browser download manager.
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
