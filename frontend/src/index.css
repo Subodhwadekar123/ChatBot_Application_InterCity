@@ -639,8 +639,24 @@ body {
   border: 1px solid var(--border-default) !important;
 }
 
+[data-theme="light"] div,
+[data-theme="pastel"] div,
+[data-theme="light"] p,
+[data-theme="pastel"] p,
 [data-theme="light"] span,
-[data-theme="pastel"] span {
+[data-theme="pastel"] span,
+[data-theme="light"] h1,
+[data-theme="pastel"] h1,
+[data-theme="light"] h2,
+[data-theme="pastel"] h2,
+[data-theme="light"] h3,
+[data-theme="pastel"] h3,
+[data-theme="light"] h4,
+[data-theme="pastel"] h4,
+[data-theme="light"] h5,
+[data-theme="pastel"] h5,
+[data-theme="light"] h6,
+[data-theme="pastel"] h6 {
   &[style*="color: rgb(241, 245, 249)"],
   &[style*="color: #f1f5f9"],
   &[style*="color: rgb(226, 232, 240)"],
