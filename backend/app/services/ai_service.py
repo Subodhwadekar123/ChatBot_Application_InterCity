@@ -934,7 +934,7 @@ Example response:
                 answer = "Not enough numeric columns to compute correlations."
             suggestions = ["Show the correlation heatmap", "Which features should I drop due to high correlation?"]
 
-        elif any(k in q_lower for k in ["target", "predict", "label", "dependent"]):
+        elif any(k in q_lower for k in ["target", "predict", "label", "dependent", "classification", "regression"]):
             # Suggest target column candidates
             categorical_targets = []
             for c in df.select_dtypes(include=["object", "category"]).columns:
