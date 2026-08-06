@@ -50,11 +50,9 @@ function App() {
     const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
     return isFirstVisit && isHome;
   });
-  const theme = useStore((s) => s.theme);
-
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme || 'light');
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
 
   useEffect(() => {
     if (!showSplash) return;
