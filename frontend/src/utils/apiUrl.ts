@@ -16,7 +16,11 @@
 const PRODUCTION_BACKEND_FALLBACK = 'https://ai-data-analyst-backend-production-df70.up.railway.app';
 
 const appendApiPrefix = (url: string): string => {
-  const clean = url.trim().replace(/\/+$/, '');
+  let clean = url.trim().replace(/\/+$/, '');
+  // If it's a domain but missing the protocol, automatically prepend https://
+  if (!clean.startsWith('http://') && !clean.startsWith('https://') && !clean.startsWith('/')) {
+    clean = `https://${clean}`;
+  }
   return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
 };
 
