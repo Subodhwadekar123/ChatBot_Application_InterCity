@@ -21,6 +21,15 @@ const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  React.useEffect(() => {
+    // Set Pastel theme inside Admin login
+    document.documentElement.setAttribute('data-theme', 'pastel');
+    return () => {
+      // Restore global light theme
+      document.documentElement.setAttribute('data-theme', 'light');
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -46,23 +55,23 @@ const AdminLoginPage: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse at 30% 50%, rgba(79,70,229,0.10) 0%, #0a0c14 60%, rgba(124,58,237,0.07) 100%)',
+      background: 'var(--bg-app)',
       padding: '24px', position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ position: 'absolute', top: '20%', left: '15%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '20%', right: '15%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '20%', left: '15%', width: '300px', height: '300px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '20%', right: '15%', width: '250px', height: '250px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
 
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: '18px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(79,70,229,0.5)' }}>
+          <div style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover))', borderRadius: '18px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
             <Shield size={28} color="white" />
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 4px' }}>Admin Portal</h1>
-          <p style={{ color: '#64748b', fontSize: '14px' }}>Restricted access — Authorized personnel only</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px' }}>Admin Portal</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Restricted access — Authorized personnel only</p>
         </div>
 
-        <div style={{ background: 'rgba(14,16,24,0.9)', backdropFilter: 'blur(20px)', border: '1px solid rgba(79,70,229,0.25)', borderRadius: '20px', padding: '32px', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+        <div className="glow-card" style={{ padding: '32px', boxShadow: 'var(--shadow-xl)', borderRadius: '20px' }}>
           {/* Back to Home */}
           <Link
             to="/"
@@ -70,24 +79,24 @@ const AdminLoginPage: React.FC = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#64748b',
+              color: 'var(--text-secondary)',
               fontSize: '13px',
               fontWeight: 600,
               textDecoration: 'none',
               marginBottom: '20px',
               transition: 'color 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
           >
             <ArrowLeft size={15} /> Back to Home
           </Link>
 
           {error && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              style={{ display: 'flex', gap: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px' }}>
-              <AlertCircle size={16} color="#f87171" style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: '13px', color: '#fca5a5' }}>{error}</span>
+              style={{ display: 'flex', gap: '10px', background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px' }}>
+              <AlertCircle size={16} color="var(--color-danger)" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>{error}</span>
             </motion.div>
           )}
 

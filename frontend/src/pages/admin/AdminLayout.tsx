@@ -37,20 +37,29 @@ const AdminLayout: React.FC = () => {
     toast.success('Signed out');
   };
 
+  React.useEffect(() => {
+    // Force Pastel theme inside Admin console
+    document.documentElement.setAttribute('data-theme', 'pastel');
+    return () => {
+      // Re-apply global Vibrant Light theme when leaving Admin console
+      document.documentElement.setAttribute('data-theme', 'light');
+    };
+  }, []);
+
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   const SIDEBAR_W = collapsed ? 68 : 240;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0f1117' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-app)' }}>
       {/* Sidebar */}
       <motion.aside
         animate={{ width: SIDEBAR_W }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         style={{
           width: SIDEBAR_W, minHeight: '100vh', flexShrink: 0,
-          background: 'linear-gradient(180deg, #181a29 0%, #12141f 100%)',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-sidebar)',
+          borderRight: '1px solid var(--border-default)',
           display: 'flex', flexDirection: 'column',
           position: 'sticky', top: 0, height: '100vh', overflow: 'hidden',
           zIndex: 50,
@@ -59,7 +68,7 @@ const AdminLayout: React.FC = () => {
         {/* Logo & Brand */}
         <div style={{
           padding: collapsed ? '18px 12px' : '18px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--border-default)',
           display: 'flex',
           alignItems: 'center',
           gap: '10px'
@@ -76,10 +85,10 @@ const AdminLayout: React.FC = () => {
           </div>
           {!collapsed && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ overflow: 'hidden' }}>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
                 Admin Portal
               </div>
-              <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '2px', fontWeight: 600 }}>
+              <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginTop: '2px', fontWeight: 600 }}>
                 Infinitics AI Platform
               </div>
             </motion.div>
@@ -87,7 +96,7 @@ const AdminLayout: React.FC = () => {
         </div>
 
         {/* Primary Return to Analysis Panel Button */}
-        <div style={{ padding: collapsed ? '12px 8px' : '12px 10px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ padding: collapsed ? '12px 8px' : '12px 10px', borderBottom: '1px solid var(--border-default)' }}>
           <button
             onClick={() => navigate('/dashboard')}
             title="Back to Data Analysis Panel"
@@ -98,28 +107,26 @@ const AdminLayout: React.FC = () => {
               justifyContent: collapsed ? 'center' : 'flex-start',
               gap: '9px',
               padding: collapsed ? '10px 0' : '9px 12px',
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))',
-              border: '1px solid rgba(99,102,241,0.3)',
+              background: 'var(--accent-primary-light)',
+              border: '1px solid var(--border-default)',
               borderRadius: '10px',
-              color: '#c7d2fe',
+              color: 'var(--accent-primary)',
               fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.28), rgba(168,85,247,0.28))';
-              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.55)';
+              e.currentTarget.style.background = 'var(--bg-hover)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))';
-              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
+              e.currentTarget.style.background = 'var(--accent-primary-light)';
             }}
           >
-            <ArrowLeft size={16} color="#a5b4fc" style={{ flexShrink: 0 }} />
+            <ArrowLeft size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
             {!collapsed && (
               <span style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <BarChart3 size={14} color="#818cf8" />
+                <BarChart3 size={14} color="var(--accent-primary)" />
                 Analysis Panel
               </span>
             )}
@@ -133,7 +140,7 @@ const AdminLayout: React.FC = () => {
               fontSize: '10px',
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: '#64748b',
+              color: 'var(--text-muted)',
               padding: '0 10px 8px',
               letterSpacing: '0.08em'
             }}>
@@ -155,22 +162,22 @@ const AdminLayout: React.FC = () => {
                   borderRadius: '10px',
                   marginBottom: '3px',
                   textDecoration: 'none',
-                  background: active ? 'rgba(124,58,237,0.18)' : 'transparent',
-                  color: active ? '#c084fc' : '#94a3b8',
-                  borderLeft: active ? '3px solid #a855f7' : '3px solid transparent',
+                  background: active ? 'var(--accent-primary-light)' : 'transparent',
+                  color: active ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  borderLeft: active ? '3px solid var(--accent-primary)' : '3px solid transparent',
                   transition: 'all 0.15s ease',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                    e.currentTarget.style.color = '#e2e8f0';
+                    e.currentTarget.style.background = 'var(--bg-hover)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#94a3b8';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
                   }
                 }}
               >
@@ -185,13 +192,13 @@ const AdminLayout: React.FC = () => {
           })}
 
           {/* Quick link to dataset studio */}
-          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-default)' }}>
             {!collapsed && (
               <div style={{
                 fontSize: '10px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
-                color: '#64748b',
+                color: 'var(--text-muted)',
                 padding: '0 10px 8px',
                 letterSpacing: '0.08em'
               }}>
@@ -210,22 +217,22 @@ const AdminLayout: React.FC = () => {
                 borderRadius: '10px',
                 border: 'none',
                 background: 'transparent',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(99,102,241,0.12)';
-                e.currentTarget.style.color = '#818cf8';
+                e.currentTarget.style.background = 'var(--accent-primary-light)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
-              <Database size={18} color="#818cf8" />
+              <Database size={18} color="var(--accent-primary)" />
               {!collapsed && (
                 <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                   Datasets & EDA
@@ -236,14 +243,14 @@ const AdminLayout: React.FC = () => {
         </nav>
 
         {/* User + logout footer */}
-        <div style={{ padding: '12px 8px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border-default)' }}>
           {!collapsed && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               padding: '10px 12px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--bg-hover)',
               borderRadius: '10px',
               marginBottom: '8px'
             }}>
@@ -262,14 +269,14 @@ const AdminLayout: React.FC = () => {
                 <div style={{
                   fontSize: '13px',
                   fontWeight: 700,
-                  color: '#e2e8f0',
+                  color: 'var(--text-primary)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
                 }}>
                   {user?.full_name || 'System Admin'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#a855f7', fontWeight: 600 }}>Administrator</div>
+                <div style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 600 }}>Administrator</div>
               </div>
             </div>
           )}
@@ -282,10 +289,10 @@ const AdminLayout: React.FC = () => {
               justifyContent: collapsed ? 'center' : 'flex-start',
               gap: '8px',
               padding: '9px 12px',
-              background: 'rgba(239,68,68,0.08)',
-              border: '1px solid rgba(239,68,68,0.15)',
+              background: 'var(--color-danger-bg)',
+              border: '1px solid var(--color-danger-border)',
               borderRadius: '10px',
-              color: '#f87171',
+              color: 'var(--color-danger)',
               cursor: 'pointer',
               fontSize: '13px',
               fontWeight: 600
@@ -305,16 +312,16 @@ const AdminLayout: React.FC = () => {
             left: collapsed ? '52px' : 'auto',
             width: '26px',
             height: '26px',
-            background: '#1e2235',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#94a3b8',
+            color: 'var(--text-secondary)',
             zIndex: 60,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -326,9 +333,9 @@ const AdminLayout: React.FC = () => {
         {/* Top Header Bar across Admin Portal */}
         <header style={{
           height: '60px',
-          background: 'rgba(18, 20, 31, 0.85)',
+          background: 'var(--bg-header)',
           backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--border-default)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -342,15 +349,15 @@ const AdminLayout: React.FC = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(124,58,237,0.15)',
-              border: '1px solid rgba(124,58,237,0.3)',
-              color: '#c084fc',
+              background: 'var(--accent-primary-light)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--accent-primary)',
               borderRadius: '20px',
               padding: '4px 12px',
               fontSize: '12px',
               fontWeight: 700,
             }}>
-              <Shield size={13} color="#fbbf24" /> Administrative Console
+              <Shield size={13} color="var(--accent-primary)" /> Administrative Console
             </span>
           </div>
 
