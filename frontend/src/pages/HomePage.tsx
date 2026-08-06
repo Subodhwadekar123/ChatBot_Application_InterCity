@@ -13,6 +13,7 @@ import {
   PieChart, GitMerge, Activity, X, Lock, CheckCircle, ArrowUpRight, UserPlus
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import InteractiveBackground from '../components/layout/InteractiveBackground';
 
 const fadeUp: any = {
   hidden: { opacity: 0, y: 24 },
@@ -101,20 +102,8 @@ export default function HomePage() {
         }}
       />
 
-      {/* Dynamic Interactive Dot Matrix Constellation */}
-      <div
-        className="constellation-matrix"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='6' fill='rgba%28168, 85, 247, 0.12%29' /%3E%3Ccircle cx='30' cy='30' r='2' fill='rgba%28168, 85, 247, 0.6%29' /%3E%3Ccircle cx='15' cy='15' r='1.5' fill='rgba%28168, 85, 247, 0.4%29' /%3E%3Ccircle cx='45' cy='45' r='1.5' fill='rgba%28168, 85, 247, 0.4%29' /%3E%3Cline x1='30' y1='30' x2='15' y2='15' stroke='rgba%28168, 85, 247, 0.15%29' stroke-width='0.8' /%3E%3Cline x1='30' y1='30' x2='45' y2='45' stroke='rgba%28168, 85, 247, 0.15%29' stroke-width='0.8' /%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px',
-          maskImage: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, black 35%, transparent 100%)`,
-          WebkitMaskImage: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, black 35%, transparent 100%)`,
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
+      {/* Interactive Background Canvas */}
+      <InteractiveBackground />
 
       {/* ── Top Navigation Bar ─────────────────────────────────────────────── */}
       <nav
@@ -397,10 +386,9 @@ export default function HomePage() {
             style={{ display: 'flex', justifyContent: 'center' }}
           >
             <div
+              className="glow-card"
               style={{
-                background: 'var(--bg-surface)',
                 backdropFilter: 'blur(24px)',
-                border: '1px solid var(--border-default)',
                 borderRadius: '24px',
                 padding: '32px',
                 boxShadow: 'var(--shadow-xl)',
@@ -574,11 +562,10 @@ export default function HomePage() {
               <motion.div
                 key={title}
                 variants={fadeUp}
-                whileHover={{ y: -4, borderColor: color }}
+                whileHover={{ y: -4 }}
+                className="glow-card"
                 style={{
-                  background: 'var(--bg-surface)',
                   backdropFilter: 'blur(12px)',
-                  border: '1px solid var(--border-default)',
                   borderRadius: '16px',
                   padding: '24px',
                   transition: 'all 0.25s ease',
@@ -628,9 +615,8 @@ export default function HomePage() {
                 key={name}
                 variants={fadeUp}
                 whileHover={{ y: -4 }}
+                className="glow-card"
                 style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-default)',
                   borderRadius: '16px',
                   padding: '26px',
                   boxShadow: 'var(--shadow-sm)',

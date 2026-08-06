@@ -266,14 +266,53 @@ body {
 
 /* Card Base */
 .card-precision {
+  position: relative;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
   transition: all 0.2s ease;
+  z-index: 1;
 }
+
+.card-precision::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    #2563eb,
+    #7c3aed,
+    #f43f5e,
+    #10b981,
+    #2563eb
+  );
+  animation: border-rotate 4s linear infinite;
+  z-index: -2;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.card-precision::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: var(--bg-surface);
+  border-radius: inherit;
+  z-index: -1;
+  transition: background-color 0.2s ease;
+}
+
+.card-precision:hover::before {
+  opacity: 1;
+}
+
 .card-precision:hover {
-  border-color: var(--border-strong);
+  border-color: transparent;
   box-shadow: var(--shadow-card-hover);
 }
 
@@ -469,3 +508,53 @@ body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* ─── RGB Glow Card Hover Effect ────────────────────────────────────────── */
+@keyframes border-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.glow-card {
+  position: relative;
+  background: var(--bg-surface);
+  z-index: 1;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    #2563eb,
+    #7c3aed,
+    #f43f5e,
+    #10b981,
+    #2563eb
+  );
+  animation: border-rotate 4s linear infinite;
+  z-index: -2;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: var(--bg-surface);
+  border-radius: inherit;
+  z-index: -1;
+  transition: background-color 0.2s ease;
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+}
+

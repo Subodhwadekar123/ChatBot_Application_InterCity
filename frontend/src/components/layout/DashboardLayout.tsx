@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import AIChatWidget from '../chat/AIChatWidget';
+import InteractiveBackground from './InteractiveBackground';
 import { useStore } from '../../store/useStore';
 import { listDatasets, getDataset } from '../../services/api';
 
@@ -80,6 +81,9 @@ const DashboardLayout: React.FC = () => {
         transition: 'background-color 0.2s ease, color 0.2s ease',
       }}
     >
+      {/* Interactive Background Canvas */}
+      <InteractiveBackground />
+
       {/* Sidebar Navigation */}
       <Sidebar />
 
