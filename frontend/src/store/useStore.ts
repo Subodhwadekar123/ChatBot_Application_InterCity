@@ -72,6 +72,21 @@ export interface UploadedDataset {
   uploaded_at: string;
 }
 
+// ── Chat Types ──────────────────────────────────────────────────────────────
+
+export interface ChatDebugInfo {
+  code_errors?: Array<{ type: string; message: string; line?: number | null; solution: string }>;
+  code_fixed?: string | null;
+  execution_output?: string | null;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+  timestamp: string;
+  debug?: ChatDebugInfo;
+}
+
 // ── Store Interface ────────────────────────────────────────────────────────
 
 interface AppStore {
@@ -103,8 +118,8 @@ interface AppStore {
   setMLResult: (key: string, result: any) => void;
 
   // AI Chat history
-  chatHistory: Array<{ role: 'user' | 'ai'; content: string; timestamp: string }>;
-  addChatMessage: (role: 'user' | 'ai', content: string) => void;
+  chatHistory: ChatMessage[];
+  addChatMessage: (role: 'user' | 'ai', content: string, debug?: ChatDebugInfo) => void;
   clearChat: () => void;
 
   // Authentication — extended
@@ -158,11 +173,11 @@ export const useStore = create<AppStore>()(
 
       // Chat
       chatHistory: [],
-      addChatMessage: (role, content) =>
+      addChatMessage: (role, content, debug) =>
         set((s) => ({
           chatHistory: [
             ...s.chatHistory,
-            { role, content, timestamp: new Date().toISOString() },
+            { role, content, timestamp: new Date().toISOString(), ...(debug ? { debug } : {}) },
           ],
         })),
       clearChat: () => set({ chatHistory: [] }),

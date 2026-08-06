@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   User, Mail, Lock, Eye, EyeOff, Shield,
-  Loader2, AlertCircle, CheckCircle, ArrowRight, UserPlus
+  Loader2, AlertCircle, CheckCircle, ArrowRight, UserPlus, ArrowLeft
 } from 'lucide-react';
 import { registerUser, resendVerification } from '../../services/authApi';
 import PasswordStrengthMeter from '../../components/auth/PasswordStrengthMeter';
@@ -181,6 +181,26 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <div style={cardStyle}>
+          {/* Back to Home */}
+          <Link
+            to="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#64748b',
+              fontSize: '13px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              marginBottom: '20px',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+          >
+            <ArrowLeft size={15} /> Back to Home
+          </Link>
+
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}

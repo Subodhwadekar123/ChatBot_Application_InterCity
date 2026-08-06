@@ -14,7 +14,7 @@ import ProtectedAdminRoute from './components/auth/ProtectedAdminRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 
 // ── Public / Auth Pages ────────────────────────────────────────────────────
-import LandingPage from './pages/LandingPage';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
@@ -45,7 +45,11 @@ import AdminSessionsPage from './pages/admin/AdminSessionsPage';
 import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    const isFirstVisit = !localStorage.getItem('infinitics_splash_seen');
+    const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
+    return isFirstVisit && isHome;
+  });
   const theme = useStore((s) => s.theme);
 
   useEffect(() => {
@@ -53,10 +57,12 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
+    if (!showSplash) return;
+    localStorage.setItem('infinitics_splash_seen', 'true');
     healthCheck().catch(() => {});
     const timer = setTimeout(() => setShowSplash(false), 8000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showSplash]);
 
   if (showSplash) return <SplashScreen />;
 
@@ -82,7 +88,7 @@ function App() {
 
       <Routes>
         {/* ── Public Routes ──────────────────────────────────────── */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomePage />} />
 
         {/* ── Auth Routes ────────────────────────────────────────── */}
         <Route path="/login" element={<LoginPage />} />

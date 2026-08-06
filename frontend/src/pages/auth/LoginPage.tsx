@@ -1,38 +1,30 @@
 /**
  * LoginPage.tsx
- * Enterprise-grade unified login page with:
- *  - User & Admin Portal tab switching
+ * Enterprise-grade user login page with:
  *  - Email + password validation
- *  - 1-Click Quick Fill for Admin demo
  *  - Remember Me
  *  - Show/hide password
  *  - Loading states & animations
  *  - Responsive, dark glassmorphism design
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
-  Mail, Lock, Eye, EyeOff, Shield, Loader2,
-  AlertCircle, LogIn, ArrowRight, User, Sparkles, CheckCircle, Settings, PlayCircle
+  Mail, Lock, Eye, EyeOff, Loader2,
+  AlertCircle, LogIn, ArrowRight, User, Settings, ArrowLeft
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { loginUser } from '../../services/authApi';
 import { getApiBaseUrl, setCustomApiUrl } from '../../utils/apiUrl';
 import type { AuthUser } from '../../store/useStore';
 
-type LoginRole = 'user' | 'admin';
-
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { setUser, setToken, setSessionId } = useStore();
 
-  const [activeTab, setActiveTab] = useState<LoginRole>(
-    searchParams.get('role') === 'admin' ? 'admin' : 'user'
-  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -40,75 +32,16 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Switch tab helper
-  const handleTabChange = (role: LoginRole) => {
-    setActiveTab(role);
-    setError('');
-    if (role === 'admin') {
-      setEmail('admin@infinitics.ai');
-      setPassword('SubodhW@7116');
-    } else {
-      setEmail('');
-      setPassword('');
-    }
-  };
-
-  const handleQuickFillAdmin = () => {
-    setEmail('admin@infinitics.ai');
-    setPassword('SubodhW@7116');
-    toast.success('Admin credentials autofilled!');
-  };
-
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [customUrlInput, setCustomUrlInput] = useState(
     typeof window !== 'undefined' ? localStorage.getItem('custom_api_url') || '' : ''
   );
-
-  const handleDemoModeLogin = () => {
-    const isAdm = activeTab === 'admin';
-    const demoUser: AuthUser = isAdm ? {
-      id: 'demo-admin-id',
-      email: 'admin@infinitics.ai',
-      full_name: 'System Admin Subodh (Demo Mode)',
-      role: 'admin',
-      is_admin: true,
-      is_active: true,
-      is_verified: true,
-      created_at: new Date().toISOString(),
-      login_count: 1,
-    } : {
-      id: 'demo-user-id',
-      email: 'user@infinitics.ai',
-      full_name: 'Demo Analyst (Demo Mode)',
-      role: 'user',
-      is_admin: false,
-      is_active: true,
-      is_verified: true,
-      created_at: new Date().toISOString(),
-      login_count: 1,
-    };
-    setToken('mock-jwt-demo-token');
-    setSessionId('mock-session-id');
-    setUser(demoUser);
-    toast.success(`Logged in as ${demoUser.full_name}! (Offline / Preview Mode)`);
-    if (isAdm) {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/dashboard');
-    }
-  };
 
   const handleSaveCustomUrl = () => {
     setCustomApiUrl(customUrlInput);
     setShowConfigModal(false);
     toast.success(customUrlInput ? 'Backend URL updated!' : 'Reset to default backend URL');
     window.location.reload();
-  };
-
-  const handleQuickFillUser = () => {
-    setEmail('user@infinitics.ai');
-    setPassword('UserPass@123');
-    toast.success('Demo User credentials autofilled!');
   };
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -123,11 +56,6 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await loginUser({ email, password, remember_me: rememberMe });
-
-      if (activeTab === 'admin' && !res.user.is_admin && res.user.role !== 'admin') {
-        setError('Access denied: This account does not have administrator privileges.');
-        return;
-      }
 
       setToken(res.access_token);
       setSessionId(res.session_id);
@@ -149,7 +77,7 @@ const LoginPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [email, password, rememberMe, activeTab, setUser, setToken, setSessionId, navigate]);
+  }, [email, password, rememberMe, setUser, setToken, setSessionId, navigate]);
 
   return (
     <div style={{
@@ -157,32 +85,23 @@ const LoginPage: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: activeTab === 'admin'
-        ? 'radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.14) 0%, #0c0e17 50%, rgba(234,88,12,0.06) 100%)'
-        : 'radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.09) 0%, #0f1117 50%, rgba(139,92,246,0.06) 100%)',
+      background: 'radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.09) 0%, #0f1117 50%, rgba(139,92,246,0.06) 100%)',
       padding: '24px',
       position: 'relative',
       overflow: 'hidden',
-      transition: 'background 0.5s ease',
     }}>
       {/* Background glowing blobs */}
       <div style={{
         position: 'absolute', top: '15%', left: '10%',
         width: '400px', height: '400px',
-        background: activeTab === 'admin'
-          ? 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)'
-          : 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
         filter: 'blur(60px)', pointerEvents: 'none',
-        transition: 'background 0.5s ease',
       }} />
       <div style={{
         position: 'absolute', bottom: '15%', right: '10%',
         width: '350px', height: '350px',
-        background: activeTab === 'admin'
-          ? 'radial-gradient(circle, rgba(234,88,12,0.12) 0%, transparent 70%)'
-          : 'radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%)',
         filter: 'blur(60px)', pointerEvents: 'none',
-        transition: 'background 0.5s ease',
       }} />
 
       <motion.div
@@ -191,211 +110,61 @@ const LoginPage: React.FC = () => {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         style={{ width: '100%', maxWidth: '460px', position: 'relative', zIndex: 1 }}
       >
-        {/* Top Segmented Selector */}
-        <div style={{
-          display: 'flex',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '14px',
-          padding: '4px',
-          marginBottom: '24px',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <button
-            type="button"
-            onClick={() => handleTabChange('user')}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'user' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent',
-              color: activeTab === 'user' ? '#ffffff' : '#94a3b8',
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: activeTab === 'user' ? '0 4px 12px rgba(79,70,229,0.35)' : 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <User size={16} />
-            User Login
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTabChange('admin')}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'admin' ? 'linear-gradient(135deg, #7c3aed, #9333ea)' : 'transparent',
-              color: activeTab === 'admin' ? '#ffffff' : '#94a3b8',
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: activeTab === 'admin' ? '0 4px 12px rgba(124,58,237,0.35)' : 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <Shield size={16} color={activeTab === 'admin' ? '#fbbf24' : '#94a3b8'} />
-            Admin Portal
-          </button>
-        </div>
-
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <motion.div
-            key={activeTab}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
             style={{
               width: '64px', height: '64px',
-              background: activeTab === 'admin'
-                ? 'linear-gradient(135deg, #7c3aed, #ea580c)'
-                : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
               borderRadius: '18px', margin: '0 auto 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: activeTab === 'admin'
-                ? '0 8px 32px rgba(124,58,237,0.5)'
-                : '0 8px 32px rgba(99,102,241,0.4)',
+              boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
             }}
           >
-            {activeTab === 'admin' ? (
-              <Shield size={32} color="#fef08a" />
-            ) : (
-              <LogIn size={30} color="white" />
-            )}
+            <LogIn size={30} color="white" />
           </motion.div>
 
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>
-            {activeTab === 'admin' ? 'Administrator Login' : 'Welcome Back'}
+            Welcome Back
           </h1>
           <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-            {activeTab === 'admin'
-              ? 'Security-cleared administrative console'
-              : 'Sign in to your AI Data Analyst account'
-            }
+            Sign in to your AI Data Analyst account
           </p>
-
-          {activeTab === 'admin' && (
-            <div style={{ marginTop: '8px' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(234,88,12,0.15)',
-                border: '1px solid rgba(234,88,12,0.3)',
-                color: '#fb923c',
-                borderRadius: '20px',
-                padding: '3px 12px',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-              }}>
-                <Shield size={11} /> Restricted Access
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Card */}
         <div style={{
-          background: activeTab === 'admin' ? 'rgba(20, 18, 32, 0.9)' : 'rgba(22, 25, 37, 0.85)',
+          background: 'rgba(22, 25, 37, 0.85)',
           backdropFilter: 'blur(20px)',
-          border: activeTab === 'admin' ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '20px',
           padding: '32px',
           boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-          transition: 'border 0.3s ease',
         }}>
-          {/* Quick Fill Button for Admin */}
-          {activeTab === 'admin' ? (
-            <div style={{
-              display: 'flex',
+          {/* Back to Home */}
+          <Link
+            to="/"
+            style={{
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'rgba(124,58,237,0.12)',
-              border: '1px solid rgba(124,58,237,0.25)',
-              borderRadius: '12px',
-              padding: '10px 14px',
+              gap: '6px',
+              color: '#64748b',
+              fontSize: '13px',
+              fontWeight: 600,
+              textDecoration: 'none',
               marginBottom: '20px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={16} color="#a855f7" />
-                <div>
-                  <span style={{ fontSize: '12px', color: '#c084fc', fontWeight: 600, display: 'block' }}>Default Admin Account</span>
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>admin@infinitics.ai</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickFillAdmin}
-                style={{
-                  background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '6px 14px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(124,58,237,0.3)',
-                }}
-              >
-                Auto-Fill
-              </button>
-            </div>
-          ) : (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'rgba(99,102,241,0.08)',
-              border: '1px solid rgba(99,102,241,0.2)',
-              borderRadius: '12px',
-              padding: '10px 14px',
-              marginBottom: '20px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={16} color="#818cf8" />
-                <div>
-                  <span style={{ fontSize: '12px', color: '#a5b4fc', fontWeight: 600, display: 'block' }}>Demo Analyst Account</span>
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>user@infinitics.ai</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickFillUser}
-                style={{
-                  background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '6px 14px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(79,70,229,0.3)',
-                }}
-              >
-                Auto-Fill
-              </button>
-            </div>
-          )}
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+          >
+            <ArrowLeft size={15} /> Back to Home
+          </Link>
 
-          {/* Error Message & Offline Demo Fallback */}
+          {/* Error Message */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -411,50 +180,6 @@ const LoginPage: React.FC = () => {
                   <AlertCircle size={16} color="#f87171" style={{ marginTop: '1px', flexShrink: 0 }} />
                   <span style={{ fontSize: '13px', color: '#fca5a5', lineHeight: '1.4' }}>{error}</span>
                 </div>
-
-                {/* Instant Offline Demo Fallback Button */}
-                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(239,68,68,0.2)', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={handleDemoModeLogin}
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
-                    }}
-                  >
-                    <PlayCircle size={14} /> Continue in Demo Mode (No Backend Needed)
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowConfigModal(true)}
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      color: '#cbd5e1',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '8px',
-                      padding: '7px 12px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                    }}
-                  >
-                    <Settings size={13} /> Configure API URL
-                  </button>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -462,9 +187,7 @@ const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {/* Email */}
             <div>
-              <label style={labelStyle}>
-                {activeTab === 'admin' ? 'Admin Email Address' : 'Email Address'}
-              </label>
+              <label style={labelStyle}>Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} color="#475569" style={iconStyle} />
                 <input
@@ -472,7 +195,7 @@ const LoginPage: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={activeTab === 'admin' ? 'admin@infinitics.ai' : 'name@example.com'}
+                  placeholder="name@example.com"
                   autoComplete="email"
                   required
                   style={{ ...inputStyle, paddingLeft: '40px' }}
@@ -482,9 +205,7 @@ const LoginPage: React.FC = () => {
 
             {/* Password */}
             <div>
-              <label style={labelStyle}>
-                {activeTab === 'admin' ? 'Admin Password' : 'Password'}
-              </label>
+              <label style={labelStyle}>Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} color="#475569" style={iconStyle} />
                 <input
@@ -523,11 +244,9 @@ const LoginPage: React.FC = () => {
                 />
                 <span style={{ fontSize: '13px', color: '#94a3b8' }}>Remember me</span>
               </label>
-              {activeTab === 'user' && (
-                <Link to="/forgot-password" style={{ fontSize: '13px', color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>
-                  Forgot password?
-                </Link>
-              )}
+              <Link to="/forgot-password" style={{ fontSize: '13px', color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>
+                Forgot password?
+              </Link>
             </div>
 
             {/* Submit Button */}
@@ -540,24 +259,18 @@ const LoginPage: React.FC = () => {
                 width: '100%', padding: '13px',
                 background: loading
                   ? 'rgba(99,102,241,0.5)'
-                  : activeTab === 'admin'
-                    ? 'linear-gradient(135deg, #7c3aed, #9333ea)'
-                    : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                 color: 'white', border: 'none', borderRadius: '12px',
                 fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 boxShadow: loading
                   ? 'none'
-                  : activeTab === 'admin'
-                    ? '0 4px 20px rgba(124,58,237,0.45)'
-                    : '0 4px 20px rgba(99,102,241,0.4)',
+                  : '0 4px 20px rgba(99,102,241,0.4)',
                 transition: 'all 0.2s',
               }}
             >
               {loading ? (
                 <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />Verifying...</>
-              ) : activeTab === 'admin' ? (
-                <><Shield size={18} color="#fef08a" />Access Admin Console</>
               ) : (
                 <><LogIn size={18} />Sign In</>
               )}
@@ -565,68 +278,30 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Footer Section */}
-          {activeTab === 'user' ? (
-            <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px' }}>
-              <span style={{ color: '#64748b' }}>Don't have an account? </span>
-              <Link to="/register" style={{ color: '#6366f1', fontWeight: 700, textDecoration: 'none' }}>
-                Create account <ArrowRight size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
-              </Link>
-            </div>
-          ) : (
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button
-                type="button"
-                onClick={() => handleTabChange('user')}
-                style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}
-              >
-                ← Back to standard user login
-              </button>
-            </div>
-          )}
+          <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px' }}>
+            <span style={{ color: '#64748b' }}>Don't have an account? </span>
+            <Link to="/register" style={{ color: '#6366f1', fontWeight: 700, textDecoration: 'none' }}>
+              Create account <ArrowRight size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+            </Link>
+          </div>
         </div>
 
         {/* Quick Footer Links */}
         <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => handleTabChange(activeTab === 'admin' ? 'user' : 'admin')}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '12px',
-              color: '#64748b',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            {activeTab === 'admin' ? (
-              <>Switch to User Login</>
-            ) : (
-              <><Shield size={13} color="#a5b4fc" /> Switch to Admin Portal</>
-            )}
-          </button>
-
-          <span style={{ color: '#334155' }}>•</span>
-
-          <button
-            type="button"
-            onClick={handleDemoModeLogin}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '12px',
-              color: '#34d399',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontWeight: 600,
-            }}
-          >
-            <PlayCircle size={13} /> Demo / Preview Mode
-          </button>
+          <Link to="/admin/login" style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '12px',
+            color: '#a5b4fc',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            textDecoration: 'none',
+            fontWeight: 600,
+          }}>
+            <User size={13} /> Admin Portal
+          </Link>
 
           <span style={{ color: '#334155' }}>•</span>
 

@@ -12,6 +12,10 @@ import {
   RefreshCw,
   BookOpen,
   X,
+  Copy,
+  Code2,
+  Check,
+  Terminal,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { getAIInsights, askQuestion, getDataDictionary } from '../services/api';
@@ -116,6 +120,292 @@ const TypingIndicator: React.FC = () => (
     </div>
   </motion.div>
 );
+
+// ─── Code message renderer ──────────────────────────────────────────────────────
+
+interface CodeIssue {
+  type?: string;
+  message?: string;
+  line?: number | null;
+  solution?: string;
+}
+
+const CodeMessage: React.FC<{ content: string; errors?: CodeIssue[]; fixedCode?: string | null; executionOutput?: string | null }> = ({
+  content,
+  errors = [],
+  fixedCode,
+  executionOutput,
+}) => {
+  const [copied, setCopied] = useState(false);
+  const [copiedFixed, setCopiedFixed] = useState(false);
+
+  // Split content into text and code blocks using markdown fences
+  const parts = content.split(/(```[\s\S]*?```)/g).filter(Boolean);
+
+  const handleCopy = async (code: string, key: 'copied' | 'copiedFixed') => {
+    try {
+      await navigator.clipboard.writeText(code);
+      if (key === 'copied') setCopied(true);
+      else setCopiedFixed(true);
+      setTimeout(() => {
+        if (key === 'copied') setCopied(false);
+        else setCopiedFixed(false);
+      }, 1500);
+    } catch {
+      toast.error('Failed to copy code.');
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {errors.length > 0 && (
+        <div
+          style={{
+            background: 'rgba(245, 158, 11, 0.08)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: '8px',
+            padding: '10px 12px',
+            marginBottom: '6px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+            <AlertCircle size={13} color="var(--status-warning)" />
+            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--status-warning)' }}>
+              {errors.length} {errors.length === 1 ? 'Issue' : 'Issues'} Found in Generated Code
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {errors.map((err, i) => (
+              <div key={i} style={{ fontSize: '0.74rem', lineHeight: 1.45 }}>
+                <div style={{ color: 'var(--status-danger)' }}>
+                  <strong>{err.type || 'Error'}</strong>
+                  {err.line ? ` (line ${err.line})` : ''}: {err.message}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', marginTop: '1px' }}>
+                  <strong style={{ color: 'var(--status-warning)' }}>Solution:</strong> {err.solution}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {fixedCode && (
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            borderRadius: '8px',
+            border: '1px solid var(--border-default)',
+            overflow: 'hidden',
+            margin: '4px 0',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '6px 10px',
+              background: 'rgba(16, 185, 129, 0.08)',
+              borderBottom: '1px solid var(--border-default)',
+            }}
+          >
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'var(--status-success)',
+              }}
+            >
+              <Check size={12} />
+              Auto-fixed Version
+            </span>
+            <button
+              onClick={() => handleCopy(fixedCode, 'copiedFixed')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              {copiedFixed ? <Check size={11} style={{ color: 'var(--status-success)' }} /> : <Copy size={11} />}
+              {copiedFixed ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <pre
+            style={{
+              margin: 0,
+              padding: '10px 12px',
+              overflowX: 'auto',
+              fontSize: '0.76rem',
+              lineHeight: 1.55,
+              color: '#e6edf3',
+              fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace",
+              whiteSpace: 'pre',
+            }}
+          >
+            {fixedCode}
+          </pre>
+        </div>
+      )}
+
+      {executionOutput && (
+        <div
+          style={{
+            background: '#0b0f14',
+            borderRadius: '8px',
+            border: '1px solid var(--border-default)',
+            overflow: 'hidden',
+            margin: '4px 0',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '6px 10px',
+              background: 'rgba(16, 185, 129, 0.08)',
+              borderBottom: '1px solid var(--border-default)',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              color: 'var(--status-success)',
+            }}
+          >
+            <Terminal size={12} />
+            Execution Output (real dataset)
+          </div>
+          <pre
+            style={{
+              margin: 0,
+              padding: '10px 12px',
+              overflowX: 'auto',
+              fontSize: '0.76rem',
+              lineHeight: 1.55,
+              color: '#9fe8b5',
+              fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace",
+              whiteSpace: 'pre',
+            }}
+          >
+            {executionOutput}
+          </pre>
+        </div>
+      )}
+
+      {parts.map((part, i) => {
+        const fenceMatch = part.match(/^```(\w*)\n([\s\S]*?)```$/);
+        if (fenceMatch) {
+          const [, lang, code] = fenceMatch;
+          return (
+            <div
+              key={i}
+              style={{
+                background: '#0d1117',
+                borderRadius: '8px',
+                border: '1px solid var(--border-default)',
+                overflow: 'hidden',
+                margin: '4px 0',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 10px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  borderBottom: '1px solid var(--border-default)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  <Code2 size={12} />
+                  {lang || 'python'}
+                </span>
+                <button
+                  onClick={() => handleCopy(code.trim(), 'copied')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontSize: '0.7rem',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  {copied ? <Check size={11} style={{ color: 'var(--status-success)' }} /> : <Copy size={11} />}
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <pre
+                style={{
+                  margin: 0,
+                  padding: '10px 12px',
+                  overflowX: 'auto',
+                  fontSize: '0.76rem',
+                  lineHeight: 1.55,
+                  color: '#e6edf3',
+                  fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace",
+                  whiteSpace: 'pre',
+                }}
+              >
+                {code}
+              </pre>
+            </div>
+          );
+        }
+        return (
+          <span
+            key={i}
+            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--text-primary)' }}
+          >
+            {part}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
 
 // ─── Insight section card ─────────────────────────────────────────────────────
 
@@ -238,7 +528,23 @@ const AIInsightsPage: React.FC = () => {
 
     try {
       const response = (await askQuestion(activeDataset.id, question)) as any;
-      addChatMessage('ai', response.answer);
+      // If the response contains a code block, display it with a header
+      let displayText: string = response.answer || '';
+      let debugInfo;
+      if (response.code) {
+        const code = response.code.replace(/```/g, '');
+        displayText = `Here's the Python code to ${question.replace(/\?$/, '').toLowerCase()}:\n\n\`\`\`python\n${code}\n\`\`\`\n\n${response.explanation || ''}`;
+        if (response.code_errors && response.code_errors.length > 0) {
+          debugInfo = {
+            code_errors: response.code_errors,
+            code_fixed: response.code_fixed || null,
+          };
+        }
+        if (response.execution_output) {
+          debugInfo = { ...(debugInfo || {}), execution_output: response.execution_output };
+        }
+      }
+      addChatMessage('ai', displayText, debugInfo);
     } catch {
       toast.error('Failed to get AI response. Please try again.');
       addChatMessage('ai', 'Sorry, I encountered an error processing your question. Please try again.');
@@ -848,7 +1154,16 @@ const AIInsightsPage: React.FC = () => {
                             whiteSpace: 'pre-wrap',
                           }}
                         >
-                          {msg.content}
+                          {msg.role === 'ai' ? (
+                            <CodeMessage
+                              content={msg.content}
+                              errors={msg.debug?.code_errors || []}
+                              fixedCode={msg.debug?.code_fixed}
+                              executionOutput={msg.debug?.execution_output}
+                            />
+                          ) : (
+                            msg.content
+                          )}
                         </div>
                       </div>
 

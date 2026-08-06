@@ -31,7 +31,7 @@ adminApi.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       useStore.getState().logout();
-      window.location.href = '/admin-login';
+      window.location.href = '/#/admin/login';
     }
     let message = error.response?.data?.detail;
     if (!message) {

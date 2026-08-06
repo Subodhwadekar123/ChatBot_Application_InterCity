@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
-  Shield, Mail, Lock, User, Eye, EyeOff, Loader2,
-  Sparkles, ArrowRight, CheckCircle2, AlertCircle,
+  Mail, Lock, User, Eye, EyeOff, Loader2,
+  ArrowRight, AlertCircle,
   Settings, LogIn, UserPlus, Zap, Database, Activity, LogOut
 } from 'lucide-react';
 import { useStore, AuthUser } from '../../store/useStore';
@@ -19,9 +19,6 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
   const navigate = useNavigate();
   const { user, token, setUser, setToken, setSessionId, logout } = useStore();
 
-  // Active portal tab: 'user' | 'admin'
-  const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
-  
   // User sub-mode: 'login' | 'register'
   const [userMode, setUserMode] = useState<'login' | 'register'>('login');
 
@@ -40,20 +37,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
     return localStorage.getItem('custom_api_url') || getApiBaseUrl();
   });
 
-  // Switch tab & reset state
-  const handleTabChange = (tab: 'user' | 'admin') => {
-    setActiveTab(tab);
-    setError('');
-    if (tab === 'admin') {
-      setEmail('admin@infinitics.ai');
-      setPassword('SubodhW@7116');
-    } else {
-      setEmail('');
-      setPassword('');
-    }
-  };
-
-  // Submit Handler for User or Admin Login / Register
+  // Submit Handler for User Login / Register
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -63,22 +47,20 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
       return;
     }
 
-    if (activeTab === 'user' && userMode === 'register' && !fullName.trim()) {
+    if (userMode === 'register' && !fullName.trim()) {
       setError('Please enter your full name.');
       return;
     }
 
     setLoading(true);
     const toastId = toast.loading(
-      activeTab === 'admin'
-        ? 'Verifying Administrator credentials...'
-        : userMode === 'register'
+      userMode === 'register'
         ? 'Creating your account...'
         : 'Authenticating analyst session...'
     );
 
     try {
-      if (activeTab === 'user' && userMode === 'register') {
+      if (userMode === 'register') {
         const res = await registerUser({
           email: email.trim(),
           password,
@@ -92,34 +74,23 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
         return;
       }
 
-      // Login (User or Admin)
+      // Login
       const res = await loginUser({
         email: email.trim(),
         password,
         remember_me: rememberMe,
       });
 
-      if (activeTab === 'admin' && !res.user.is_admin && res.user.role !== 'admin') {
-        toast.dismiss(toastId);
-        setError('Access denied: This account does not possess System Administrator privileges.');
-        setLoading(false);
-        return;
-      }
-
       setToken(res.access_token);
       setSessionId(res.session_id);
       setUser(res.user as AuthUser);
 
       toast.dismiss(toastId);
-      toast.success(
-        activeTab === 'admin'
-          ? `Welcome to Admin Center, ${res.user.full_name || 'Admin'}!`
-          : `Welcome back, ${res.user.full_name || res.user.email}!`
-      );
+      toast.success(`Welcome back, ${res.user.full_name || res.user.email}!`);
 
       if (onSuccess) onSuccess();
 
-      if (activeTab === 'admin') {
+      if (res.user.is_admin || res.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/dashboard/upload');
@@ -132,7 +103,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
     }
   };
 
-  // Instant Demo Mode Launchers (Work 100% even without a live backend)
+  // Instant Demo Mode Launcher (Works 100% even without a live backend)
   const handleLaunchUserDemo = () => {
     const demoUser: AuthUser = {
       id: 'demo-analyst-001',
@@ -152,27 +123,6 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
     toast.success('🚀 Entered Analyst Workspace (Demo Mode)!');
     if (onSuccess) onSuccess();
     navigate('/dashboard/upload');
-  };
-
-  const handleLaunchAdminDemo = () => {
-    const demoAdmin: AuthUser = {
-      id: 'demo-admin-001',
-      email: 'admin@infinitics.ai',
-      username: 'admin',
-      full_name: 'Lead System Administrator',
-      role: 'admin',
-      is_admin: true,
-      is_active: true,
-      is_verified: true,
-      created_at: new Date().toISOString(),
-      login_count: 42,
-    };
-    setToken('demo-token-offline-admin-' + Date.now());
-    setSessionId('demo-session-admin-001');
-    setUser(demoAdmin);
-    toast.success('🛡️ Entered Admin Control Panel (Demo Mode)!');
-    if (onSuccess) onSuccess();
-    navigate('/admin/dashboard');
   };
 
   const handleSaveApiUrl = (e: React.FormEvent) => {
@@ -289,7 +239,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Shield size={18} /> Admin Control Center
+                <Database size={18} /> Admin Control Center
               </span>
               <ArrowRight size={18} />
             </button>
@@ -362,19 +312,17 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Main Dual-Portal Login & Registration Card
+  // User Login & Registration Card
   // ──────────────────────────────────────────────────────────────────────────
   return (
     <div
       style={{
         background: 'rgba(17, 21, 34, 0.95)',
         backdropFilter: 'blur(24px)',
-        border: activeTab === 'admin' ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(99, 102, 241, 0.35)',
+        border: '1px solid rgba(99, 102, 241, 0.35)',
         borderRadius: '24px',
         padding: '28px',
-        boxShadow: activeTab === 'admin'
-          ? '0 24px 60px rgba(0,0,0,0.7), 0 0 50px rgba(168,85,247,0.18)'
-          : '0 24px 60px rgba(0,0,0,0.7), 0 0 50px rgba(99,102,241,0.18)',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 50px rgba(99,102,241,0.18)',
         maxWidth: '460px',
         width: '100%',
         textAlign: 'left',
@@ -383,138 +331,50 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
         boxSizing: 'border-box',
       }}
     >
-      {/* ── Main Tab Header: User Portal vs Admin Portal ───────────────────── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          background: 'rgba(0,0,0,0.35)',
-          borderRadius: '14px',
-          padding: '4px',
-          marginBottom: '20px',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => handleTabChange('user')}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: 'none',
-            fontWeight: 700,
-            fontSize: '13px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease',
-            background: activeTab === 'user' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent',
-            color: activeTab === 'user' ? 'white' : '#94a3b8',
-            boxShadow: activeTab === 'user' ? '0 4px 12px rgba(79,70,229,0.4)' : 'none',
-          }}
-        >
-          <User size={15} /> User Portal
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('admin')}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: 'none',
-            fontWeight: 700,
-            fontSize: '13px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease',
-            background: activeTab === 'admin' ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'transparent',
-            color: activeTab === 'admin' ? 'white' : '#94a3b8',
-            boxShadow: activeTab === 'admin' ? '0 4px 12px rgba(124,58,237,0.4)' : 'none',
-          }}
-        >
-          <Shield size={15} /> Admin Control
-        </button>
-      </div>
-
-      {/* ── Subtitle / Security Badge ──────────────────────────────────────── */}
-      <div style={{ marginBottom: '18px' }}>
-        {activeTab === 'user' ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'white' }}>
-                {userMode === 'login' ? 'Analyst Sign In' : 'Create Free Account'}
-              </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                Access automated EDA, charts & ML models
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
-              <button
-                type="button"
-                onClick={() => { setUserMode('login'); setError(''); }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  background: userMode === 'login' ? 'rgba(99,102,241,0.3)' : 'transparent',
-                  color: userMode === 'login' ? '#c7d2fe' : '#64748b',
-                }}
-              >
-                Log In
-              </button>
-              <button
-                type="button"
-                onClick={() => { setUserMode('register'); setError(''); }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  background: userMode === 'register' ? 'rgba(99,102,241,0.3)' : 'transparent',
-                  color: userMode === 'register' ? '#c7d2fe' : '#64748b',
-                }}
-              >
-                Register
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#f5f3ff' }}>
-                Admin Control Center
-              </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#c4b5fd' }}>
-                System diagnostics, telemetry & user management
-              </p>
-            </div>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                padding: '3px 8px',
-                borderRadius: '8px',
-                background: 'rgba(217, 119, 6, 0.2)',
-                color: '#fbbf24',
-                border: '1px solid rgba(217, 119, 6, 0.4)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              RESTRICTED
-            </span>
-          </div>
-        )}
+      {/* ── Subtitle / Header ──────────────────────────────────────────────── */}
+      <div style={{ marginBottom: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'white' }}>
+            {userMode === 'login' ? 'Analyst Sign In' : 'Create Free Account'}
+          </h3>
+          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+            Access automated EDA, charts & ML models
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
+          <button
+            type="button"
+            onClick={() => { setUserMode('login'); setError(''); }}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              background: userMode === 'login' ? 'rgba(99,102,241,0.3)' : 'transparent',
+              color: userMode === 'login' ? '#c7d2fe' : '#64748b',
+            }}
+          >
+            Log In
+          </button>
+          <button
+            type="button"
+            onClick={() => { setUserMode('register'); setError(''); }}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              background: userMode === 'register' ? 'rgba(99,102,241,0.3)' : 'transparent',
+              color: userMode === 'register' ? '#c7d2fe' : '#64748b',
+            }}
+          >
+            Register
+          </button>
+        </div>
       </div>
 
       {/* ── Error Banner ───────────────────────────────────────────────────── */}
@@ -540,7 +400,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
 
       {/* ── Form Inputs ────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {activeTab === 'user' && userMode === 'register' && (
+        {userMode === 'register' && (
           <div>
             <label style={labelStyle}>Full Name</label>
             <div style={{ position: 'relative' }}>
@@ -558,14 +418,12 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
         )}
 
         <div>
-          <label style={labelStyle}>
-            {activeTab === 'admin' ? 'Administrator Email' : 'Email Address'}
-          </label>
+          <label style={labelStyle}>Email Address</label>
           <div style={{ position: 'relative' }}>
             <Mail size={15} color="#64748b" style={inputIconStyle} />
             <input
               type="email"
-              placeholder={activeTab === 'admin' ? 'admin@infinitics.ai' : 'analyst@company.com'}
+              placeholder="analyst@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -578,7 +436,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <label style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
-            {activeTab === 'user' && userMode === 'login' && (
+            {userMode === 'login' && (
               <Link to="/forgot-password" style={{ fontSize: '11px', color: '#818cf8', textDecoration: 'none' }}>
                 Forgot?
               </Link>
@@ -615,53 +473,17 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
           </div>
         </div>
 
-        {/* ── Quick Autofill Buttons ───────────────────────────────────────── */}
-        <div
-          style={{
-            background: activeTab === 'admin' ? 'rgba(168, 85, 247, 0.08)' : 'rgba(99, 102, 241, 0.08)',
-            border: activeTab === 'admin' ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid rgba(99, 102, 241, 0.2)',
-            borderRadius: '10px',
-            padding: '8px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', color: activeTab === 'admin' ? '#d8b4fe' : '#c7d2fe', fontWeight: 600 }}>
-              {activeTab === 'admin' ? 'Admin Default Account' : 'Demo Analyst Account'}
-            </div>
-            <div style={{ fontSize: '10px', color: '#64748b' }}>
-              {activeTab === 'admin' ? 'admin@infinitics.ai' : 'user@infinitics.ai'}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (activeTab === 'admin') {
-                setEmail('admin@infinitics.ai');
-                setPassword('SubodhW@7116');
-              } else {
-                setEmail('user@infinitics.ai');
-                setPassword('Analyst@2026');
-                setUserMode('login');
-              }
-              toast.success(`${activeTab === 'admin' ? 'Admin' : 'Analyst'} credentials autofilled!`);
-            }}
-            style={{
-              background: activeTab === 'admin' ? 'rgba(168, 85, 247, 0.25)' : 'rgba(99, 102, 241, 0.25)',
-              border: activeTab === 'admin' ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(99, 102, 241, 0.4)',
-              color: activeTab === 'admin' ? '#f3e8ff' : '#e0e7ff',
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            Auto-Fill
-          </button>
-        </div>
+        {userMode === 'login' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              style={{ width: '14px', height: '14px', accentColor: '#6366f1', cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>Remember me</span>
+          </label>
+        )}
 
         {/* ── Primary Submit Button ────────────────────────────────────────── */}
         <motion.button
@@ -671,9 +493,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
           whileTap={{ scale: loading ? 1 : 0.99 }}
           style={{
             padding: '13px',
-            background: activeTab === 'admin'
-              ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
-              : 'linear-gradient(135deg, #4f46e5, #6366f1)',
+            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
             color: 'white',
             border: 'none',
             borderRadius: '12px',
@@ -684,25 +504,19 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: activeTab === 'admin'
-              ? '0 6px 20px rgba(124, 58, 237, 0.45)'
-              : '0 6px 20px rgba(79, 70, 229, 0.45)',
+            boxShadow: '0 6px 20px rgba(79, 70, 229, 0.45)',
             marginTop: '2px',
           }}
         >
           {loading ? (
             <>
               <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              {activeTab === 'admin' ? 'Authenticating Admin...' : 'Connecting...'}
+              {userMode === 'register' ? 'Creating Account...' : 'Connecting...'}
             </>
           ) : (
             <>
-              {activeTab === 'admin' ? <Shield size={16} /> : userMode === 'register' ? <UserPlus size={16} /> : <LogIn size={16} />}
-              {activeTab === 'admin'
-                ? 'Access Admin Control Panel'
-                : userMode === 'register'
-                ? 'Create Analyst Account'
-                : 'Sign In to Workspace'}
+              {userMode === 'register' ? <UserPlus size={16} /> : <LogIn size={16} />}
+              {userMode === 'register' ? 'Create Analyst Account' : 'Sign In to Workspace'}
             </>
           )}
         </motion.button>
@@ -719,7 +533,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
       {/* ── 1-Click Launch in Demo Mode Button ──────────────────────────────── */}
       <button
         type="button"
-        onClick={activeTab === 'admin' ? handleLaunchAdminDemo : handleLaunchUserDemo}
+        onClick={handleLaunchUserDemo}
         style={{
           width: '100%',
           padding: '11px 16px',
@@ -738,12 +552,10 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
         }}
       >
         <Zap size={15} color="#fbbf24" />
-        {activeTab === 'admin'
-          ? '⚡ Launch Admin Center (Instant Demo)'
-          : '⚡ Launch Analyst Workspace (Instant Demo)'}
+        ⚡ Launch Analyst Workspace (Instant Demo)
       </button>
 
-      {/* ── Footer Info & API Config Modal Trigger ─────────────────────────── */}
+      {/* ── Footer: Admin Portal Link & Server Settings ────────────────────── */}
       <div
         style={{
           marginTop: '16px',
@@ -752,12 +564,15 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
           justifyContent: 'space-between',
           fontSize: '11px',
           color: '#64748b',
+          gap: '8px',
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-          Render & Localhost Ready
-        </span>
+        <Link
+          to="/admin/login"
+          style={{ color: '#a5b4fc', textDecoration: 'none', fontWeight: 600, fontSize: '11px' }}
+        >
+          🔐 Admin Portal
+        </Link>
 
         <button
           type="button"
@@ -816,7 +631,7 @@ export const HomeAuthPortal: React.FC<HomeAuthPortalProps> = ({ onSuccess }) => 
                 type="text"
                 value={apiUrlInput}
                 onChange={(e) => setApiUrlInput(e.target.value)}
-                placeholder="https://datamind-backend-tmql.onrender.com"
+                placeholder="https://ai-data-analyst-backend.onrender.com"
                 style={{
                   ...inputStyle,
                   fontFamily: 'monospace',

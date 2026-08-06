@@ -1,7 +1,7 @@
 /**
- * Landing Page — Infinitics AI
+ * HomePage — Infinitics AI
  * Comprehensive Data Analytics & Machine Learning Platform
- * Integrates interactive User and Admin Login Control Panels directly on the homepage.
+ * Showcases platform details with Login/Register CTA buttons that redirect to the auth pages.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,10 +10,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Brain, BarChart2, Upload, Zap, Shield, TrendingUp,
   ChevronRight, Star, Play, Database, Sparkles,
-  PieChart, GitMerge, Activity, X, Lock, CheckCircle, ArrowUpRight
+  PieChart, GitMerge, Activity, X, Lock, CheckCircle, ArrowUpRight, UserPlus
 } from 'lucide-react';
-import { useStore, AuthUser } from '../store/useStore';
-import HomeAuthPortal from '../components/home/HomeAuthPortal';
+import { useStore } from '../store/useStore';
 
 const fadeUp: any = {
   hidden: { opacity: 0, y: 24 },
@@ -67,7 +66,7 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function LandingPage() {
+export default function HomePage() {
   const navigate = useNavigate();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const { token, user } = useStore();
@@ -210,7 +209,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── Hero Section (with Embedded User & Admin Login Portal) ─────────── */}
+      {/* ── Hero Section (with Login/Register CTA Panel) ───────────────────── */}
       <section
         style={{
           paddingTop: '110px',
@@ -389,14 +388,156 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Right Column: Interactive Dual Portal Panel */}
+          {/* Right Column: Login / Register CTA Panel */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             style={{ display: 'flex', justifyContent: 'center' }}
           >
-            <HomeAuthPortal />
+            <div
+              style={{
+                background: 'rgba(17, 21, 34, 0.95)',
+                backdropFilter: 'blur(24px)',
+                border: '1px solid rgba(99, 102, 241, 0.35)',
+                borderRadius: '24px',
+                padding: '32px',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 50px rgba(99,102,241,0.18)',
+                maxWidth: '420px',
+                width: '100%',
+                textAlign: 'center',
+                position: 'relative',
+                zIndex: 10,
+                boxSizing: 'border-box',
+              }}
+            >
+              {/* Icon */}
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  margin: '0 auto 16px',
+                  borderRadius: '18px',
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
+                }}
+              >
+                <Zap size={30} color="white" />
+              </div>
+
+              <h3 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 800, color: 'white' }}>
+                {token && user ? 'Welcome Back!' : 'Get Started Today'}
+              </h3>
+              <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>
+                {token && user
+                  ? 'Your workspace is ready. Continue analyzing, visualizing, and training ML models.'
+                  : 'Sign in to access automated EDA, 20+ charts, AI insights & 15+ ML models. Create a free account in seconds.'}
+              </p>
+
+              {/* Primary CTA */}
+              <Link
+                to={token ? '/dashboard/upload' : '/login'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  color: 'white',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  boxShadow: '0 6px 20px rgba(79,70,229,0.45)',
+                  transition: 'all 0.2s ease',
+                  marginBottom: '12px',
+                }}
+              >
+                {token && user ? 'Open Workspace' : 'Sign In to Workspace'}
+                <ChevronRight size={18} />
+              </Link>
+
+              {/* Secondary CTA */}
+              {!(token && user) && (
+                <Link
+                  to="/register"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    padding: '13px',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: '#e2e8f0',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <UserPlus size={18} color="#818cf8" />
+                  Create Free Account
+                </Link>
+              )}
+
+              {/* Divider */}
+              <div style={{ position: 'relative', textAlign: 'center', margin: '22px 0 16px' }}>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', position: 'absolute', top: '50%', left: 0, right: 0 }} />
+                <span style={{ background: '#111522', padding: '0 10px', fontSize: '11px', color: '#64748b', position: 'relative', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Quick Launchers
+                </span>
+              </div>
+
+              {/* Quick Launcher Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <Link
+                  to="/dashboard/upload"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#e2e8f0',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <Database size={14} color="#38bdf8" /> Analyst
+                </Link>
+                <Link
+                  to="/admin/login"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#e2e8f0',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <Shield size={14} color="#c084fc" /> Admin
+                </Link>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Shield, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, LogIn } from 'lucide-react';
+import { Shield, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, LogIn, ArrowLeft } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { loginUser } from '../../services/authApi';
 import type { AuthUser } from '../../store/useStore';
@@ -63,6 +63,26 @@ const AdminLoginPage: React.FC = () => {
         </div>
 
         <div style={{ background: 'rgba(14,16,24,0.9)', backdropFilter: 'blur(20px)', border: '1px solid rgba(79,70,229,0.25)', borderRadius: '20px', padding: '32px', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+          {/* Back to Home */}
+          <Link
+            to="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#64748b',
+              fontSize: '13px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              marginBottom: '20px',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+          >
+            <ArrowLeft size={15} /> Back to Home
+          </Link>
+
           {error && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               style={{ display: 'flex', gap: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px' }}>
@@ -94,42 +114,6 @@ const AdminLoginPage: React.FC = () => {
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-            </div>
-
-            {/* Quick Fill Admin Button */}
-            <div style={{
-              background: 'rgba(99,102,241,0.08)',
-              border: '1px solid rgba(99,102,241,0.2)',
-              borderRadius: '10px',
-              padding: '10px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: 600 }}>Default Admin Account</div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>admin@infinitics.ai</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@infinitics.ai');
-                  setPassword('SubodhW@7116');
-                  toast.success('Admin credentials autofilled!');
-                }}
-                style={{
-                  background: 'rgba(99,102,241,0.2)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: '#c7d2fe',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Auto-Fill
-              </button>
             </div>
 
             <motion.button type="submit" disabled={loading} whileHover={{ scale: loading ? 1 : 1.01 }}
