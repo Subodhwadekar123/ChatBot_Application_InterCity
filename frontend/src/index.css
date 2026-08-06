@@ -273,6 +273,7 @@ body {
   box-shadow: var(--shadow-card);
   transition: all 0.2s ease;
   z-index: 1;
+  overflow: hidden !important;
 }
 
 .card-precision::before {
@@ -324,6 +325,7 @@ body {
   box-shadow: var(--shadow-md);
   z-index: 1;
   transition: all 0.2s ease;
+  overflow: hidden !important;
 }
 
 .card-elevated::before {
@@ -564,6 +566,7 @@ body {
   position: relative;
   background: var(--bg-surface);
   z-index: 1;
+  overflow: hidden !important;
 }
 
 .glow-card::before {

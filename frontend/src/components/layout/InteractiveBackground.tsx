@@ -66,21 +66,24 @@ const InteractiveBackground: React.FC = () => {
 
         // Interaction with mouse
         if (mouse.active) {
-          const dx = mouse.x - p.x;
-          const dy = mouse.y - p.y;
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < forceRadius) {
-            const angle = Math.atan2(dy, dx);
-            // Push force diminishes with distance
             const force = (forceRadius - dist) / forceRadius;
-            const pushX = Math.cos(angle) * force * forceFactor * -5;
-            const pushY = Math.sin(angle) * force * forceFactor * -5;
+            const dirX = dx / (dist || 1);
+            const dirY = dy / (dist || 1);
 
-            p.vx += pushX;
-            p.vy += pushY;
+            // Apply acceleration away from cursor
+            p.vx += dirX * force * forceFactor;
+            p.vy += dirY * force * forceFactor;
           }
         }
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
 
         // Return force to return back home
         const returnX = (p.baseX - p.x) * returnSpeed;
@@ -106,8 +109,9 @@ const InteractiveBackground: React.FC = () => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.x = e.clientX - rect.left;
+      mouseRef.current.y = e.clientY - rect.top;
       mouseRef.current.active = true;
     };
 
