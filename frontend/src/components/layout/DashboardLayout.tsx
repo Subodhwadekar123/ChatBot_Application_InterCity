@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import AIChatWidget from '../chat/AIChatWidget';
 import { useStore } from '../../store/useStore';
 import { listDatasets, getDataset } from '../../services/api';
 
@@ -98,6 +99,9 @@ const DashboardLayout: React.FC = () => {
       >
         {/* Header Bar */}
         <Header />
+
+        {/* Floating AI Assistant (global overlay) */}
+        <AIChatWidget />
 
         {/* Page Main Content */}
         <main
