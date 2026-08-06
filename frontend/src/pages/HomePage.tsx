@@ -83,8 +83,8 @@ export default function HomePage() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#0a0d16',
-        color: '#e2e8f0',
+        background: 'var(--bg-app)',
+        color: 'var(--text-primary)',
         fontFamily: "'Inter', sans-serif",
         position: 'relative',
         overflowX: 'hidden',
@@ -124,9 +124,9 @@ export default function HomePage() {
           left: 0,
           right: 0,
           zIndex: 100,
-          background: 'rgba(10, 13, 22, 0.88)',
+          background: 'var(--bg-header)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(99, 102, 241, 0.15)',
+          borderBottom: '1px solid var(--border-default)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -143,11 +143,11 @@ export default function HomePage() {
               height: 36,
               borderRadius: '10px',
               objectFit: 'cover',
-              mixBlendMode: 'screen',
+              mixBlendMode: 'normal',
             }}
           />
           <div>
-            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               Infinitics AI
             </span>
             <span
@@ -314,7 +314,7 @@ export default function HomePage() {
               variants={fadeUp}
               style={{
                 fontSize: '1.05rem',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 maxWidth: '560px',
                 lineHeight: 1.7,
                 marginBottom: '28px',
@@ -344,14 +344,14 @@ export default function HomePage() {
                     gap: '5px',
                     padding: '6px 12px',
                     borderRadius: '8px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-hover)',
+                    border: '1px solid var(--border-default)',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#cbd5e1',
+                    color: 'var(--text-secondary)',
                   }}
                 >
-                  <Icon size={13} color="#818cf8" /> {label}
+                  <Icon size={13} color="var(--accent-primary)" /> {label}
                 </span>
               ))}
             </motion.div>
@@ -374,15 +374,16 @@ export default function HomePage() {
                 <div
                   key={label}
                   style={{
-                    background: 'rgba(20, 24, 38, 0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '12px',
                     padding: '12px 14px',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
                 >
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#f1f5f9' }}>{val}</div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#818cf8', marginTop: '2px' }}>{label}</div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>{sub}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{val}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-primary)', marginTop: '2px' }}>{label}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{sub}</div>
                 </div>
               ))}
             </motion.div>
@@ -397,12 +398,12 @@ export default function HomePage() {
           >
             <div
               style={{
-                background: 'rgba(17, 21, 34, 0.95)',
+                background: 'var(--bg-surface)',
                 backdropFilter: 'blur(24px)',
-                border: '1px solid rgba(99, 102, 241, 0.35)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '24px',
                 padding: '32px',
-                boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 50px rgba(99,102,241,0.18)',
+                boxShadow: 'var(--shadow-xl)',
                 maxWidth: '420px',
                 width: '100%',
                 textAlign: 'center',
@@ -428,10 +429,10 @@ export default function HomePage() {
                 <Zap size={30} color="white" />
               </div>
 
-              <h3 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 800, color: 'white' }}>
+              <h3 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
                 {token && user ? 'Welcome Back!' : 'Get Started Today'}
               </h3>
-              <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {token && user
                   ? 'Your workspace is ready. Continue analyzing, visualizing, and training ML models.'
                   : 'Sign in to access automated EDA, 20+ charts, AI insights & 15+ ML models. Create a free account in seconds.'}
@@ -474,24 +475,24 @@ export default function HomePage() {
                     width: '100%',
                     padding: '13px',
                     borderRadius: '12px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    color: '#e2e8f0',
+                    background: 'var(--bg-hover)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
                     fontSize: '15px',
                     fontWeight: 600,
                     textDecoration: 'none',
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <UserPlus size={18} color="#818cf8" />
+                  <UserPlus size={18} color="var(--accent-primary)" />
                   Create Free Account
                 </Link>
               )}
 
               {/* Divider */}
               <div style={{ position: 'relative', textAlign: 'center', margin: '22px 0 16px' }}>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', position: 'absolute', top: '50%', left: 0, right: 0 }} />
-                <span style={{ background: '#111522', padding: '0 10px', fontSize: '11px', color: '#64748b', position: 'relative', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ borderTop: '1px solid var(--border-default)', position: 'absolute', top: '50%', left: 0, right: 0 }} />
+                <span style={{ background: 'var(--bg-surface)', padding: '0 10px', fontSize: '11px', color: 'var(--text-muted)', position: 'relative', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Quick Launchers
                 </span>
               </div>
@@ -507,15 +508,15 @@ export default function HomePage() {
                     gap: '6px',
                     padding: '10px',
                     borderRadius: '10px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#e2e8f0',
+                    background: 'var(--bg-hover)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     fontWeight: 600,
                     textDecoration: 'none',
                   }}
                 >
-                  <Database size={14} color="#38bdf8" /> Analyst
+                  <Database size={14} color="var(--accent-cyan)" /> Analyst
                 </Link>
                 <Link
                   to="/admin/login"
@@ -526,15 +527,15 @@ export default function HomePage() {
                     gap: '6px',
                     padding: '10px',
                     borderRadius: '10px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#e2e8f0',
+                    background: 'var(--bg-hover)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     fontWeight: 600,
                     textDecoration: 'none',
                   }}
                 >
-                  <Shield size={14} color="#c084fc" /> Admin
+                  <Shield size={14} color="var(--accent-indigo)" /> Admin
                 </Link>
               </div>
             </div>
@@ -557,7 +558,7 @@ export default function HomePage() {
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", margin: '0 0 12px' }}>
               Explore Platform Capabilities
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
               Direct access to all analytical modules from one unified workspace
             </p>
           </div>
@@ -575,12 +576,13 @@ export default function HomePage() {
                 variants={fadeUp}
                 whileHover={{ y: -4, borderColor: color }}
                 style={{
-                  background: 'rgba(18, 22, 34, 0.75)',
+                  background: 'var(--bg-surface)',
                   backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: '16px',
                   padding: '24px',
                   transition: 'all 0.25s ease',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <div
@@ -598,10 +600,10 @@ export default function HomePage() {
                 >
                   <Icon size={22} color={color} />
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px', color: '#f1f5f9' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px', color: 'var(--text-primary)' }}>
                   {title}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
                   {description}
                 </p>
               </motion.div>
@@ -611,13 +613,13 @@ export default function HomePage() {
       </section>
 
       {/* ── Testimonials ──────────────────────────────────────────────────── */}
-      <section style={{ padding: '80px 32px', background: 'rgba(13, 16, 26, 0.85)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section style={{ padding: '80px 32px', background: 'var(--bg-app)', borderTop: '1px solid var(--border-default)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", marginBottom: '12px' }}>
               Trusted by Data Teams Worldwide
             </h2>
-            <p style={{ color: '#64748b' }}>From independent analysts to high-scale enterprise departments.</p>
+            <p style={{ color: 'var(--text-secondary)' }}>From independent analysts to high-scale enterprise departments.</p>
           </motion.div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
@@ -627,10 +629,11 @@ export default function HomePage() {
                 variants={fadeUp}
                 whileHover={{ y: -4 }}
                 style={{
-                  background: 'rgba(22, 27, 43, 0.7)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: '16px',
                   padding: '26px',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
@@ -638,7 +641,7 @@ export default function HomePage() {
                     <Star key={i} size={15} fill="#f59e0b" color="#f59e0b" />
                   ))}
                 </div>
-                <p style={{ color: '#cbd5e1', lineHeight: 1.65, marginBottom: '18px', fontStyle: 'italic', fontSize: '13px' }}>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '18px', fontStyle: 'italic', fontSize: '13px' }}>
                   "{text}"
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -660,8 +663,8 @@ export default function HomePage() {
                     {avatar}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '14px' }}>{name}</div>
-                    <div style={{ color: '#64748b', fontSize: '12px' }}>{role}</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{name}</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{role}</div>
                   </div>
                 </div>
               </motion.div>
@@ -673,7 +676,7 @@ export default function HomePage() {
       {/* ── Footer ────────────────────────────────────────────────────────── */}
       <footer
         style={{
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid var(--border-default)',
           padding: '36px 32px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -685,19 +688,19 @@ export default function HomePage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: 22, height: 22, borderRadius: '6px', objectFit: 'cover', mixBlendMode: 'screen' }} />
-          <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '14px' }}>Infinitics AI</span>
-          <span style={{ color: '#374151', margin: '0 8px' }}>|</span>
-          <span style={{ color: '#64748b', fontSize: '13px' }}>AI-Powered Automated Data Analytics & Machine Learning</span>
+          <img src="/logo.jpg" alt="Logo" style={{ width: 22, height: 22, borderRadius: '6px', objectFit: 'cover', mixBlendMode: 'normal' }} />
+          <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '14px' }}>Infinitics AI</span>
+          <span style={{ color: 'var(--border-strong)', margin: '0 8px' }}>|</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>AI-Powered Automated Data Analytics & Machine Learning</span>
         </div>
 
         <div style={{ display: 'flex', gap: '20px' }}>
-          <Link to="/login" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>User Portal</Link>
-          <Link to="/admin/login" style={{ color: '#c084fc', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>Admin Center</Link>
-          <Link to="/register" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>Register</Link>
+          <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px' }}>User Portal</Link>
+          <Link to="/admin/login" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>Admin Center</Link>
+          <Link to="/register" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px' }}>Register</Link>
         </div>
 
-        <p style={{ color: '#475569', fontSize: '12px', margin: 0 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>
           © {new Date().getFullYear()} Infinitics AI Platform. All rights reserved.
         </p>
       </footer>
