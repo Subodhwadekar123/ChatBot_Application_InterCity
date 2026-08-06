@@ -127,7 +127,7 @@ const Header: React.FC = () => {
               }}
             >
               {activeDataset
-                ? (activeDataset.filename || activeDataset.name || 'Active Dataset')
+                ? (activeDataset.filename || 'Active Dataset')
                 : 'Select Dataset'}
             </span>
           </div>
@@ -268,26 +268,59 @@ const Header: React.FC = () => {
 
       {/* Right Header Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Theme Switcher Button */}
+        {/* Theme Switcher — Animated Pill Switch */}
         <button
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 8,
-            border: '1px solid var(--border-default)',
-            backgroundColor: 'var(--bg-surface)',
+            width: 64,
+            height: 32,
+            padding: 3,
+            borderRadius: 9999,
+            border: `1px solid ${theme === 'dark' ? 'rgba(251, 191, 36, 0.4)' : 'var(--border-default)'}`,
+            backgroundColor: theme === 'dark' ? 'rgba(251, 191, 36, 0.12)' : 'var(--bg-canvas)',
             color: 'var(--text-secondary)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.25s ease',
             boxShadow: 'var(--shadow-xs)',
+            position: 'relative',
           }}
+          aria-label="Toggle theme"
         >
-          {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="#64748b" />}
+          <motion.span
+            layout
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: theme === 'dark' ? '#fbbf24' : '#ffffff',
+              boxShadow:
+                theme === 'dark'
+                  ? '0 0 12px rgba(251, 191, 36, 0.5)'
+                  : '0 1px 3px rgba(0, 0, 0, 0.15)',
+              marginLeft: theme === 'dark' ? 'auto' : 0,
+              color: theme === 'dark' ? '#78350f' : '#f59e0b',
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={theme}
+                initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex' }}
+              >
+                {theme === 'dark' ? <Moon size={13} /> : <Sun size={13} />}
+              </motion.span>
+            </AnimatePresence>
+          </motion.span>
         </button>
 
         {/* Refresh Page */}
@@ -386,7 +419,7 @@ const Header: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              {activeDataset.filename || activeDataset.name}
+              {activeDataset.filename}
             </span>
           </div>
         )}

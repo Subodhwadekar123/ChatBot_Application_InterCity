@@ -187,6 +187,7 @@ const Sidebar: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 end={item.path === '/dashboard' || item.path === '/'}
+                className="sidebar-nav-link"
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
@@ -199,21 +200,42 @@ const Sidebar: React.FC = () => {
                   fontSize: 13,
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  backgroundColor: isActive
-                    ? 'var(--accent-primary-light)'
+                  background: isActive
+                    ? 'linear-gradient(90deg, var(--accent-primary-light) 0%, rgba(255,255,255,0) 100%)'
                     : 'transparent',
-                  transition: 'all 0.12s ease',
+                  boxShadow: isActive ? 'inset 0 0 0 1px var(--border-default), var(--shadow-xs)' : 'none',
+                  transition: 'all 0.15s ease',
                   position: 'relative',
                 })}
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 {({ isActive }) => (
                   <>
+                    {/* Active Left Accent Bar */}
+                    {isActive && (
+                      <motion.span
+                        layoutId={`sidebar-active-bar-${section.heading}`}
+                        initial={{ scaleY: 0 }}
+                        animate={{ scaleY: 1 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                        style={{
+                          position: 'absolute',
+                          left: -8,
+                          top: '18%',
+                          bottom: '18%',
+                          width: 3,
+                          borderRadius: 3,
+                          background: 'var(--accent-primary)',
+                          boxShadow: '0 0 8px var(--accent-primary)',
+                        }}
+                      />
+                    )}
                     <span
+                      className="sidebar-nav-icon"
                       style={{
                         flexShrink: 0,
                         color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                        transition: 'color 0.12s',
+                        transition: 'color 0.15s',
                         display: 'flex',
                         alignItems: 'center',
                       }}
@@ -287,7 +309,7 @@ const Sidebar: React.FC = () => {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {activeDataset.filename || activeDataset.name || 'Dataset'}
+                  {activeDataset.filename || 'Dataset'}
                 </div>
               </div>
             </div>

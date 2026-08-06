@@ -45,6 +45,7 @@
   --bg-surface: #ffffff;
   --bg-surface-hover: #f8fafc;
   --bg-surface-active: #f1f5f9;
+  --bg-hover: #eef2f7;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-sidebar: #ffffff;
@@ -106,6 +107,7 @@
   --bg-surface: #1e293b;
   --bg-surface-hover: #273549;
   --bg-surface-active: #334155;
+  --bg-hover: #273549;
   --bg-elevated: #1e293b;
   --bg-card: #1e293b;
   --bg-sidebar: #0f172a;
@@ -355,6 +357,29 @@ body {
   background: var(--color-danger-bg);
   color: var(--color-danger);
   border: 1px solid var(--color-danger-border);
+}
+
+/* ─── Sidebar Navigation ────────────────────────────────────────────────── */
+.sidebar-nav-link {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.sidebar-nav-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: translateX(2px);
+}
+.sidebar-nav-link:active {
+  transform: translateX(0) scale(0.98);
+}
+.sidebar-nav-link .sidebar-nav-icon {
+  transition: color 0.15s ease, transform 0.2s ease;
+}
+.sidebar-nav-link:hover .sidebar-nav-icon {
+  color: var(--accent-primary);
+  transform: scale(1.15);
 }
 
 /* ─── Shimmering Skeleton Loader ────────────────────────────────────────── */
