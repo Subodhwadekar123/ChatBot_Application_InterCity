@@ -271,7 +271,9 @@ Dataset Context:
 
 Question: {question}
 
-Provide a clear, concise answer. If the question involves computations, make reasonable inferences from the summary statistics.
+Provide a comprehensive, detailed, and clear answer (explain terms, expand on trends, or specify calculations where relevant).
+CRITICAL: You are strictly limited to this data analysis project. If the user's question is completely unrelated to data analysis, this dataset, or this project, politely refuse and state that you are an AI assistant specialized only in analyzing the uploaded dataset.
+
 Format your response as JSON with keys: answer, explanation, suggestions (list of follow-up questions).
 Only return valid JSON."""
 
@@ -313,6 +315,8 @@ IMPORTANT: The code will be EXECUTED against the real dataset in a sandbox. Writ
 - Only prints results (do NOT open files, do NOT write files, do NOT call plt.show()).
 - Uses print() statements to output the actual computed values (counts, means, accuracies, etc.).
 - Is safe and uses only pandas, numpy, matplotlib (Agg), seaborn, and scikit-learn.
+
+CRITICAL: You are strictly limited to this data analysis project. If the user's request is completely unrelated to data analysis or this dataset, write a simple print statement explaining that you can only write code to operate on the uploaded dataset.
 
 Respond ONLY with valid JSON using these keys:
 - "code": the complete Python code block as a string (no markdown fences, just raw code)

@@ -456,9 +456,9 @@ const AIChatWidget: React.FC = () => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             style={{
               pointerEvents: 'auto',
-              width: 380,
+              width: 460,
               maxWidth: 'calc(100vw - 32px)',
-              height: 520,
+              height: 640,
               maxHeight: 'calc(100vh - 120px)',
               display: 'flex',
               flexDirection: 'column',
