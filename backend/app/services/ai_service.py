@@ -932,6 +932,39 @@ Example response:
                 answer = "Not enough numeric columns to compute correlations."
             suggestions = ["Show the correlation heatmap", "Which features should I drop due to high correlation?"]
 
+        elif any(k in q_lower for k in ["target", "predict", "label", "dependent"]):
+            # Suggest target column candidates
+            categorical_targets = []
+            for c in df.select_dtypes(include=["object", "category"]).columns:
+                n_unique = df[c].nunique()
+                if 2 <= n_unique <= 12:
+                    categorical_targets.append(c)
+            
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            non_id_numeric = [
+                c for c in numeric_cols
+                if str(c).lower() not in ("id", "index", "row_id", "record_id")
+                and not str(c).lower().startswith("unnamed")
+            ]
+            
+            if categorical_targets:
+                answer = (
+                    f"For Machine Learning, I recommend using a column with clear classification labels as the target. "
+                    f"Based on your dataset, the best categorical target candidates are: "
+                    f"{', '.join([f'\'{c}\' ({df[c].nunique()} classes)' for c in categorical_targets[:3]])}. "
+                )
+                if non_id_numeric:
+                    answer += f"If you want to perform regression (predicting a quantity), you could predict: {', '.join([f'\'{c}\'' for c in non_id_numeric[:2]])}."
+            elif non_id_numeric:
+                answer = (
+                    f"For Machine Learning, I recommend predicting a numeric column (regression). "
+                    f"Based on your dataset, suitable target columns include: {', '.join([f'\'{c}\'' for c in non_id_numeric[:3]])}."
+                )
+            else:
+                answer = "I couldn't identify any obvious target columns. Please check if your dataset contains valid features."
+                
+            suggestions = ["What ML model should I train?", "Show details about my columns"]
+
         elif any(k in q_lower for k in ["model", "algorithm", "machine learning", "ml"]):
             rows = info["rows"]
             answer = f"Based on your dataset ({rows:,} rows), I recommend: "
