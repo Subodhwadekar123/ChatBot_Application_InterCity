@@ -422,14 +422,14 @@ const AIChatWidget: React.FC = () => {
     sendMessage(q);
   };
 
-  const handleOpen = () => {
+  const handleToggle = () => {
     if (!activeDataset) {
       toast('Please select a dataset first to chat with the AI assistant.', {
         icon: '💡',
       });
       return;
     }
-    setIsOpen(true);
+    setIsOpen(prev => !prev);
   };
 
   return (
@@ -739,7 +739,7 @@ const AIChatWidget: React.FC = () => {
         dragElastic={0.1}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
-        onClick={handleOpen}
+        onClick={handleToggle}
         style={{
           pointerEvents: 'auto',
           width: 60,
