@@ -651,3 +651,34 @@ body {
   }
 }
 
+/* ─── Global Overrides for Light/Pastel Theme Contrast & Sharpness ───────── */
+[data-theme="light"] [style*="color: #94a3b8"],
+[data-theme="pastel"] [style*="color: #94a3b8"],
+[data-theme="light"] [style*="color: rgb(148, 163, 184)"],
+[data-theme="pastel"] [style*="color: rgb(148, 163, 184)"],
+[data-theme="light"] [style*="color: #64748b"],
+[data-theme="pastel"] [style*="color: #64748b"],
+[data-theme="light"] [style*="color: rgb(100, 116, 139)"],
+[data-theme="pastel"] [style*="color: rgb(100, 116, 139)"] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] [style*="color: #cbd5e1"],
+[data-theme="pastel"] [style*="color: #cbd5e1"],
+[data-theme="light"] [style*="color: rgb(203, 213, 225)"],
+[data-theme="pastel"] [style*="color: rgb(203, 213, 225)"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] [style*="border"],
+[data-theme="pastel"] [style*="border"],
+[data-theme="light"] [style*="border-left"],
+[data-theme="pastel"] [style*="border-left"],
+[data-theme="light"] [style*="border-bottom"],
+[data-theme="pastel"] [style*="border-bottom"] {
+  &[style*="rgba(255,255,255"],
+  &[style*="rgba(255, 255, 255"] {
+    border-color: var(--border-default) !important;
+  }
+}
+
