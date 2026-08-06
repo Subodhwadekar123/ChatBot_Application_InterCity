@@ -7,7 +7,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle, Key } from 'lucide-react';
-import { forgotPassword } from '../../services/authApi';
+import { requestPasswordReset } from '../../services/authApi';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -32,18 +33,19 @@ const ForgotPasswordPage: React.FC = () => {
 
   return (
     <div style={pageStyle}>
-      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+      <InteractiveBackground />
+      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(60px)' }} />
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>
+          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover))', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
             <Key size={26} color="white" />
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>Forgot Password?</h1>
-          <p style={{ color: '#64748b', fontSize: '14px' }}>Enter your email to receive a reset link</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>Forgot Password?</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Enter your email to receive a reset link</p>
         </div>
 
-        <div style={cardStyle}>
+        <div className="glow-card" style={{ padding: '32px' }}>
           {!sent ? (
             <>
               <AnimatePresence>
@@ -98,7 +100,7 @@ const ForgotPasswordPage: React.FC = () => {
   );
 };
 
-const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117', padding: '24px', position: 'relative', overflow: 'hidden' };
+const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)', padding: '24px', position: 'relative', overflow: 'hidden' };
 const cardStyle: React.CSSProperties = { background: 'rgba(22,25,37,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '32px', boxShadow: '0 24px 60px rgba(0,0,0,0.5)' };
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e2e8f0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };

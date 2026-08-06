@@ -136,7 +136,7 @@ const ProfilePage: React.FC = () => {
 
         {/* ── Profile Tab ─────────────────────────────────────────────────── */}
         {tab === 'profile' && (
-          <div style={cardStyle}>
+          <div className="glow-card" style={cardStyle}>
             <h3 style={sectionTitle}>Profile Information</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
               <div>
@@ -169,7 +169,7 @@ const ProfilePage: React.FC = () => {
 
         {/* ── Security Tab ─────────────────────────────────────────────────── */}
         {tab === 'security' && (
-          <div style={cardStyle}>
+          <div className="glow-card" style={cardStyle}>
             <h3 style={sectionTitle}>Change Password</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
               <PasswordInput label="Current Password" value={pwData.current_password}
@@ -200,7 +200,7 @@ const ProfilePage: React.FC = () => {
         {/* ── Sessions Tab ─────────────────────────────────────────────────── */}
         {tab === 'sessions' && (
           <div>
-            <div style={{ ...cardStyle, marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="glow-card" style={{ ...cardStyle, marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h3 style={{ ...sectionTitle, marginBottom: '4px' }}>Active Sessions</h3>
                 <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>{sessions.length} active session(s)</p>
@@ -215,7 +215,7 @@ const ProfilePage: React.FC = () => {
             {loadingSessions ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></div>
             ) : sessions.map((s) => (
-              <div key={s.id} style={{ ...cardStyle, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', border: s.is_current ? '1px solid rgba(99,102,241,0.4)' : undefined }}>
+              <div key={s.id} className="glow-card" style={{ ...cardStyle, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', border: s.is_current ? '1px solid var(--accent-primary)' : undefined }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                   <DeviceIcon type={s.device_type} />
                   <div>
@@ -241,7 +241,7 @@ const ProfilePage: React.FC = () => {
 
         {/* ── History Tab ──────────────────────────────────────────────────── */}
         {tab === 'history' && (
-          <div style={cardStyle}>
+          <div className="glow-card" style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h3 style={sectionTitle}>Login History</h3>
               <button onClick={loadHistory} style={ghostBtnStyle}><RefreshCw size={15} /></button>
@@ -318,7 +318,7 @@ const PasswordInput: React.FC<{ label: string; value: string; show: boolean; onT
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 
-const cardStyle: React.CSSProperties = { background: 'rgba(22,25,37,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px' };
+const cardStyle: React.CSSProperties = { borderRadius: '16px', padding: '24px' };
 const sectionTitle: React.CSSProperties = { color: '#f1f5f9', fontWeight: 700, fontSize: '16px', margin: '0 0 18px' };
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e2e8f0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };

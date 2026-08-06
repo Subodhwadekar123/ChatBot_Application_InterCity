@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { resetPassword } from '../../services/authApi';
 import PasswordStrengthMeter from '../../components/auth/PasswordStrengthMeter';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -60,11 +61,16 @@ const ResetPasswordPage: React.FC = () => {
   if (success) {
     return (
       <div style={pageStyle}>
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ ...cardStyle, textAlign: 'center' }}>
-          <CheckCircle size={56} color="#10b981" style={{ marginBottom: '16px' }} />
-          <h2 style={{ color: '#f1f5f9', marginBottom: '10px' }}>Password Reset!</h2>
-          <p style={{ color: '#64748b', marginBottom: '20px' }}>Your password has been updated. Redirecting to login...</p>
-          <Link to="/login" style={{ color: '#6366f1', fontWeight: 700 }}>Go to Login</Link>
+        <InteractiveBackground />
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+          className="glow-card"
+          style={{ padding: '32px', textAlign: 'center', maxWidth: '400px', width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ width: '60px', height: '60px', background: 'var(--accent-primary-light)', border: '2px solid var(--border-default)', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle size={30} color="var(--accent-primary)" />
+          </div>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '10px' }}>Password Reset!</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Your password has been updated. Redirecting to login...</p>
+          <Link to="/login" style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>Go to Login</Link>
         </motion.div>
       </div>
     );
@@ -72,18 +78,19 @@ const ResetPasswordPage: React.FC = () => {
 
   return (
     <div style={pageStyle}>
-      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+      <InteractiveBackground />
+      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(60px)' }} />
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, #dc2626, #b91c1c)', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(220,38,38,0.4)' }}>
+          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover))', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
             <Lock size={26} color="white" />
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>Set New Password</h1>
-          <p style={{ color: '#64748b', fontSize: '14px' }}>Choose a strong password for your account</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>Set New Password</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Choose a strong password for your account</p>
         </div>
 
-        <div style={cardStyle}>
+        <div className="glow-card" style={{ padding: '32px' }}>
           {error && (
             <div style={{ display: 'flex', gap: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px' }}>
               <AlertCircle size={16} color="#f87171" style={{ flexShrink: 0 }} />
@@ -131,7 +138,7 @@ const ResetPasswordPage: React.FC = () => {
   );
 };
 
-const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117', padding: '24px', position: 'relative', overflow: 'hidden' };
+const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)', padding: '24px', position: 'relative', overflow: 'hidden' };
 const cardStyle: React.CSSProperties = { background: 'rgba(22,25,37,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '32px', boxShadow: '0 24px 60px rgba(0,0,0,0.5)' };
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e2e8f0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };

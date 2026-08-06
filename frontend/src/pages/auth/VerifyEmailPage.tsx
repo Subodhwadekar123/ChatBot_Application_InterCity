@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2, Mail, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { verifyEmail, resendVerification } from '../../services/authApi';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 type State = 'verifying' | 'success' | 'error' | 'expired' | 'no-token';
 
@@ -137,10 +138,11 @@ const VerifyEmailPage: React.FC = () => {
 
   return (
     <div style={pageStyle}>
-      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+      <InteractiveBackground />
+      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(60px)' }} />
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
-        <div style={{ background: 'rgba(22,25,37,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}>
+        <div className="glow-card" style={{ padding: '40px' }}>
           {renderContent()}
           {state !== 'no-token' && state !== 'verifying' && (
             <div style={{ marginTop: '24px', textAlign: 'center' }}>
@@ -154,7 +156,7 @@ const VerifyEmailPage: React.FC = () => {
   );
 };
 
-const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117', padding: '24px', position: 'relative', overflow: 'hidden' };
+const pageStyle: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)', padding: '24px', position: 'relative', overflow: 'hidden' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e2e8f0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' };
 
 export default VerifyEmailPage;

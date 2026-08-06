@@ -11,6 +11,7 @@ import { Shield, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, LogIn, ArrowLeft
 import { useStore } from '../../store/useStore';
 import { loginUser } from '../../services/authApi';
 import type { AuthUser } from '../../store/useStore';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,6 +59,9 @@ const AdminLoginPage: React.FC = () => {
       background: 'var(--bg-app)',
       padding: '24px', position: 'relative', overflow: 'hidden',
     }}>
+      {/* Interactive Background Canvas */}
+      <InteractiveBackground />
+
       <div style={{ position: 'absolute', top: '20%', left: '15%', width: '300px', height: '300px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '20%', right: '15%', width: '250px', height: '250px', background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
 

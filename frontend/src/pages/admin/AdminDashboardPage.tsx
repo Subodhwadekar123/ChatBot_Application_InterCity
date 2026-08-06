@@ -112,12 +112,12 @@ const AdminDashboardPage: React.FC = () => {
             <motion.div key={card.label}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               onClick={() => card.link && navigate(card.link)}
+              className="glow-card"
               style={{
-                background: 'rgba(22,25,37,0.6)', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: '16px', padding: '20px', cursor: card.link ? 'pointer' : 'default',
                 transition: 'all 0.2s',
               }}
-              whileHover={card.link ? { scale: 1.02, borderColor: card.color + '40' } : {}}
+              whileHover={card.link ? { scale: 1.02 } : {}}
             >
               <div style={{ width: '44px', height: '44px', background: card.bg, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px', color: card.color }}>
                 {card.icon}
@@ -132,7 +132,7 @@ const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* Recent Login Activity */}
-      <div style={{ background: 'rgba(22,25,37,0.6)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '24px' }}>
+      <div className="glow-card" style={{ borderRadius: '16px', padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <h2 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '16px', margin: 0 }}>
             <Activity size={16} style={{ display: 'inline', marginRight: '8px', color: '#6366f1', verticalAlign: 'middle' }} />

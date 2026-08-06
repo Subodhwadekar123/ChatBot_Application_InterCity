@@ -132,7 +132,7 @@ const AdminSessionsPage: React.FC = () => {
       </div>
 
       {/* Sessions Table */}
-      <div style={{ background: 'rgba(22,25,37,0.6)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+      <div className="glow-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>

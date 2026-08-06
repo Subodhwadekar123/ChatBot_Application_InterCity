@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { registerUser, resendVerification } from '../../services/authApi';
 import PasswordStrengthMeter from '../../components/auth/PasswordStrengthMeter';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -82,13 +83,15 @@ const RegisterPage: React.FC = () => {
   if (registered) {
     return (
       <div style={pageStyle}>
+        <InteractiveBackground />
         <div style={blobStyle1} /><div style={blobStyle2} />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={{ ...cardStyle, textAlign: 'center', maxWidth: '440px' }}
+          className="glow-card"
+          style={{ padding: '32px', position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '440px', width: '100%', boxSizing: 'border-box' }}
         >
-          <div style={{ width: '72px', height: '72px', background: 'rgba(16,185,129,0.15)', border: '2px solid rgba(16,185,129,0.3)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '72px', height: '72px', background: 'var(--accent-primary-light)', border: '2px solid var(--border-default)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CheckCircle size={36} color="#10b981" />
           </div>
           <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f1f5f9', marginBottom: '12px' }}>
@@ -164,6 +167,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div style={pageStyle}>
+      <InteractiveBackground />
       <div style={blobStyle1} /><div style={blobStyle2} />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -173,14 +177,14 @@ const RegisterPage: React.FC = () => {
       >
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>
+          <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover))', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
             <Shield size={26} color="white" />
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>Create Account</h1>
-          <p style={{ color: '#64748b', fontSize: '14px' }}>Join the AI Data Analyst platform</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>Create Account</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Join the AI Data Analyst platform</p>
         </div>
 
-        <div style={cardStyle}>
+        <div className="glow-card" style={{ padding: '32px', position: 'relative', zIndex: 1 }}>
           {/* Back to Home */}
           <Link
             to="/"
@@ -326,7 +330,7 @@ const RegisterPage: React.FC = () => {
 
 const pageStyle: React.CSSProperties = {
   minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: 'radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.08) 0%, #0f1117 50%, rgba(139,92,246,0.06) 100%)',
+  background: 'var(--bg-app)',
   padding: '32px 24px', position: 'relative', overflow: 'hidden',
 };
 

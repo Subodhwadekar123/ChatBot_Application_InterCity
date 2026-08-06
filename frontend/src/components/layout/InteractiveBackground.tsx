@@ -21,8 +21,8 @@ const InteractiveBackground: React.FC = () => {
 
     let animationFrameId: number;
     let particles: Particle[] = [];
-    const spacing = 45; // Space between dots
-    const radius = 1.2; // Size of dots
+    const spacing = 28; // Spacing between dots (increased density)
+    const radius = 1.6; // Size of dots (more visible)
     const forceRadius = 130; // Mouse interaction radius
     const forceFactor = 3.5; // Push force
     const returnSpeed = 0.08; // Damping return to home
@@ -55,9 +55,16 @@ const InteractiveBackground: React.FC = () => {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      // Adjust dot color based on theme
-      ctx.fillStyle = isDark ? 'rgba(99, 102, 241, 0.18)' : 'rgba(37, 99, 235, 0.09)';
+      const theme = document.documentElement.getAttribute('data-theme');
+      
+      // Determine theme-aligned color for maximum visibility
+      if (theme === 'dark') {
+        ctx.fillStyle = 'rgba(129, 140, 248, 0.35)'; // Vibrant indigo dots
+      } else if (theme === 'pastel') {
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.32)'; // Rich coral rose dots
+      } else {
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.26)'; // Deep vibrant blue dots
+      }
 
       const mouse = mouseRef.current;
 

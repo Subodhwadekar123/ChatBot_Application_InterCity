@@ -20,6 +20,7 @@ import { useStore } from '../../store/useStore';
 import { loginUser } from '../../services/authApi';
 import { getApiBaseUrl, setCustomApiUrl } from '../../utils/apiUrl';
 import type { AuthUser } from '../../store/useStore';
+import InteractiveBackground from '../../components/layout/InteractiveBackground';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -85,22 +86,25 @@ const LoginPage: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.09) 0%, #0f1117 50%, rgba(139,92,246,0.06) 100%)',
+      background: 'var(--bg-app)',
       padding: '24px',
       position: 'relative',
       overflow: 'hidden',
     }}>
+      {/* Interactive Background Canvas */}
+      <InteractiveBackground />
+
       {/* Background glowing blobs */}
       <div style={{
         position: 'absolute', top: '15%', left: '10%',
         width: '400px', height: '400px',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)',
         filter: 'blur(60px)', pointerEvents: 'none',
       }} />
       <div style={{
         position: 'absolute', bottom: '15%', right: '10%',
         width: '350px', height: '350px',
-        background: 'radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, var(--accent-primary-light) 0%, transparent 70%)',
         filter: 'blur(60px)', pointerEvents: 'none',
       }} />
 
@@ -118,31 +122,29 @@ const LoginPage: React.FC = () => {
             transition={{ duration: 0.3 }}
             style={{
               width: '64px', height: '64px',
-              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+              background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover))',
               borderRadius: '18px', margin: '0 auto 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
+              boxShadow: 'var(--shadow-md)',
             }}
           >
             <LogIn size={30} color="white" />
           </motion.div>
 
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>
             Welcome Back
           </h1>
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
             Sign in to your AI Data Analyst account
           </p>
         </div>
 
         {/* Card */}
-        <div style={{
-          background: 'rgba(22, 25, 37, 0.85)',
+        <div className="glow-card" style={{
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '20px',
           padding: '32px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+          boxShadow: 'var(--shadow-xl)',
         }}>
           {/* Back to Home */}
           <Link
