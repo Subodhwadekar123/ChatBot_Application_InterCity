@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus, User, Shield, Sparkles } from 'lucide-react';
+import { Sun, Moon, Database, ChevronDown, RefreshCw, Plus, User, Shield, Sparkles, Palette } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
 const routeTitles: Record<string, string> = {
@@ -268,17 +268,28 @@ const Header: React.FC = () => {
 
       {/* Right Header Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Theme Switcher — Animated Pill Switch */}
+        {/* Theme Switcher — Animated 3-Way Pill Switch */}
         <button
           onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={`Current: ${theme === 'dark' ? 'Dark Mode' : theme === 'pastel' ? 'Pastel Light Mode' : 'Vibrant Light Mode'}. Click to toggle.`}
           style={{
-            width: 64,
+            width: 78,
             height: 32,
             padding: 3,
             borderRadius: 9999,
-            border: `1px solid ${theme === 'dark' ? 'rgba(251, 191, 36, 0.4)' : 'var(--border-default)'}`,
-            backgroundColor: theme === 'dark' ? 'rgba(251, 191, 36, 0.12)' : 'var(--bg-canvas)',
+            border: `1px solid ${
+              theme === 'dark'
+                ? 'rgba(251, 191, 36, 0.4)'
+                : theme === 'pastel'
+                ? 'rgba(244, 63, 94, 0.4)'
+                : 'var(--border-default)'
+            }`,
+            backgroundColor:
+              theme === 'dark'
+                ? 'rgba(251, 191, 36, 0.12)'
+                : theme === 'pastel'
+                ? 'rgba(244, 63, 94, 0.08)'
+                : 'var(--bg-canvas)',
             color: 'var(--text-secondary)',
             display: 'flex',
             alignItems: 'center',
@@ -299,13 +310,25 @@ const Header: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: theme === 'dark' ? '#fbbf24' : '#ffffff',
+              background:
+                theme === 'dark'
+                  ? '#fbbf24'
+                  : theme === 'pastel'
+                  ? '#f43f5e'
+                  : '#2563eb',
               boxShadow:
                 theme === 'dark'
                   ? '0 0 12px rgba(251, 191, 36, 0.5)'
-                  : '0 1px 3px rgba(0, 0, 0, 0.15)',
-              marginLeft: theme === 'dark' ? 'auto' : 0,
-              color: theme === 'dark' ? '#78350f' : '#f59e0b',
+                  : theme === 'pastel'
+                  ? '0 0 12px rgba(244, 63, 94, 0.5)'
+                  : '0 0 12px rgba(37, 99, 235, 0.5)',
+              marginLeft:
+                theme === 'dark'
+                  ? 45
+                  : theme === 'pastel'
+                  ? 23
+                  : 0,
+              color: '#ffffff',
             }}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -317,7 +340,13 @@ const Header: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 style={{ display: 'flex' }}
               >
-                {theme === 'dark' ? <Moon size={13} /> : <Sun size={13} />}
+                {theme === 'dark' ? (
+                  <Moon size={13} />
+                ) : theme === 'pastel' ? (
+                  <Palette size={13} />
+                ) : (
+                  <Sun size={13} />
+                )}
               </motion.span>
             </AnimatePresence>
           </motion.span>

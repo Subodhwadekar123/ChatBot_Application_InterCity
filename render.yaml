@@ -8,6 +8,8 @@ services:
     buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
+      - key: ALLOWED_ORIGINS
+        value: "https://*.vercel.app,http://localhost:3000,http://localhost:5173"
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: DEBUG
@@ -20,3 +22,4 @@ services:
         generateValue: true
       - key: GEMINI_API_KEY
         sync: false
+

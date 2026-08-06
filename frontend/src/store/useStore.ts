@@ -91,8 +91,9 @@ export interface ChatMessage {
 
 interface AppStore {
   // Theme
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'pastel';
   toggleTheme: () => void;
+  setTheme: (theme: 'dark' | 'light' | 'pastel') => void;
 
   // Active dataset
   activeDataset: UploadedDataset | null;
@@ -137,7 +138,10 @@ export const useStore = create<AppStore>()(
     (set, get) => ({
       // Theme
       theme: 'light',
-      toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      toggleTheme: () => set((s) => ({
+        theme: s.theme === 'light' ? 'pastel' : s.theme === 'pastel' ? 'dark' : 'light'
+      })),
+      setTheme: (theme) => set({ theme }),
 
       // Active dataset
       activeDataset: null,
