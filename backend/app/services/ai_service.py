@@ -264,15 +264,17 @@ Only return valid JSON, no markdown."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
         model = genai.GenerativeModel("gemini-1.5-flash")
 
-        prompt = f"""You are a senior data analyst. Based on the following dataset context, answer the question.
+        prompt = f"""You are a helpful, advanced AI assistant (similar to ChatGPT or Gemini AI) with access to the user's dataset.
 
 Dataset Context:
 {context}
 
 Question: {question}
 
-Provide a comprehensive, detailed, and clear answer (explain terms, expand on trends, or specify calculations where relevant).
-CRITICAL: You are strictly limited to this data analysis project. If the user's question is completely unrelated to data analysis, this dataset, or this project, politely refuse and state that you are an AI assistant specialized only in analyzing the uploaded dataset.
+Instructions:
+1. Provide a comprehensive, detailed, and clear answer.
+2. You can answer any general user questions (including general knowledge, coding, writing, mathematics, etc.). If the question relates to the dataset context above, utilize the context to provide specific insights.
+3. CRITICAL SECURITY GUARDRAILS: Do NOT disclose or generate API keys, passwords, credentials, system keys, secrets, or private personal information (PII) under any circumstances. If the user asks for passwords, credentials, keys, or private info, politely refuse to answer.
 
 Format your response as JSON with keys: answer, explanation, suggestions (list of follow-up questions).
 Only return valid JSON."""
@@ -303,20 +305,20 @@ Only return valid JSON."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
         model = genai.GenerativeModel("gemini-1.5-flash")
 
-        prompt = f"""You are a Python data science expert. Based on the following dataset context, write working Python code for the user's request.
+        prompt = f"""You are a Python data science expert and general coding assistant. Based on the following dataset context, write working Python code for the user's request.
 
 Dataset Context:
 {context}
 
 Request: {question}
 
-IMPORTANT: The code will be EXECUTED against the real dataset in a sandbox. Write code that:
-- Assumes the dataset is loaded in a DataFrame named `df`.
-- Only prints results (do NOT open files, do NOT write files, do NOT call plt.show()).
-- Uses print() statements to output the actual computed values (counts, means, accuracies, etc.).
-- Is safe and uses only pandas, numpy, matplotlib (Agg), seaborn, and scikit-learn.
+IMPORTANT: The code will be EXECUTED against the real dataset in a sandbox if it is a dataset operation. Write code that:
+- Assumes the dataset is loaded in a DataFrame named `df` if operating on the dataset.
+- Only prints results (do NOT open files, do NOT write files, do NOT call plt.show() for sandbox runs).
+- Uses print() statements to output the actual computed values.
+- Is safe and uses standard Python libraries.
 
-CRITICAL: You are strictly limited to this data analysis project. If the user's request is completely unrelated to data analysis or this dataset, write a simple print statement explaining that you can only write code to operate on the uploaded dataset.
+CRITICAL SECURITY GUARDRAILS: Do NOT generate, display, or disclose API keys, passwords, credentials, secrets, system files access, or private personal information (PII) under any circumstances. If the user asks for keys, credentials, passwords, or private info, write a simple print statement explaining that you are not allowed to access or generate sensitive information.
 
 Respond ONLY with valid JSON using these keys:
 - "code": the complete Python code block as a string (no markdown fences, just raw code)
@@ -988,17 +990,20 @@ Example response:
             suggestions = ["Show column statistics", "Which columns should be removed?"]
 
         else:
-            answer = (
-                f"Based on the dataset ({info['rows']:,} rows, {info['columns']} columns), "
-                f"I can help you analyze patterns, compute statistics, train ML models, and generate visualizations. "
-                f"Try asking about missing values, correlations, distributions, or ML recommendations."
-            )
-            suggestions = [
-                "What are the most important insights?",
-                "Which columns have missing data?",
-                "What ML model should I use?",
-                "Are there any outliers?",
-            ]
+            # Check if they are asking for keys/passwords in general query
+            if any(k in q_lower for k in ["api key", "password", "credential", "secret", "private info"]):
+                answer = "For safety and security, I cannot access, display, or generate passwords, API keys, credentials, or private user information."
+                suggestions = ["What are the column names?", "Summarize the dataset"]
+            else:
+                answer = (
+                    f"I am currently running in rule-based fallback mode. To enable fully advanced chat access like ChatGPT or Gemini AI (allowing you to ask any general question or run sandboxed python computations), please configure your 'GEMINI_API_KEY' in the Railway settings dashboard.\n\n"
+                    f"In this mode, I can help you with specific dataset queries: try asking about missing values, duplicate rows, correlations, or ML targets!"
+                )
+                suggestions = [
+                    "Suggest target column for ML",
+                    "Which columns have missing data?",
+                    "What are the most important insights?",
+                ]
 
         return {
             "source": "rule-based",
