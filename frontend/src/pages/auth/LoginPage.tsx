@@ -401,9 +401,9 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '10px', color: '#e2e8f0',
+  background: 'var(--bg-canvas)',
+  border: '1px solid var(--border-default)',
+  borderRadius: '10px', color: 'var(--text-primary)',
   fontSize: '14px', outline: 'none',
   transition: 'border-color 0.2s',
   boxSizing: 'border-box',
