@@ -277,7 +277,7 @@ export default function SQLWorkplacePage() {
   const boolCols = columnTypes.boolean || [];
 
   // Transform query preview data for Recharts
-  const chartData = results?.preview
+  const chartData: { name: string; value: number }[] = results?.preview
     ? results.preview.map((row: any) => ({
         name: String(row[xAxisCol] ?? ''),
         value: Number(row[yAxisCol]) || 0,
@@ -809,7 +809,7 @@ export default function SQLWorkplacePage() {
                             outerRadius={100}
                             paddingAngle={3}
                             dataKey="value"
-                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                            label={({ name, percent = 0 }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                           >
                             {chartData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
