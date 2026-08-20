@@ -16,7 +16,7 @@ class JupyterService:
     def generate_notebook(dataset_id: str) -> str:
         """
         Generates a Jupyter Notebook based on the user's recorded actions
-        and basic EDA/ML boilerplate. Returns the path to the .ipynb file.
+        and comprehensive EDA/ML templates. Returns the path to the .ipynb file.
         """
         dataset_info = DataService.get_dataset_info(dataset_id)
         ledger = DataService.get_action_ledger(dataset_id)
@@ -54,12 +54,12 @@ class JupyterService:
         add_code(f"file_path = '{dataset_name}' # Update this path to where your dataset is stored locally.\ndf = pd.read_csv(file_path)\n\n# Display basic information\ndf.info()\ndisplay(df.head())")
 
         # Separate actions into buckets
-        cleaning_actions = [a for a in ledger if not a['action'].startswith('viz_') and not a['action'].startswith('ml_') and not a['action'].startswith('fe_')]
+        cleaning_actions = [a for a in ledger if not a['action'].startswith('viz_') and not a['action'].startswith('ml_') and not a['action'].startswith('fe_') and not a['action'].startswith('sql_')]
         fe_actions = [a for a in ledger if a['action'].startswith('fe_')]
         viz_actions = [a for a in ledger if a['action'].startswith('viz_')]
         ml_actions = [a for a in ledger if a['action'].startswith('ml_')]
 
-        # 4. Data Cleaning (From Ledger)
+        # 4. Data Preprocessing & Cleaning (pandas only)
         add_md("## 3. Data Preprocessing & Cleaning\nReplaying the exact cleaning operations performed in the Infinitics UI.")
         
         cleaning_code_lines = []
@@ -114,109 +114,13 @@ class JupyterService:
             elif action == "encode_column":
                 cleaning_code_lines.append(f"# Encoded categorical column {p.get('column')} using {p.get('method')} encoding")
 
-            elif action == "sql_query_select_applied":
-                q = p.get("query", "")
-                q_safe = q.replace('"""', '\\"\\"\\"')
-                cleaning_code_lines.extend([
-                    f"# Replay applied SQL SELECT preprocessing query:",
-                    f"import sqlite3",
-                    f"conn = sqlite3.connect(':memory:')",
-                    f"df.to_sql('dataset', conn, index=False)",
-                    f"query = \"\"\"{q_safe}\"\"\"",
-                    f"df = pd.read_sql_query(query, conn)",
-                    f"conn.close()"
-                ])
-
-            elif action == "sql_query_modified":
-                q = p.get("query", "")
-                q_safe = q.replace('"""', '\\"\\"\\"')
-                cleaning_code_lines.extend([
-                    f"# Replay modifying SQL query:",
-                    f"import sqlite3",
-                    f"conn = sqlite3.connect(':memory:')",
-                    f"df.to_sql('dataset', conn, index=False)",
-                    f"query = \"\"\"{q_safe}\"\"\"",
-                    f"cursor = conn.cursor()",
-                    f"if ';' in query:",
-                    f"    cursor.executescript(query)",
-                    f"else:",
-                    f"    cursor.execute(query)",
-                    f"conn.commit()",
-                    f"df = pd.read_sql_query('SELECT * FROM dataset', conn)",
-                    f"conn.close()"
-                ])
-
             else:
                 cleaning_code_lines.append(f"# Operation {action} applied with params {p}")
 
         add_code("\n".join(cleaning_code_lines))
 
-        # 3.5. Local SQL Sandbox & Optional Templates
-        add_md("## 3.5. Local SQLite Query Sandbox\nYou can continue preprocessing or exploring this dataset using full SQL syntax locally. Here is the template to query your DataFrame using SQLite:")
-        
-        sql_sandbox_setup = (
-            "import sqlite3\n\n"
-            "# 1. Initialize transient in-memory SQLite database\n"
-            "conn = sqlite3.connect(':memory:')\n\n"
-            "# 2. Load the current DataFrame state into the 'dataset' table\n"
-            "df.to_sql('dataset', conn, index=False, if_exists='replace')\n\n"
-            "print('Transient SQLite database ready. You can query table: dataset')"
-        )
-        add_code(sql_sandbox_setup)
-        
-        add_md("### Pre-configured SQL Query Templates\nBelow are a few pre-configured SQL templates to query, group, and analyze your dataset columns:")
-        
-        query_preview = (
-            "# Run a SELECT query and load the results back into a DataFrame\n"
-            "query_1 = 'SELECT * FROM dataset LIMIT 10;'\n"
-            "df_preview = pd.read_sql_query(query_1, conn)\n"
-            "display(df_preview)"
-        )
-        add_code(query_preview)
-
-        cat_cols_list = dataset_info.get("column_types", {}).get("categorical", [])
-        if cat_cols_list:
-            query_agg = (
-                f"# Aggregate occurrences of the categorical field '{cat_cols_list[0]}'\n"
-                f"query_2 = '''\n"
-                f"SELECT `{cat_cols_list[0]}`, COUNT(*) as count\n"
-                f"FROM dataset\n"
-                f"GROUP BY `{cat_cols_list[0]}`\n"
-                f"ORDER BY count DESC\n"
-                f"LIMIT 10;\n"
-                f"'''\n"
-                f"df_counts = pd.read_sql_query(query_2, conn)\n"
-                f"display(df_counts)"
-            )
-            add_code(query_agg)
-            
-        num_cols_list = dataset_info.get("column_types", {}).get("numeric", [])
-        if num_cols_list:
-            query_stats = (
-                f"# Calculate summary statistics on '{num_cols_list[0]}'\n"
-                f"query_3 = '''\n"
-                f"SELECT AVG(`{num_cols_list[0]}`) as avg_val,\n"
-                f"       MIN(`{num_cols_list[0]}`) as min_val,\n"
-                f"       MAX(`{num_cols_list[0]}`) as max_val\n"
-                f"FROM dataset;\n"
-                f"'''\n"
-                f"df_stats = pd.read_sql_query(query_3, conn)\n"
-                f"display(df_stats)"
-            )
-            add_code(query_stats)
-
-        query_cleaning = (
-            "# Example: Update values or perform deletion preprocessing via SQL\n"
-            "# cursor = conn.cursor()\n"
-            "# cursor.execute('DELETE FROM dataset WHERE age < 18')\n"
-            "# conn.commit()\n"
-            "# df = pd.read_sql_query('SELECT * FROM dataset', conn)\n"
-            "# print('New dataset shape:', df.shape)"
-        )
-        add_code(query_cleaning)
-
         # 5. EDA & Feature Engineering
-        add_md("## 4. Exploratory Data Analysis (EDA) & Feature Engineering\nVisualizing features and applying user-approved feature engineering steps (like polynomial combinations, date extractions, or ratio metrics).")
+        add_md("## 4. Exploratory Data Analysis (EDA) & Feature Engineering\nVisualizing features and applying feature engineering steps (polynomial combinations, date extractions, ratio metrics, PCA, or feature selection).")
         
         eda_code = (
             "# Missing Values Heatmap\n"
@@ -241,46 +145,73 @@ class JupyterService:
         add_code(eda_code)
 
         fe_code_lines = []
-        if fe_actions:
-            fe_code_lines.append("# --- Applied Feature Engineering ---")
-            for idx, step in enumerate(fe_actions):
-                action = step["action"]
-                p = step["params"]
-                fe_code_lines.append(f"\n# Step {idx+1}: {action}")
-                
-                if action == "fe_polynomial":
-                    fe_code_lines.extend([
-                        f"from sklearn.preprocessing import PolynomialFeatures",
-                        f"cols = {p.get('columns')}",
-                        f"poly = PolynomialFeatures(degree={p.get('degree', 2)}, interaction_only={p.get('interaction_only', False)}, include_bias=False)",
-                        f"X_poly = poly.fit_transform(df[cols].dropna())",
-                        f"poly_df = pd.DataFrame(X_poly, columns=poly.get_feature_names_out(cols))",
-                        f"new_cols = [n for n in poly_df.columns if n not in df.columns]",
-                        f"df = pd.concat([df, poly_df[new_cols]], axis=1)"
-                    ])
-                elif action == "fe_date":
-                    col = p.get('column')
-                    fe_code_lines.extend([
-                        f"df['{col}'] = pd.to_datetime(df['{col}'], errors='coerce')",
-                        f"df['{col}_year'] = df['{col}'].dt.year",
-                        f"df['{col}_month'] = df['{col}'].dt.month",
-                        f"df['{col}_day'] = df['{col}'].dt.day",
-                        f"df['{col}_dayofweek'] = df['{col}'].dt.dayofweek",
-                        f"# Fill na values",
-                        f"for nc in ['{col}_year', '{col}_month', '{col}_day', '{col}_dayofweek']:",
-                        f"    df[nc] = df[nc].fillna(df[nc].median() if not df[nc].empty else 0)"
-                    ])
-                elif action == "fe_ratio":
-                    c1 = p.get('column1')
-                    c2 = p.get('column2')
-                    new_col = p.get('new_feature')
-                    fe_code_lines.extend([
-                        f"df['{new_col}'] = df['{c1}'] / df['{c2}'].replace(0, np.nan)",
-                        f"df['{new_col}'] = df['{new_col}'].fillna(0)"
-                    ])
-        else:
-            fe_code_lines.append("# No custom feature engineering was applied in the UI.")
+        fe_code_lines.append("# --- Feature Engineering Templates & Operations ---")
+        
+        # Add actual ledger actions if they exist
+        for idx, step in enumerate(fe_actions):
+            action = step["action"]
+            p = step["params"]
+            fe_code_lines.append(f"\n# Step {idx+1}: {action} (from UI)")
             
+            if action == "fe_polynomial":
+                fe_code_lines.extend([
+                    f"from sklearn.preprocessing import PolynomialFeatures",
+                    f"cols = {p.get('columns')}",
+                    f"poly = PolynomialFeatures(degree={p.get('degree', 2)}, interaction_only={p.get('interaction_only', False)}, include_bias=False)",
+                    f"X_poly = poly.fit_transform(df[cols].dropna())",
+                    f"poly_df = pd.DataFrame(X_poly, columns=poly.get_feature_names_out(cols))",
+                    f"new_cols = [n for n in poly_df.columns if n not in df.columns]",
+                    f"df = pd.concat([df, poly_df[new_cols]], axis=1)"
+                ])
+            elif action == "fe_date":
+                col = p.get('column')
+                fe_code_lines.extend([
+                    f"df['{col}'] = pd.to_datetime(df['{col}'], errors='coerce')",
+                    f"df['{col}_year'] = df['{col}'].dt.year",
+                    f"df['{col}_month'] = df['{col}'].dt.month",
+                    f"df['{col}_day'] = df['{col}'].dt.day",
+                    f"df['{col}_dayofweek'] = df['{col}'].dt.dayofweek",
+                    f"for nc in ['{col}_year', '{col}_month', '{col}_day', '{col}_dayofweek']:",
+                    f"    df[nc] = df[nc].fillna(df[nc].median() if not df[nc].empty else 0)"
+                ])
+            elif action == "fe_ratio":
+                c1 = p.get('column1')
+                c2 = p.get('column2')
+                new_col = p.get('new_feature')
+                fe_code_lines.extend([
+                    f"df['{new_col}'] = df['{c1}'] / df['{c2}'].replace(0, np.nan)",
+                    f"df['{new_col}'] = df['{new_col}'].fillna(0)"
+                ])
+
+        # Always include template boilerplate for the user to execute manually
+        fe_code_lines.extend([
+            "\n# Template: Extract Year/Month/Day from a Date Column",
+            "# date_col = 'date' # Replace with your date column name",
+            "# if date_col in df.columns:",
+            "#     df[date_col] = pd.to_datetime(df[date_col], errors='coerce')",
+            "#     df[f'{date_col}_year'] = df[date_col].dt.year",
+            "#     df[f'{date_col}_month'] = df[date_col].dt.month",
+            "#     df[f'{date_col}_day'] = df[date_col].dt.day",
+            "#     df[f'{date_col}_dayofweek'] = df[date_col].dt.dayofweek",
+            "",
+            "# Template: Create Derived Ratio Feature",
+            "# num1, num2 = 'amount', 'quantity' # Replace with numerator and denominator column names",
+            "# if num1 in df.columns and num2 in df.columns:",
+            "#     df[f'{num1}_per_{num2}'] = df[num1] / df[num2].replace(0, np.nan)",
+            "#     df[f'{num1}_per_{num2}'] = df[f'{num1}_per_{num2}'].fillna(0)",
+            "",
+            "# Template: Principal Component Analysis (PCA)",
+            "# from sklearn.decomposition import PCA",
+            "# from sklearn.preprocessing import StandardScaler",
+            "# num_cols = df.select_dtypes(include=np.number).columns.tolist()",
+            "# if len(num_cols) >= 2:",
+            "#     X_scaled = StandardScaler().fit_transform(df[num_cols].dropna())",
+            "#     pca = PCA(n_components=2)",
+            "#     pca_res = pca.fit_transform(X_scaled)",
+            "#     df['PC1'] = pca_res[:, 0]",
+            "#     df['PC2'] = pca_res[:, 1]",
+            "#     print('Cumulative variance explained:', np.sum(pca.explained_variance_ratio_))"
+        ])
         add_code("\n".join(fe_code_lines))
 
         # 6. Custom Visualizations
@@ -331,7 +262,7 @@ class JupyterService:
                     else:
                         viz_code_lines.append(f"sns.violinplot(data=df, y='{p.get('column')}')")
                 else:
-                    viz_code_lines.append(f"# (Code for {action} omitted in simplified export)")
+                    viz_code_lines.append(f"# (Code for {action} omitted in export)")
                     
                 viz_code_lines.append("plt.title(f'Custom Chart: {action}')")
                 viz_code_lines.append("plt.tight_layout()\nplt.show()")
@@ -339,182 +270,214 @@ class JupyterService:
             viz_code_lines.reverse()
             add_code("\n".join(viz_code_lines))
 
-        # 7. Machine Learning Workflow (Cell 5 -> AutoML + ML Workflow, Cell 6-9 dynamically)
-        if ml_actions:
-            add_md("## 6. Modeling & Predictions Workflow\nReplaying the machine learning workflow configured in the UI.")
+        # 7. Machine Learning Workflow & AutoML
+        add_md("## 6. Machine Learning Workflow & AutoML\nTraining, evaluating, optimizing, and predicting outcomes from your dataset features. Below is a need-based ML pipeline template.")
+        
+        ml_code_lines = []
+        ml_code_lines.extend([
+            "from sklearn.model_selection import train_test_split",
+            "from sklearn.impute import SimpleImputer",
+            "from sklearn.preprocessing import StandardScaler, OneHotEncoder",
+            "from sklearn.compose import ColumnTransformer",
+            "from sklearn.pipeline import Pipeline",
+            "from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor",
+            "from sklearn.metrics import classification_report, accuracy_score, mean_squared_error, r2_score",
+            "",
+            "# 1. Define target column (Predicting the last column of the dataset by default)",
+            "target_col = df.columns[-1]",
+            "print('Target column selected:', target_col)",
+            "",
+            "# 2. Separate features (X) and target (y)",
+            "X = df.drop(columns=[target_col]).select_dtypes(include=[np.number, 'object', 'category'])",
+            "y = df[target_col]",
+            "",
+            "num_cols = X.select_dtypes(include=np.number).columns.tolist()",
+            "cat_cols = X.select_dtypes(exclude=np.number).columns.tolist()",
+            "",
+            "# 3. Build ColumnTransformer preprocessing pipeline",
+            "transformers = []",
+            "if num_cols:",
+            "    transformers.append(('num', Pipeline([",
+            "        ('imputer', SimpleImputer(strategy='median')),",
+            "        ('scaler', StandardScaler())",
+            "    ]), num_cols))",
+            "if cat_cols:",
+            "    transformers.append(('cat', Pipeline([",
+            "        ('imputer', SimpleImputer(strategy='most_frequent')),",
+            "        ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False))",
+            "    ]), cat_cols))",
+            "",
+            "preprocessor = ColumnTransformer(transformers=transformers, remainder='drop')",
+            "",
+            "# 4. Split data (Stratification for classification)",
+            "is_classification = y.nunique() <= 15 or y.dtype == 'object'",
+            "stratify = y if is_classification else None",
+            "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=stratify)",
+            "",
+            "# 5. Define and train pipeline estimator",
+            "if is_classification:",
+            "    model = RandomForestClassifier(random_state=42)",
+            "    model_name = 'Random Forest Classifier'",
+            "else:",
+            "    model = RandomForestRegressor(random_state=42)",
+            "    model_name = 'Random Forest Regressor'",
+            "",
+            "pipeline = Pipeline([",
+            "    ('preprocessor', preprocessor),",
+            "    ('model', model)",
+            "])",
+            "",
+            "print(f'Training {model_name}...')"
+        ])
+
+        # Check if actual ledger actions exist
+        train_step = next((a for a in reversed(ml_actions) if a['action'] == 'ml_train_v2'), None)
+        if train_step:
+            p = train_step['params']
+            algo = p.get('algorithm')
+            features = p.get('feature_columns', [])
+            scaling = p.get('scaling_method', 'auto')
+            imputation = p.get('imputation_strategy', 'median')
+            encoding = p.get('categorical_encoding', 'onehot')
+            stratify = p.get('stratify_split', True)
+            test_size = p.get('test_size', 0.2)
             
-            ml_code_lines = []
+            ml_code_lines.extend([
+                f"\n# --- User Trained Custom Pipeline: {algo} ---",
+                f"X_custom = df[{features}]",
+                f"y_custom = df[target_col]",
+                f"stratify_custom = y_custom if (is_classification and {stratify}) else None",
+                f"X_tr, X_te, y_tr, y_te = train_test_split(X_custom, y_custom, test_size={test_size}, random_state=42, stratify=stratify_custom)",
+                f"",
+                f"custom_num = X_custom.select_dtypes(include=np.number).columns.tolist()",
+                f"custom_cat = [c for c in X_custom.columns if c not in custom_num]",
+                f"",
+                f"custom_transformers = []",
+                f"if custom_num:",
+                f"    num_steps = [('imputer', SimpleImputer(strategy='{imputation}'))]"
+            ])
             
-            # Target selection
-            target_step = next((a for a in ml_actions if a['action'] == 'ml_target_select'), None)
-            target_col = "target"
-            problem_type = "classification"
-            if target_step:
-                target_col = target_step['params']['target_column']
-                problem_type = target_step['params']['problem_type']
-                ml_code_lines.append(f"# Selected target column: '{target_col}' ({problem_type.upper()})")
-                ml_code_lines.append(f"target_col = '{target_col}'")
+            if scaling == 'auto':
+                ml_code_lines.extend([
+                    f"    is_tree = '{algo}' in [",
+                    f"        'random_forest_classifier', 'random_forest_regressor',",
+                    f"        'gradient_boosting_classifier', 'gradient_boosting_regressor',",
+                    f"        'xgboost_classifier', 'xgboost_regressor',",
+                    f"        'lightgbm_classifier', 'lightgbm_regressor',",
+                    f"        'decision_tree'",
+                    f"    ]",
+                    f"    if not is_tree:",
+                    f"        num_steps.append(('scaler', StandardScaler()))"
+                ])
+            elif scaling == 'standard':
+                ml_code_lines.append(f"    num_steps.append(('scaler', StandardScaler()))")
+            elif scaling == 'robust':
+                ml_code_lines.append(f"    num_steps.append(('scaler', RobustScaler()))")
+            elif scaling == 'minmax':
+                ml_code_lines.append(f"    num_steps.append(('scaler', MinMaxScaler()))")
+                
+            ml_code_lines.extend([
+                f"    custom_transformers.append(('num', Pipeline(num_steps), custom_num))",
+                f"if custom_cat:",
+                f"    cat_steps = [('imputer', SimpleImputer(strategy='most_frequent'))]"
+            ])
+            
+            if encoding == 'onehot':
+                ml_code_lines.append(f"    cat_steps.append(('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False)))")
+            elif encoding == 'ordinal':
+                ml_code_lines.append(f"    cat_steps.append(('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)))")
+                
+            ml_code_lines.extend([
+                f"    custom_transformers.append(('cat', Pipeline(cat_steps), custom_cat))",
+                f"custom_prep = ColumnTransformer(transformers=custom_transformers, remainder='drop')"
+            ])
 
-            # Training / Preprocessing Pipeline
-            train_step = next((a for a in reversed(ml_actions) if a['action'] == 'ml_train_v2'), None)
-            if train_step:
-                p = train_step['params']
-                algo = p.get('algorithm')
-                features = p.get('feature_columns', [])
-                scaling = p.get('scaling_method', 'auto')
-                imputation = p.get('imputation_strategy', 'median')
-                encoding = p.get('categorical_encoding', 'onehot')
-                stratify = p.get('stratify_split', True)
-                test_size = p.get('test_size', 0.2)
-                
-                ml_code_lines.extend([
-                    f"\n# --- Preprocessing Pipeline & Data Splits ---",
-                    f"from sklearn.model_selection import train_test_split",
-                    f"from sklearn.impute import SimpleImputer",
-                    f"from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OneHotEncoder, OrdinalEncoder",
-                    f"from sklearn.compose import ColumnTransformer",
-                    f"from sklearn.pipeline import Pipeline",
-                    f"",
-                    f"feature_cols = {features}",
-                    f"X = df[feature_cols]",
-                    f"y = df[target_col]",
-                    f"",
-                    f"# Prevent data leakage by performing split before fitting preprocessing",
-                    f"stratify = y if ('{problem_type}' == 'classification' and {stratify}) else None",
-                    f"X_train, X_test, y_train, y_test = train_test_split(X, y, test_size={test_size}, random_state=42, stratify=stratify)",
-                    f"",
-                    f"num_cols = X.select_dtypes(include=np.number).columns.tolist()",
-                    f"cat_cols = [c for c in X.columns if c not in num_cols]",
-                    f"",
-                    f"transformers = []",
-                    f"if num_cols:",
-                    f"    num_steps = [('imputer', SimpleImputer(strategy='{imputation}'))]"
-                ])
-                
-                if scaling == 'auto':
-                    ml_code_lines.extend([
-                        f"    is_tree = '{algo}' in [",
-                        f"        'random_forest_classifier', 'random_forest_regressor',",
-                        f"        'gradient_boosting_classifier', 'gradient_boosting_regressor',",
-                        f"        'xgboost_classifier', 'xgboost_regressor',",
-                        f"        'lightgbm_classifier', 'lightgbm_regressor',",
-                        f"        'decision_tree'",
-                        f"    ]",
-                        f"    if not is_tree:",
-                        f"        num_steps.append(('scaler', StandardScaler()))"
-                    ])
-                elif scaling == 'standard':
-                    ml_code_lines.append(f"    num_steps.append(('scaler', StandardScaler()))")
-                elif scaling == 'robust':
-                    ml_code_lines.append(f"    num_steps.append(('scaler', RobustScaler()))")
-                elif scaling == 'minmax':
-                    ml_code_lines.append(f"    num_steps.append(('scaler', MinMaxScaler()))")
-                    
-                ml_code_lines.extend([
-                    f"    transformers.append(('num', Pipeline(num_steps), num_cols))",
-                    f"if cat_cols:",
-                    f"    cat_steps = [('imputer', SimpleImputer(strategy='most_frequent'))]"
-                ])
-                
-                if encoding == 'onehot':
-                    ml_code_lines.append(f"    cat_steps.append(('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False)))")
-                elif encoding == 'ordinal':
-                    ml_code_lines.append(f"    cat_steps.append(('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)))")
-                    
-                ml_code_lines.extend([
-                    f"    transformers.append(('cat', Pipeline(cat_steps), cat_cols))",
-                    f"preprocessor = ColumnTransformer(transformers=transformers, remainder='drop')"
-                ])
-
-                # Model initialization
-                ml_code_lines.extend([
-                    f"\n# --- Model Setup ---",
-                    f"# Algorithm: {algo}"
-                ])
-                if algo == "linear_regression":
-                    ml_code_lines.append("from sklearn.linear_model import LinearRegression\nmodel = LinearRegression()")
-                elif algo == "random_forest_regressor":
-                    ml_code_lines.append("from sklearn.ensemble import RandomForestRegressor\nmodel = RandomForestRegressor(random_state=42)")
-                elif algo == "gradient_boosting_regressor":
-                    ml_code_lines.append("from sklearn.ensemble import GradientBoostingRegressor\nmodel = GradientBoostingRegressor(random_state=42)")
-                elif algo == "ridge":
-                    ml_code_lines.append("from sklearn.linear_model import Ridge\nmodel = Ridge()")
-                elif algo == "lasso":
-                    ml_code_lines.append("from sklearn.linear_model import Lasso\nmodel = Lasso()")
-                elif algo == "logistic_regression":
-                    ml_code_lines.append("from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression(max_iter=1000, random_state=42)")
-                elif algo == "random_forest_classifier":
-                    ml_code_lines.append("from sklearn.ensemble import RandomForestClassifier\nmodel = RandomForestClassifier(random_state=42)")
-                elif algo == "gradient_boosting_classifier":
-                    ml_code_lines.append("from sklearn.ensemble import GradientBoostingClassifier\nmodel = GradientBoostingClassifier(random_state=42)")
-                elif algo == "decision_tree":
-                    ml_code_lines.append("from sklearn.tree import DecisionTreeClassifier\nmodel = DecisionTreeClassifier(random_state=42)")
-                elif algo == "xgboost_regressor" or algo == "xgboost_classifier":
-                    ml_code_lines.append("import xgboost as xgb")
-                    if algo == "xgboost_regressor":
-                        ml_code_lines.append("model = xgb.XGBRegressor(random_state=42)")
-                    else:
-                        ml_code_lines.append("model = xgb.XGBClassifier(random_state=42)")
-                elif algo == "lightgbm_regressor" or algo == "lightgbm_classifier":
-                    ml_code_lines.append("import lightgbm as lgb")
-                    if algo == "lightgbm_regressor":
-                        ml_code_lines.append("model = lgb.LGBMRegressor(random_state=42)")
-                    else:
-                        ml_code_lines.append("model = lgb.LGBMClassifier(random_state=42)")
+            # Model setup
+            if algo == "linear_regression":
+                ml_code_lines.append("from sklearn.linear_model import LinearRegression\ncustom_model = LinearRegression()")
+            elif algo == "random_forest_regressor":
+                ml_code_lines.append("from sklearn.ensemble import RandomForestRegressor\ncustom_model = RandomForestRegressor(random_state=42)")
+            elif algo == "gradient_boosting_regressor":
+                ml_code_lines.append("from sklearn.ensemble import GradientBoostingRegressor\ncustom_model = GradientBoostingRegressor(random_state=42)")
+            elif algo == "ridge":
+                ml_code_lines.append("from sklearn.linear_model import Ridge\ncustom_model = Ridge()")
+            elif algo == "lasso":
+                ml_code_lines.append("from sklearn.linear_model import Lasso\ncustom_model = Lasso()")
+            elif algo == "logistic_regression":
+                ml_code_lines.append("from sklearn.linear_model import LogisticRegression\ncustom_model = LogisticRegression(max_iter=1000, random_state=42)")
+            elif algo == "random_forest_classifier":
+                ml_code_lines.append("from sklearn.ensemble import RandomForestClassifier\ncustom_model = RandomForestClassifier(random_state=42)")
+            elif algo == "gradient_boosting_classifier":
+                ml_code_lines.append("from sklearn.ensemble import GradientBoostingClassifier\ncustom_model = GradientBoostingClassifier(random_state=42)")
+            elif algo == "decision_tree":
+                ml_code_lines.append("from sklearn.tree import DecisionTreeClassifier\ncustom_model = DecisionTreeClassifier(random_state=42)")
+            elif algo == "xgboost_regressor" or algo == "xgboost_classifier":
+                ml_code_lines.append("import xgboost as xgb")
+                if algo == "xgboost_regressor":
+                    ml_code_lines.append("custom_model = xgb.XGBRegressor(random_state=42)")
                 else:
-                    ml_code_lines.append(f"model = None # Set up model here")
-
-                # Tuning parameters
-                tune_step = next((a for a in ml_actions if a['action'] == 'ml_tune'), None)
-                if tune_step:
-                    best_params = tune_step['params']['best_params']
-                    ml_code_lines.append(f"\n# --- Best Hyperparameters (From Tuning Search) ---")
-                    ml_code_lines.append(f"best_params = {best_params}")
-                    ml_code_lines.append(f"model.set_params(**best_params)")
-
-                # Fit and Evaluation
-                ml_code_lines.extend([
-                    f"\n# --- Assemble Pipeline & Fit Model ---",
-                    f"pipeline = Pipeline([",
-                    f"    ('preprocessor', preprocessor),",
-                    f"    ('model', model)",
-                    f"])",
-                    f"pipeline.fit(X_train, y_train)",
-                    f"y_pred = pipeline.predict(X_test)",
-                    f"",
-                    f"# --- Evaluation Metrics ---"
-                ])
-
-                if problem_type == "classification":
-                    ml_code_lines.extend([
-                        f"from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report",
-                        f"print('Accuracy:', accuracy_score(y_test, y_pred))",
-                        f"print('Precision (Weighted):', precision_score(y_test, y_pred, average='weighted', zero_division=0))",
-                        f"print('Recall (Weighted):', recall_score(y_test, y_pred, average='weighted', zero_division=0))",
-                        f"print('F1-Score (Weighted):', f1_score(y_test, y_pred, average='weighted', zero_division=0))",
-                        f"print('\\nClassification Report:\\n', classification_report(y_test, y_pred))"
-                    ])
+                    ml_code_lines.append("custom_model = xgb.XGBClassifier(random_state=42)")
+            elif algo == "lightgbm_regressor" or algo == "lightgbm_classifier":
+                ml_code_lines.append("import lightgbm as lgb")
+                if algo == "lightgbm_regressor":
+                    ml_code_lines.append("custom_model = lgb.LGBMRegressor(random_state=42)")
                 else:
-                    ml_code_lines.extend([
-                        f"from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score",
-                        f"print('MAE:', mean_absolute_error(y_test, y_pred))",
-                        f"print('RMSE:', np.sqrt(mean_squared_error(y_test, y_pred)))",
-                        f"print('R2 Score:', r2_score(y_test, y_pred))"
-                    ])
+                    ml_code_lines.append("custom_model = lgb.LGBMClassifier(random_state=42)")
+            else:
+                ml_code_lines.append("custom_model = RandomForestClassifier(random_state=42)")
 
-            # Prediction
-            predict_step = next((a for a in ml_actions if a['action'] == 'ml_predict'), None)
-            if predict_step:
-                inputs = predict_step['params']['inputs']
-                ml_code_lines.extend([
-                    f"\n# --- Pipeline Custom Prediction ---",
-                    f"sample_input = {inputs}",
-                    f"df_sample = pd.DataFrame([sample_input])",
-                    f"sample_pred = pipeline.predict(df_sample)[0]",
-                    f"print(f'Prediction for sample: {{sample_pred}}')"
-                ])
+            # Tuning parameters
+            tune_step = next((a for a in ml_actions if a['action'] == 'ml_tune'), None)
+            if tune_step:
+                best_params = tune_step['params']['best_params']
+                ml_code_lines.append(f"custom_model.set_params(**{best_params})")
 
-            add_code("\n".join(ml_code_lines))
+            ml_code_lines.extend([
+                f"pipeline = Pipeline([('preprocessor', custom_prep), ('model', custom_model)])"
+            ])
+        else:
+            ml_code_lines.extend([
+                "pipeline.fit(X_train, y_train)"
+            ])
+
+        ml_code_lines.extend([
+            "y_pred = pipeline.predict(X_test)",
+            "",
+            "# 6. Evaluation metrics",
+            "if is_classification:",
+            "    print('Accuracy:', accuracy_score(y_test, y_pred))",
+            "    print('\\nClassification Report:\\n', classification_report(y_test, y_pred))",
+            "else:",
+            "    print('Mean Squared Error (MSE):', mean_squared_error(y_test, y_pred))",
+            "    print('R2 Score:', r2_score(y_test, y_pred))"
+        ])
+
+        # 8. Tuning template (Uncommented block template)
+        ml_code_lines.extend([
+            "\n# 7. Optional Hyperparameter Tuning (Grid Search Cross Validation)",
+            "# from sklearn.model_selection import GridSearchCV",
+            "# param_grid = {",
+            "#     'model__max_depth': [5, 10, None],",
+            "#     'model__min_samples_split': [2, 5]",
+            "# }",
+            "# grid_search = GridSearchCV(pipeline, param_grid, cv=3, n_jobs=-1)",
+            "# grid_search.fit(X_train, y_train)",
+            "# print('Best Parameters:', grid_search.best_params_)",
+            "# pipeline = grid_search.best_estimator_"
+        ])
+
+        # 9. Prediction template (Uncommented block template)
+        predict_step = next((a for a in ml_actions if a['action'] == 'ml_predict'), None)
+        inputs_val = predict_step['params']['inputs'] if predict_step else "{col: [np.nan] for col in X.columns}"
+        ml_code_lines.extend([
+            "\n# 8. Prediction Simulator on Custom Inputs",
+            f"sample_inputs = {inputs_val}",
+            "df_sample = pd.DataFrame([sample_inputs])",
+            "pred_outcome = pipeline.predict(df_sample)[0]",
+            "print(f'Prediction result: {pred_outcome}')"
+        ])
+
+        add_code("\n".join(ml_code_lines))
 
         # Build Notebook Dictionary
         notebook = {
