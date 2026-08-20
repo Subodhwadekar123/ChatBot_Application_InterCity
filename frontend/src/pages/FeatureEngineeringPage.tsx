@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
@@ -10,7 +10,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { runPCA, polynomialFeatures, featureSelection, varianceThreshold } from '../services/api';
+import { runPCA, polynomialFeatures, featureSelection, varianceThreshold, suggestFeatures, applySuggestedFeature } from '../services/api';
 import EmptyState from '../components/ui/EmptyState';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import BarChartComponent from '../components/charts/BarChartComponent';
@@ -252,6 +252,48 @@ const FeatureEngineeringPage: React.FC = () => {
   const numericCols = activeDataset?.dataset_info?.column_types?.numeric ?? [];
   const allCols = activeDataset?.dataset_info?.column_details?.map((c) => c.name) ?? [];
 
+  // Suggested Features state
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [skippedSuggestions, setSkippedSuggestions] = useState<string[]>([]);
+
+  const fetchSuggestions = async () => {
+    if (!activeDataset) return;
+    try {
+      const res = await suggestFeatures(activeDataset.id);
+      setSuggestions(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, [activeDataset?.id]);
+
+  const handleApplySuggestion = async (sug: any) => {
+    if (!activeDataset) return;
+    try {
+      let params = {};
+      if (sug.type === 'date') {
+        params = { column: sug.column };
+      } else if (sug.type === 'ratio') {
+        params = { column1: sug.column1, column2: sug.column2 };
+      }
+      
+      await applySuggestedFeature(activeDataset.id, sug.type, params);
+      toast.success(`Successfully applied feature: ${sug.title}`);
+      
+      // Remove suggestion
+      setSuggestions(prev => prev.filter(s => s.id !== sug.id));
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to apply suggested feature');
+    }
+  };
+
+  const handleSkipSuggestion = (sugId: string) => {
+    setSkippedSuggestions(prev => [...prev, sugId]);
+  };
+
   // ── Expanded state ─────────────────────────────────────────────────────────
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     pca: false,
@@ -400,6 +442,36 @@ const FeatureEngineeringPage: React.FC = () => {
           {' '}— {numericCols.length} numeric columns available
         </p>
       </div>
+
+      {/* Suggested Features Card */}
+      {suggestions.filter(s => !skippedSuggestions.includes(s.id)).length > 0 && (
+        <div className="card-precision" style={{ padding: '20px', marginBottom: '24px', border: '1px dashed var(--accent-primary)' }}>
+          <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>💡 Suggested Feature Engineering Transformations</span>
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+            We detected columns in your dataset that could benefit from automated feature extraction:
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+            {suggestions.filter(s => !skippedSuggestions.includes(s.id)).map(sug => (
+              <div key={sug.id} style={{ background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '4px' }}>{sug.title}</h4>
+                  <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)' }}>{sug.description}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <button className="btn-primary" style={{ padding: '4px 10px', fontSize: '0.7rem', height: '28px' }} onClick={() => handleApplySuggestion(sug)}>
+                    Apply
+                  </button>
+                  <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: '0.7rem', height: '28px' }} onClick={() => handleSkipSuggestion(sug.id)}>
+                    Skip
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2-column grid of expandable cards */}
       <div

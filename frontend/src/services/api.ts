@@ -265,4 +265,26 @@ export const executeSqlQuery = (datasetId: string, query: string, applySelect = 
 export const getSqlSuggestions = (datasetId: string) =>
   api.get(`/sql/${datasetId}/suggest`) as Promise<any>;
 
+// ── ML V2 & Feature Engineering Upgrades ──
+export const analyzeTarget = (id: string, targetCol: string) =>
+  api.get(`/ml/${id}/analyze-target/${encodeURIComponent(targetCol)}`) as Promise<any>;
+
+export const trainModelV2 = (id: string, body: object) =>
+  api.post(`/ml/${id}/train-v2`, body) as Promise<any>;
+
+export const tuneModel = (id: string, body: object) =>
+  api.post(`/ml/${id}/tune`, body) as Promise<any>;
+
+export const predictCustom = (id: string, experimentId: string, inputs: object) =>
+  api.post(`/ml/${id}/predict/${experimentId}`, { inputs }) as Promise<any>;
+
+export const savePipeline = (id: string, experimentId: string) =>
+  api.post(`/ml/${id}/save-pipeline/${experimentId}`) as Promise<any>;
+
+export const suggestFeatures = (id: string) =>
+  api.get(`/features/${id}/suggested`) as Promise<any>;
+
+export const applySuggestedFeature = (id: string, featureType: string, params: object) =>
+  api.post(`/features/${id}/apply-suggested`, { feature_type: featureType, params }) as Promise<any>;
+
 export default api;

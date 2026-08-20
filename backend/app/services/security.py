@@ -26,7 +26,7 @@ ALGORITHM = settings.ALGORITHM
 def hash_password(password: str) -> str:
     """
     Hash a password using Argon2id (OWASP recommended).
-    Falls back to bcrypt if argon2-cffi is not installed.
+    Falls back to bcrypt if argon2-cffi is not installed or raises HashingError.
     """
     try:
         from argon2 import PasswordHasher
@@ -38,7 +38,7 @@ def hash_password(password: str) -> str:
             salt_len=16,
         )
         return ph.hash(password)
-    except ImportError:
+    except Exception as e:
         # Fallback to bcrypt
         import bcrypt
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")

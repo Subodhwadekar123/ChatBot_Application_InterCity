@@ -629,7 +629,17 @@ export default function SQLWorkplacePage() {
             >
               <AlertTriangle size={18} style={{ color: 'var(--color-danger, #ef4444)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>SQL Syntax Error</h4>
+                <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                  {errorMsg && (
+                    errorMsg.toLowerCase().includes('syntax') || errorMsg.toLowerCase().includes('near "') 
+                      ? 'SQL Syntax Error' 
+                      : errorMsg.toLowerCase().includes('not found') || errorMsg.toLowerCase().includes('no such')
+                      ? 'Database Resource Error'
+                      : errorMsg.toLowerCase().includes('denied') || errorMsg.toLowerCase().includes('unauthorized')
+                      ? 'Access Control Error'
+                      : 'SQL Execution Error'
+                  )}
+                </h4>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{errorMsg}</p>
               </div>
             </div>

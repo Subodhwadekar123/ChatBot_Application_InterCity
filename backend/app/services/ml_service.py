@@ -3,21 +3,18 @@ AI Data Analyst - Machine Learning Service
 ============================================
 Auto-detects problem type, builds robust end-to-end pipelines (scaling, encoding,
 imputation, feature engineering), and trains high-accuracy ML models.
-
-Supports:
-  Regression: Random Forest, Gradient Boosting, XGBoost, LightGBM, Ridge, Linear, Lasso, SVR
-  Classification: Random Forest, Gradient Boosting, XGBoost, LightGBM, Logistic, Decision Tree, SVC, KNN, Naive Bayes
-  Clustering: KMeans, DBSCAN, Agglomerative, Gaussian Mixture
 """
 
+import os
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
 import uuid
 import re
+import pickle
 
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, KFold
-from sklearn.preprocessing import LabelEncoder, StandardScaler, RobustScaler, OneHotEncoder
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, KFold, GridSearchCV
+from sklearn.preprocessing import LabelEncoder, StandardScaler, RobustScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -25,7 +22,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     roc_auc_score, confusion_matrix, classification_report,
     mean_squared_error, mean_absolute_error, r2_score,
-    silhouette_score,
+    silhouette_score, roc_curve
 )
 
 # Regression models
@@ -61,6 +58,7 @@ except ImportError:
 from app.services.data_service import DataService
 from app.utils.cache import analysis_cache
 from app.utils.logger import setup_logger
+from app.config import settings
 
 logger = setup_logger(__name__)
 
@@ -69,6 +67,58 @@ class MLService:
     """Machine Learning service with auto-detection, robust preprocessing pipelines, and evaluation."""
 
     _trained_models: Dict[str, Any] = {}
+
+    # ── Target Analysis (New) ────────────────────────────────────────────────
+    @staticmethod
+    def analyze_target_column(dataset_id: str, target_column: str) -> Dict[str, Any]:
+        """
+        Analyze a target column's properties (datatype, unique counts, class imbalance, missing values).
+        """
+        df = DataService.get_dataframe(dataset_id)
+        if target_column not in df.columns:
+            raise ValueError(f"Target column '{target_column}' not found")
+        
+        target = df[target_column]
+        total_rows = len(target)
+        missing_count = int(target.isna().sum())
+        missing_pct = round((missing_count / total_rows) * 100, 2) if total_rows > 0 else 0.0
+        
+        non_null_target = target.dropna()
+        n_unique = int(non_null_target.nunique())
+        dtype = str(target.dtype)
+        
+        # Determine recommended problem type
+        detect_res = MLService.detect_problem_type(dataset_id, target_column)
+        problem_type = detect_res["problem_type"]
+        
+        class_distribution = {}
+        is_imbalanced = False
+        imbalance_ratio = 1.0
+        
+        if problem_type == "classification":
+            counts = non_null_target.value_counts()
+            class_distribution = {str(k): int(v) for k, v in counts.items()}
+            if len(counts) >= 2:
+                majority = counts.iloc[0]
+                minority = counts.iloc[-1]
+                imbalance_ratio = float(minority / majority)
+                if imbalance_ratio < 0.4:
+                    is_imbalanced = True
+                    
+        return {
+            "target_column": target_column,
+            "problem_type": problem_type,
+            "datatype": dtype,
+            "total_rows": total_rows,
+            "missing_count": missing_count,
+            "missing_pct": missing_pct,
+            "unique_count": n_unique,
+            "class_distribution": class_distribution,
+            "is_imbalanced": is_imbalanced,
+            "imbalance_ratio": round(imbalance_ratio, 4),
+            "reason": detect_res["reason"],
+            "recommended_algorithms": detect_res["recommended_algorithms"]
+        }
 
     # ── Auto-Detect Problem Type ──────────────────────────────────────────────
 
@@ -159,7 +209,7 @@ class MLService:
             ]
         return algos
 
-    # ── Train Model ───────────────────────────────────────────────────────────
+    # ── Train Model (Original - for backward compatibility) ───────────────────
 
     @staticmethod
     def train_model(
@@ -171,8 +221,39 @@ class MLService:
         n_clusters: int = 3,
     ) -> Dict[str, Any]:
         """
-        Train an ML model with automated preprocessing, feature scaling, one-hot encoding,
-        missing-value imputation, and percentage accuracy evaluation.
+        Train an ML model with default settings (backward compatibility).
+        """
+        return MLService.train_model_v2(
+            dataset_id=dataset_id,
+            target_column=target_column,
+            algorithm=algorithm,
+            feature_columns=feature_columns,
+            test_size=test_size,
+            scaling_method="auto",
+            imputation_strategy="median",
+            stratify_split=True,
+            categorical_encoding="onehot",
+            n_clusters=n_clusters
+        )
+
+    # ── Train Model V2 (Advanced with Preprocessing Options) ──────────────────
+
+    @staticmethod
+    def train_model_v2(
+        dataset_id: str,
+        target_column: str,
+        algorithm: str,
+        feature_columns: Optional[List[str]] = None,
+        test_size: float = 0.2,
+        scaling_method: str = "auto",  # auto | standard | robust | minmax | none
+        imputation_strategy: str = "median",  # mean | median | most_frequent
+        stratify_split: bool = True,
+        categorical_encoding: str = "onehot",  # onehot | ordinal
+        hyperparameters: Optional[Dict[str, Any]] = None,
+        n_clusters: int = 3,
+    ) -> Dict[str, Any]:
+        """
+        Train an ML model using a robust ColumnTransformer and Pipeline to avoid data leakage.
         """
         df = DataService.get_dataframe(dataset_id).copy()
         if target_column not in df.columns:
@@ -189,22 +270,19 @@ class MLService:
         if len(df) < 15:
             raise ValueError("Not enough data to train a model (need at least 15 non-empty rows)")
 
-        # Downsample for quick training if dataset is huge (> 10,000 rows)
         if len(df) > 10000:
             df = df.sample(n=10000, random_state=42)
 
-        # ── Feature Selection & Filtering ──
+        # Feature selection
         if feature_columns:
             candidate_cols = [c for c in feature_columns if c in df.columns and c != target_column]
         else:
             candidate_cols = [c for c in df.columns if c != target_column]
 
-        # Filter out high-cardinality text / ID columns
         num_cols = []
         cat_cols = []
         for c in candidate_cols:
             col_series = df[c]
-            # Skip pure ID or UUID columns (e.g. unique per row or id names)
             c_lower = c.lower()
             if c_lower in ("id", "uuid", "_id", "index", "row_id", "transaction_id", "customer_id", "user_id") and col_series.nunique() > len(df) * 0.8:
                 continue
@@ -212,15 +290,12 @@ class MLService:
             if pd.api.types.is_numeric_dtype(col_series.dtype):
                 num_cols.append(c)
             elif pd.api.types.is_datetime64_any_dtype(col_series.dtype):
-                # Extract datetime features
                 df[f"{c}_year"] = col_series.dt.year
                 df[f"{c}_month"] = col_series.dt.month
                 df[f"{c}_day"] = col_series.dt.day
                 num_cols.extend([f"{c}_year", f"{c}_month", f"{c}_day"])
             else:
-                # Categorical column
                 n_uniq = col_series.nunique()
-                # Include categorical if cardinality is manageable (<= 60 distinct values)
                 if 1 < n_uniq <= 60:
                     cat_cols.append(c)
 
@@ -234,7 +309,7 @@ class MLService:
         if algorithm in ("kmeans", "dbscan", "agglomerative", "gaussian_mixture"):
             return MLService._train_clustering(dataset_id, X, num_cols, algorithm, n_clusters)
 
-        # ── Target Encoding (Classification) ──
+        # Encode target
         le = None
         label_mapping = {}
         if problem_type == "classification":
@@ -242,59 +317,92 @@ class MLService:
             y_encoded = pd.Series(le.fit_transform(y.astype(str)), index=y.index)
             label_mapping = {int(idx): str(cls_name) for idx, cls_name in enumerate(le.classes_)}
         else:
-            # Ensure target is float
             y_encoded = pd.to_numeric(y, errors="coerce")
             valid_y = y_encoded.notna()
             X = X[valid_y]
             y_encoded = y_encoded[valid_y]
 
-        # ── Train / Test Split ──
-        stratify = y_encoded if (problem_type == "classification" and y_encoded.value_counts().min() >= 2) else None
+        # Train / Test split
+        stratify = y_encoded if (problem_type == "classification" and stratify_split and y_encoded.value_counts().min() >= 2) else None
         X_train, X_test, y_train, y_test = train_test_split(
             X, y_encoded, test_size=test_size, random_state=42, stratify=stratify
         )
 
-        # ── Build Preprocessing Pipeline ──
+        # Build Preprocessing Pipeline using ColumnTransformer (leak-proof)
         transformers = []
         if num_cols:
-            num_pipeline = Pipeline([
-                ("imputer", SimpleImputer(strategy="median")),
-                ("scaler", StandardScaler()),
-            ])
-            transformers.append(("num", num_pipeline, num_cols))
+            num_steps = [("imputer", SimpleImputer(strategy=imputation_strategy))]
+            
+            # Smart auto scaling
+            scaler = None
+            if scaling_method == "auto":
+                is_tree = algorithm in (
+                    "random_forest_classifier", "random_forest_regressor",
+                    "gradient_boosting_classifier", "gradient_boosting_regressor",
+                    "xgboost_classifier", "xgboost_regressor",
+                    "lightgbm_classifier", "lightgbm_regressor",
+                    "decision_tree"
+                )
+                if not is_tree:
+                    scaler = StandardScaler()
+            elif scaling_method == "standard":
+                scaler = StandardScaler()
+            elif scaling_method == "robust":
+                scaler = RobustScaler()
+            elif scaling_method == "minmax":
+                scaler = MinMaxScaler()
+
+            if scaler:
+                num_steps.append(("scaler", scaler))
+            transformers.append(("num", Pipeline(num_steps), num_cols))
 
         if cat_cols:
-            cat_pipeline = Pipeline([
-                ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
-            ])
-            transformers.append(("cat", cat_pipeline, cat_cols))
+            cat_steps = [("imputer", SimpleImputer(strategy="most_frequent"))]
+            if categorical_encoding == "onehot":
+                cat_steps.append(("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)))
+            elif categorical_encoding == "ordinal":
+                cat_steps.append(("encoder", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)))
+            transformers.append(("cat", Pipeline(cat_steps), cat_cols))
 
         preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
 
-        # ── Base Estimator ──
+        # Base Estimator and hyperparameters
         base_model = MLService._get_model(algorithm)
+        if hyperparameters:
+            valid_params = {k: v for k, v in hyperparameters.items() if hasattr(base_model, k) or k in base_model.get_params()}
+            base_model.set_params(**valid_params)
 
-        # Full end-to-end Pipeline
         model_pipeline = Pipeline([
             ("preprocessor", preprocessor),
             ("model", base_model),
         ])
 
-        # ── Fit Pipeline ──
+        # Fit
         model_pipeline.fit(X_train, y_train)
         y_pred = model_pipeline.predict(X_test)
 
-        # ── Compute Evaluation Metrics ──
+        # Metrics
         if problem_type == "regression":
             metrics = MLService._regression_metrics(y_test, y_pred)
+            residuals_plot = [{"actual": float(act), "predicted": float(pred), "residual": float(act - pred)} for act, pred in zip(y_test, y_pred)]
+            metrics["residuals_plot"] = residuals_plot[:500]
         else:
             metrics = MLService._classification_metrics(y_test, y_pred, model_pipeline, X_test)
+            roc_plot = []
+            try:
+                if hasattr(base_model, "predict_proba"):
+                    proba = model_pipeline.predict_proba(X_test)
+                    if len(label_mapping) == 2:
+                        fpr, tpr, _ = roc_curve(y_test, proba[:, 1])
+                        roc_plot = [{"fpr": float(f), "tpr": float(t)} for f, t in zip(fpr, tpr)]
+            except Exception as e:
+                logger.warning(f"ROC plot error: {e}")
+            metrics["roc_plot"] = roc_plot
 
-        # ── Feature Importances ──
+        # Feature importances
         importances = MLService._extract_feature_importances(model_pipeline, num_cols, cat_cols)
 
-        # ── Cross-Validation ──
+        # Cross-validation
         cv_scores = []
         try:
             cv_splitter = StratifiedKFold(n_splits=3, shuffle=True, random_state=42) if problem_type == "classification" else KFold(n_splits=3, shuffle=True, random_state=42)
@@ -303,7 +411,7 @@ class MLService:
         except Exception as e:
             logger.warning(f"Cross-validation warning: {e}")
 
-        # ── Predictions Preview Table ──
+        # Predictions Preview
         predictions_preview = []
         n_preview = min(15, len(y_test))
         y_test_arr = np.array(y_test)
@@ -342,7 +450,7 @@ class MLService:
                     "features": {k: round(float(v), 2) if isinstance(v, (int, float, np.number)) else str(v) for k, v in X_test_reset.iloc[i].to_dict().items()}
                 })
 
-        # ── Overall Percentage Accuracy Summary ──
+        # Overall Accuracy Summary
         if problem_type == "classification":
             acc_pct = round(metrics.get("accuracy", 0.0) * 100.0, 2)
             prec_pct = round(metrics.get("precision", 0.0) * 100.0, 2)
@@ -379,7 +487,7 @@ class MLService:
 
         experiment_id = str(uuid.uuid4())
 
-        # Cache trained pipeline
+        # Save model state
         MLService._trained_models[experiment_id] = {
             "pipeline": model_pipeline,
             "feature_columns": num_cols + cat_cols,
@@ -387,7 +495,29 @@ class MLService:
             "cat_cols": cat_cols,
             "problem_type": problem_type,
             "label_mapping": label_mapping,
+            "algorithm": algorithm,
+            "scaling_method": scaling_method,
+            "imputation_strategy": imputation_strategy,
+            "categorical_encoding": categorical_encoding,
+            "stratify_split": stratify_split,
+            "test_size": test_size,
+            "hyperparameters": hyperparameters,
         }
+
+        # Log to DataService action ledger
+        DataService.log_action(dataset_id, "ml_train_v2", {
+            "experiment_id": experiment_id,
+            "target_column": target_column,
+            "algorithm": algorithm,
+            "feature_columns": num_cols + cat_cols,
+            "test_size": test_size,
+            "scaling_method": scaling_method,
+            "imputation_strategy": imputation_strategy,
+            "stratify_split": stratify_split,
+            "categorical_encoding": categorical_encoding,
+            "hyperparameters": hyperparameters,
+            "metrics": metrics,
+        })
 
         return {
             "experiment_id": experiment_id,
@@ -407,9 +537,213 @@ class MLService:
                 "std": round(float(np.std(cv_scores)), 4) if cv_scores else None,
             },
             "label_mapping": label_mapping,
+            "scaling_method": scaling_method,
+            "imputation_strategy": imputation_strategy,
+            "categorical_encoding": categorical_encoding,
         }
 
-    # ── Model Instances ───────────────────────────────────────────────────────
+    # ── Hyperparameter Tuning (New) ──────────────────────────────────────────
+
+    @staticmethod
+    def tune_hyperparameters(
+        dataset_id: str,
+        target_column: str,
+        algorithm: str,
+        feature_columns: Optional[List[str]] = None,
+        test_size: float = 0.2,
+        scaling_method: str = "auto",
+        imputation_strategy: str = "median",
+        stratify_split: bool = True,
+        categorical_encoding: str = "onehot",
+    ) -> Dict[str, Any]:
+        """
+        Perform grid search tuning for standard model parameters.
+        """
+        param_grids = {
+            "random_forest_classifier": {
+                "model__n_estimators": [50, 100],
+                "model__max_depth": [5, 10, None],
+            },
+            "random_forest_regressor": {
+                "model__n_estimators": [50, 100],
+                "model__max_depth": [5, 10, None],
+            },
+            "logistic_regression": {
+                "model__C": [0.1, 1.0, 10.0],
+            },
+            "ridge": {
+                "model__alpha": [0.1, 1.0, 10.0],
+            },
+            "lasso": {
+                "model__alpha": [0.01, 0.1, 1.0],
+            },
+            "decision_tree": {
+                "model__max_depth": [3, 5, 10, None],
+            }
+        }
+
+        grid = param_grids.get(algorithm)
+        if not grid:
+            return {"tuned": False, "message": "Hyperparameter tuning is not supported for this algorithm. Retrained default."}
+
+        default_res = MLService.train_model_v2(
+            dataset_id=dataset_id,
+            target_column=target_column,
+            algorithm=algorithm,
+            feature_columns=feature_columns,
+            test_size=test_size,
+            scaling_method=scaling_method,
+            imputation_strategy=imputation_strategy,
+            stratify_split=stratify_split,
+            categorical_encoding=categorical_encoding,
+        )
+
+        experiment_id = default_res["experiment_id"]
+        saved = MLService._trained_models[experiment_id]
+        pipeline = saved["pipeline"]
+
+        df = DataService.get_dataframe(dataset_id).copy()
+        valid_mask = df[target_column].notna()
+        df = df[valid_mask].copy()
+        
+        if len(df) > 3000:
+            df = df.sample(n=3000, random_state=42)
+
+        num_cols = saved["num_cols"]
+        cat_cols = saved["cat_cols"]
+        X = df[num_cols + cat_cols].copy()
+        y = df[target_column].copy()
+
+        if saved["problem_type"] == "classification":
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y.astype(str))
+            cv_splitter = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+            scoring = "accuracy"
+        else:
+            y_encoded = pd.to_numeric(y, errors="coerce")
+            valid_y = y_encoded.notna()
+            X = X[valid_y]
+            y_encoded = y_encoded[valid_y]
+            cv_splitter = KFold(n_splits=3, shuffle=True, random_state=42)
+            scoring = "r2"
+
+        grid_search = GridSearchCV(pipeline, grid, cv=cv_splitter, scoring=scoring, n_jobs=-1)
+        grid_search.fit(X, y_encoded)
+
+        best_params = {k.replace("model__", ""): v for k, v in grid_search.best_params_.items()}
+        best_score = float(grid_search.best_score_)
+
+        tuned_res = MLService.train_model_v2(
+            dataset_id=dataset_id,
+            target_column=target_column,
+            algorithm=algorithm,
+            feature_columns=feature_columns,
+            test_size=test_size,
+            scaling_method=scaling_method,
+            imputation_strategy=imputation_strategy,
+            stratify_split=stratify_split,
+            categorical_encoding=categorical_encoding,
+            hyperparameters=best_params,
+        )
+
+        # Log tuning action
+        DataService.log_action(dataset_id, "ml_tune", {
+            "algorithm": algorithm,
+            "best_params": best_params,
+            "best_cv_score": best_score,
+            "scoring": scoring,
+        })
+
+        tuned_res["best_params"] = best_params
+        tuned_res["best_cv_score"] = best_score
+        tuned_res["tuned"] = True
+        return tuned_res
+
+    # ── Predict Custom (New) ──────────────────────────────────────────────────
+
+    @staticmethod
+    def predict_custom(experiment_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate a prediction using a saved model pipeline and raw dictionary inputs.
+        """
+        saved = MLService._trained_models.get(experiment_id)
+        if not saved:
+            saved = MLService.load_model_pipeline(experiment_id)
+            if not saved:
+                raise ValueError("Model pipeline not found. Please train a model first.")
+
+        pipeline = saved["pipeline"]
+        feature_columns = saved["feature_columns"]
+        label_mapping = saved["label_mapping"]
+
+        input_data = {}
+        for col in feature_columns:
+            val = inputs.get(col)
+            if val is None or val == "":
+                input_data[col] = [np.nan]
+            else:
+                input_data[col] = [val]
+
+        df_input = pd.DataFrame(input_data)
+        pred = pipeline.predict(df_input)[0]
+        prediction_str = label_mapping.get(int(pred), str(pred)) if label_mapping else str(pred)
+
+        proba_dist = {}
+        if saved["problem_type"] == "classification" and hasattr(pipeline, "predict_proba"):
+            try:
+                proba = pipeline.predict_proba(df_input)[0]
+                proba_dist = {label_mapping.get(int(idx), str(idx)): float(p) for idx, p in enumerate(proba)}
+            except Exception as e:
+                logger.warning(f"Predict proba failed: {e}")
+
+        return {
+            "prediction": prediction_str,
+            "prediction_value": float(pred) if not label_mapping else int(pred),
+            "probabilities": proba_dist,
+            "problem_type": saved["problem_type"],
+        }
+
+    # ── Pipeline Persistence (New) ────────────────────────────────────────────
+
+    @staticmethod
+    def save_model_pipeline(dataset_id: str, experiment_id: str) -> str:
+        """
+        Serialize and save a trained model pipeline to disk.
+        """
+        saved = MLService._trained_models.get(experiment_id)
+        if not saved:
+            raise ValueError(f"No trained model found in memory for experiment: {experiment_id}")
+
+        models_dir = os.path.join(settings.UPLOAD_DIR, "saved_models")
+        os.makedirs(models_dir, exist_ok=True)
+
+        model_path = os.path.join(models_dir, f"{experiment_id}.pkl")
+        with open(model_path, "wb") as f:
+            pickle.dump(saved, f)
+
+        # Log action
+        DataService.log_action(dataset_id, "ml_save_pipeline", {
+            "experiment_id": experiment_id,
+            "model_path": model_path,
+        })
+
+        return model_path
+
+    @staticmethod
+    def load_model_pipeline(experiment_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Load a saved model pipeline from disk.
+        """
+        model_path = os.path.join(settings.UPLOAD_DIR, "saved_models", f"{experiment_id}.pkl")
+        if not os.path.exists(model_path):
+            return None
+
+        with open(model_path, "rb") as f:
+            saved = pickle.load(f)
+            MLService._trained_models[experiment_id] = saved
+            return saved
+
+    # ── Model Instances (Original) ────────────────────────────────────────────
 
     @staticmethod
     def _get_model(algorithm: str):
@@ -455,7 +789,7 @@ class MLService:
 
         return models[algorithm]
 
-    # ── Evaluation Metrics ────────────────────────────────────────────────────
+    # ── Evaluation Metrics (Original) ─────────────────────────────────────────
 
     @staticmethod
     def _regression_metrics(y_true, y_pred) -> Dict[str, Any]:
@@ -505,7 +839,7 @@ class MLService:
 
         return metrics
 
-    # ── Feature Importance Extraction ─────────────────────────────────────────
+    # ── Feature Importance Extraction (Original) ──────────────────────────────
 
     @staticmethod
     def _extract_feature_importances(pipeline, num_cols: List[str], cat_cols: List[str]) -> List[Dict[str, Any]]:
@@ -515,7 +849,6 @@ class MLService:
             model = pipeline.named_steps.get("model")
             preprocessor = pipeline.named_steps.get("preprocessor")
 
-            # Get raw importances or coefficients
             if hasattr(model, "feature_importances_"):
                 raw_imps = model.feature_importances_
             elif hasattr(model, "coef_"):
@@ -523,14 +856,12 @@ class MLService:
             else:
                 return []
 
-            # Retrieve feature names from preprocessor
             feature_names = []
             try:
                 feature_names = list(preprocessor.get_feature_names_out())
             except Exception:
                 feature_names = [f"Feature_{i}" for i in range(len(raw_imps))]
 
-            # Clean and aggregate feature names (e.g. num__age -> age, cat__dept_IT -> dept: IT)
             col_weights = {}
             for fname, imp in zip(feature_names, raw_imps):
                 clean_name = fname
@@ -539,7 +870,6 @@ class MLService:
                 elif clean_name.startswith("cat__"):
                     clean_name = clean_name[5:].replace("_", " = ")
                 
-                # Base column name for aggregation
                 base_col = clean_name.split(" = ")[0] if " = " in clean_name else clean_name
                 col_weights[base_col] = col_weights.get(base_col, 0.0) + float(imp)
 
@@ -556,7 +886,7 @@ class MLService:
 
         return importances
 
-    # ── Clustering ────────────────────────────────────────────────────────────
+    # ── Clustering (Original) ─────────────────────────────────────────────────
 
     @staticmethod
     def _train_clustering(
@@ -606,7 +936,7 @@ class MLService:
             "n_samples": len(labels),
         }
 
-    # ── Compare Multiple Models ────────────────────────────────────────────────
+    # ── Compare Multiple Models (Original) ─────────────────────────────────────
 
     @staticmethod
     def compare_models(
@@ -628,6 +958,13 @@ class MLService:
                 })
             except Exception as e:
                 results.append({"algorithm": algo, "error": str(e)})
+
+        # Log comparison
+        DataService.log_action(dataset_id, "ml_compare", {
+            "algorithms": algorithms,
+            "target_column": target_column,
+            "results": [{"algorithm": r["algorithm"], "metrics": r.get("metrics")} for r in results if "error" not in r],
+        })
 
         return {
             "comparison": results,
