@@ -261,17 +261,20 @@ export default function SQLWorkplacePage() {
 
   if (!activeDataset) return <EmptyState />;
 
+  const datasetInfo = activeDataset.dataset_info || {};
+  const columnTypes = datasetInfo.column_types || {};
+
   const cols = [
-    ...(activeDataset.dataset_info.column_types?.numeric || []),
-    ...(activeDataset.dataset_info.column_types?.categorical || []),
-    ...(activeDataset.dataset_info.column_types?.boolean || []),
+    ...(columnTypes.numeric || []),
+    ...(columnTypes.categorical || []),
+    ...(columnTypes.boolean || []),
   ];
 
   // Group columns for Schema viewer
-  const numCols = activeDataset.dataset_info.column_types?.numeric || [];
-  const catCols = activeDataset.dataset_info.column_types?.categorical || [];
-  const dtCols = activeDataset.dataset_info.column_types?.datetime || [];
-  const boolCols = activeDataset.dataset_info.column_types?.boolean || [];
+  const numCols = columnTypes.numeric || [];
+  const catCols = columnTypes.categorical || [];
+  const dtCols = columnTypes.datetime || [];
+  const boolCols = columnTypes.boolean || [];
 
   // Transform query preview data for Recharts
   const chartData = results?.preview

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
 import { healthCheck } from './services/api';
 import SplashScreen from './components/ui/SplashScreen';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ProtectedAdminRoute from './components/auth/ProtectedAdminRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -119,7 +120,14 @@ function App() {
             <Route path="visualization" element={<VisualizationPage />} />
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="ml" element={<MLPage />} />
-            <Route path="sql" element={<SQLWorkplacePage />} />
+            <Route
+              path="sql"
+              element={
+                <ErrorBoundary>
+                  <SQLWorkplacePage />
+                </ErrorBoundary>
+              }
+            />
             <Route path="ai-insights" element={<AIInsightsPage />} />
             <Route path="features" element={<FeatureEngineeringPage />} />
             <Route path="reports" element={<ReportsPage />} />
