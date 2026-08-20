@@ -42,6 +42,7 @@ from app.routers import (
     issues,
     auth,
     admin,
+    sql,
 )
 
 # ── Logger Setup ─────────────────────────────────────────────────────────────
@@ -165,6 +166,7 @@ def create_app() -> FastAPI:
     app.include_router(issues.router, prefix=API_PREFIX, tags=["Issues"])
     app.include_router(auth.router, prefix=API_PREFIX, tags=["Authentication"])
     app.include_router(admin.router, prefix=API_PREFIX, tags=["Administration"])
+    app.include_router(sql.router, prefix=API_PREFIX, tags=["SQL"])
 
     # ── Root & Utility Endpoints ──────────────────────────────────────────────
     @app.get("/", tags=["Root"], summary="API Root Status")

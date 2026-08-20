@@ -112,10 +112,110 @@ class JupyterService:
             elif action == "encode_column":
                 cleaning_code_lines.append(f"# Encoded categorical column {p.get('column')} using {p.get('method')} encoding")
 
+            elif action == "sql_query_select_applied":
+                q = p.get("query", "")
+                q_safe = q.replace('"""', '\\"\\"\\"')
+                cleaning_code_lines.extend([
+                    f"# Replay applied SQL SELECT preprocessing query:",
+                    f"import sqlite3",
+                    f"conn = sqlite3.connect(':memory:')",
+                    f"df.to_sql('dataset', conn, index=False)",
+                    f"query = \"\"\"{q_safe}\"\"\"",
+                    f"df = pd.read_sql_query(query, conn)",
+                    f"conn.close()"
+                ])
+
+            elif action == "sql_query_modified":
+                q = p.get("query", "")
+                q_safe = q.replace('"""', '\\"\\"\\"')
+                cleaning_code_lines.extend([
+                    f"# Replay modifying SQL query:",
+                    f"import sqlite3",
+                    f"conn = sqlite3.connect(':memory:')",
+                    f"df.to_sql('dataset', conn, index=False)",
+                    f"query = \"\"\"{q_safe}\"\"\"",
+                    f"cursor = conn.cursor()",
+                    f"if ';' in query:",
+                    f"    cursor.executescript(query)",
+                    f"else:",
+                    f"    cursor.execute(query)",
+                    f"conn.commit()",
+                    f"df = pd.read_sql_query('SELECT * FROM dataset', conn)",
+                    f"conn.close()"
+                ])
+
             else:
                 cleaning_code_lines.append(f"# Operation {action} applied with params {p}")
 
         add_code("\n".join(cleaning_code_lines))
+
+        # 3.5. Local SQL Sandbox & Optional Templates
+        add_md("## 3.5. Local SQL Query Sandbox\nYou can continue preprocessing or exploring this dataset using full SQL syntax locally. Here is the template to query your DataFrame using SQLite:")
+        
+        sql_sandbox_setup = (
+            "import sqlite3\n\n"
+            "# 1. Initialize transient in-memory SQLite database\n"
+            "conn = sqlite3.connect(':memory:')\n\n"
+            "# 2. Load the current DataFrame state into the 'dataset' table\n"
+            "df.to_sql('dataset', conn, index=False, if_exists='replace')\n\n"
+            "print('Transient SQLite database ready. You can query table: dataset')"
+        )
+        add_code(sql_sandbox_setup)
+        
+        add_md("### Pre-configured SQL Query Templates\nBelow are a few pre-configured SQL templates to query, group, and analyze your dataset columns:")
+        
+        # Suggestion 1: Select preview query
+        query_preview = (
+            "# Run a SELECT query and load the results back into a DataFrame\n"
+            "query_1 = 'SELECT * FROM dataset LIMIT 10;'\n"
+            "df_preview = pd.read_sql_query(query_1, conn)\n"
+            "display(df_preview)"
+        )
+        add_code(query_preview)
+
+        # Suggestion 2: Categorical aggregation query if available
+        cat_cols = dataset_info.get("column_types", {}).get("categorical", [])
+        if cat_cols:
+            query_agg = (
+                f"# Aggregate occurrences of the categorical field '{cat_cols[0]}'\n"
+                f"query_2 = '''\n"
+                f"SELECT `{cat_cols[0]}`, COUNT(*) as count\n"
+                f"FROM dataset\n"
+                f"GROUP BY `{cat_cols[0]}`\n"
+                f"ORDER BY count DESC\n"
+                f"LIMIT 10;\n"
+                f"'''\n"
+                f"df_counts = pd.read_sql_query(query_2, conn)\n"
+                f"display(df_counts)"
+            )
+            add_code(query_agg)
+            
+        # Suggestion 3: Numeric statistics summary if available
+        num_cols = dataset_info.get("column_types", {}).get("numeric", [])
+        if num_cols:
+            query_stats = (
+                f"# Calculate summary statistics on '{num_cols[0]}'\n"
+                f"query_3 = '''\n"
+                f"SELECT AVG(`{num_cols[0]}`) as avg_val,\n"
+                f"       MIN(`{num_cols[0]}`) as min_val,\n"
+                f"       MAX(`{num_cols[0]}`) as max_val\n"
+                f"FROM dataset;\n"
+                f"'''\n"
+                f"df_stats = pd.read_sql_query(query_3, conn)\n"
+                f"display(df_stats)"
+            )
+            add_code(query_stats)
+
+        # Suggestion 4: Modification template
+        query_cleaning = (
+            "# Example: Update values or perform deletion preprocessing via SQL\n"
+            "# cursor = conn.cursor()\n"
+            "# cursor.execute('DELETE FROM dataset WHERE age < 18')\n"
+            "# conn.commit()\n"
+            "# df = pd.read_sql_query('SELECT * FROM dataset', conn)\n"
+            "# print('New dataset shape:', df.shape)"
+        )
+        add_code(query_cleaning)
 
         # 5. EDA Visualizations
         add_md("## 4. Exploratory Data Analysis (EDA)\nAutomatically generating necessary visualizations to understand distributions, missing values, and correlations.")

@@ -257,4 +257,12 @@ export const adminDownloadCSV = async (datasetId: string) => {
   triggerBlobDownload(response as unknown as Blob, `dataset_${datasetId}.csv`);
 };
 
+// ── SQL Workplace ──────────────────────────────────────────────────────────
+
+export const executeSqlQuery = (datasetId: string, query: string, applySelect = false) =>
+  api.post(`/sql/${datasetId}/execute`, { query, apply_select_results: applySelect }) as Promise<any>;
+
+export const getSqlSuggestions = (datasetId: string) =>
+  api.get(`/sql/${datasetId}/suggest`) as Promise<any>;
+
 export default api;

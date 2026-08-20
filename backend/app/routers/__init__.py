@@ -18,6 +18,7 @@ from app.routers import (
     issues,
     auth,
     admin,
+    sql,
 )
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     "issues",
     "auth",
     "admin",
+    "sql",
 ]

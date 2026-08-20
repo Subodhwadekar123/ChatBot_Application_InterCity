@@ -252,9 +252,10 @@ const ReportsPage: React.FC = () => {
   const jupyterContents = [
     'Cell 1: Environment Setup',
     'Cell 2: Data Loading',
-    'Cell 3: Exact Cleaning Steps',
-    'Cell 4: Exploratory Analysis',
-    'Standard ML Boilerplate',
+    'Cell 3: SQL Replays & Cleaning Steps',
+    'Cell 3.5: Local SQLite Query Sandbox',
+    'Cell 4: Exploratory Analysis (EDA)',
+    'Cell 5: SQL Visualizations & AutoML',
   ];
 
   return (

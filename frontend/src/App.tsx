@@ -29,6 +29,7 @@ import CleaningPage from './pages/CleaningPage';
 import VisualizationPage from './pages/VisualizationPage';
 import StatisticsPage from './pages/StatisticsPage';
 import MLPage from './pages/MLPage';
+import SQLWorkplacePage from './pages/SQLWorkplacePage';
 import AIInsightsPage from './pages/AIInsightsPage';
 import FeatureEngineeringPage from './pages/FeatureEngineeringPage';
 import ReportsPage from './pages/ReportsPage';
@@ -118,6 +119,7 @@ function App() {
             <Route path="visualization" element={<VisualizationPage />} />
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="ml" element={<MLPage />} />
+            <Route path="sql" element={<SQLWorkplacePage />} />
             <Route path="ai-insights" element={<AIInsightsPage />} />
             <Route path="features" element={<FeatureEngineeringPage />} />
             <Route path="reports" element={<ReportsPage />} />
