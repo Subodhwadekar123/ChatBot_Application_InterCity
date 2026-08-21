@@ -957,17 +957,20 @@ Example response:
             ]
             
             if categorical_targets:
+                cat_candidates = [f"'{c}' ({df[c].nunique()} classes)" for c in categorical_targets[:3]]
                 answer = (
                     f"For Machine Learning, I recommend using a column with clear classification labels as the target. "
                     f"Based on your dataset, the best categorical target candidates are: "
-                    f"{', '.join([f'\'{c}\' ({df[c].nunique()} classes)' for c in categorical_targets[:3]])}. "
+                    f"{', '.join(cat_candidates)}. "
                 )
                 if non_id_numeric:
-                    answer += f"If you want to perform regression (predicting a quantity), you could predict: {', '.join([f'\'{c}\'' for c in non_id_numeric[:2]])}."
+                    reg_candidates = [f"'{c}'" for c in non_id_numeric[:2]]
+                    answer += f"If you want to perform regression (predicting a quantity), you could predict: {', '.join(reg_candidates)}."
             elif non_id_numeric:
+                reg_candidates = [f"'{c}'" for c in non_id_numeric[:3]]
                 answer = (
                     f"For Machine Learning, I recommend predicting a numeric column (regression). "
-                    f"Based on your dataset, suitable target columns include: {', '.join([f'\'{c}\'' for c in non_id_numeric[:3]])}."
+                    f"Based on your dataset, suitable target columns include: {', '.join(reg_candidates)}."
                 )
             else:
                 answer = "I couldn't identify any obvious target columns. Please check if your dataset contains valid features."
