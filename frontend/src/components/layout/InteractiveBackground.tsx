@@ -21,8 +21,8 @@ const InteractiveBackground: React.FC = () => {
 
     let animationFrameId: number;
     let particles: Particle[] = [];
-    const spacing = 28; // Spacing between dots (increased density)
-    const radius = 1.6; // Size of dots (more visible)
+    const spacing = 48; // Spacing between dots (optimized density)
+    const radius = 1.8; // Size of dots (clear visibility)
     const forceRadius = 130; // Mouse interaction radius
     const forceFactor = 3.5; // Push force
     const returnSpeed = 0.08; // Damping return to home
@@ -89,6 +89,8 @@ const InteractiveBackground: React.FC = () => {
         }
       }
 
+      // Batch drawing operations to prevent GPU overhead and rendering lag
+      ctx.beginPath();
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
@@ -106,11 +108,11 @@ const InteractiveBackground: React.FC = () => {
         p.x += p.vx;
         p.y += p.vy;
 
-        // Draw particle
-        ctx.beginPath();
+        // Draw particle (batched)
+        ctx.moveTo(p.x + radius, p.y);
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-        ctx.fill();
       }
+      ctx.fill();
 
       animationFrameId = requestAnimationFrame(draw);
     };
