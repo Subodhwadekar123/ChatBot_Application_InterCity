@@ -283,6 +283,8 @@ class MLService:
         cat_cols = []
         for c in candidate_cols:
             col_series = df[c]
+            if col_series.isna().all():
+                continue
             c_lower = c.lower()
             if c_lower in ("id", "uuid", "_id", "index", "row_id", "transaction_id", "customer_id", "user_id") and col_series.nunique() > len(df) * 0.8:
                 continue
@@ -677,10 +679,16 @@ class MLService:
         label_mapping = saved["label_mapping"]
 
         input_data = {}
+        num_cols = saved.get("num_cols", [])
         for col in feature_columns:
             val = inputs.get(col)
             if val is None or val == "":
                 input_data[col] = [np.nan]
+            elif col in num_cols:
+                try:
+                    input_data[col] = [float(val)]
+                except ValueError:
+                    input_data[col] = [np.nan]
             else:
                 input_data[col] = [val]
 
@@ -852,7 +860,11 @@ class MLService:
             if hasattr(model, "feature_importances_"):
                 raw_imps = model.feature_importances_
             elif hasattr(model, "coef_"):
-                raw_imps = np.abs(model.coef_.flatten())
+                coef = model.coef_
+                if coef.ndim > 1:
+                    raw_imps = np.mean(np.abs(coef), axis=0)
+                else:
+                    raw_imps = np.abs(coef.flatten())
             else:
                 return []
 

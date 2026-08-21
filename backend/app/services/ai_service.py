@@ -13,6 +13,7 @@ import threading
 import contextlib
 import traceback
 
+# pyrefly: ignore [missing-import]
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional
@@ -222,6 +223,7 @@ Numeric Summary:
     @staticmethod
     def _gemini_insights(context: str, df: pd.DataFrame, info: Dict[str, Any]) -> Dict[str, Any]:
         """Use Gemini API to generate insights."""
+        # pyrefly: ignore [missing-import]
         import google.generativeai as genai
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -259,6 +261,7 @@ Only return valid JSON, no markdown."""
     @staticmethod
     def _gemini_answer(context: str, question: str, df: pd.DataFrame) -> Dict[str, Any]:
         """Use Gemini to answer a specific question about the dataset."""
+        # pyrefly: ignore [missing-import]
         import google.generativeai as genai
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -296,6 +299,7 @@ Only return valid JSON."""
     @staticmethod
     def _gemini_code_answer(context: str, question: str, df: pd.DataFrame) -> Dict[str, Any]:
         """Use Gemini to generate Python code for dataset operations, then execute it on the real dataset."""
+        # pyrefly: ignore [missing-import]
         import google.generativeai as genai
 
         # Guardrail: block out-of-scope code requests
@@ -548,13 +552,16 @@ Example response:
         for name in ("open", "eval", "exec", "compile", "input", "exit", "quit", "help", "breakpoint"):
             safe_builtins.pop(name, None)
 
+        # pyrefly: ignore [missing-import]
         import matplotlib
         previous_backend = matplotlib.get_backend()
         matplotlib.use("Agg", force=True)
 
+        # pyrefly: ignore [missing-import]
         import numpy as np
         import pandas as pd
         import seaborn as sns
+        # pyrefly: ignore [missing-import]
         import matplotlib.pyplot as plt
 
         sandbox_globals = {
