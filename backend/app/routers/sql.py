@@ -225,7 +225,7 @@ def suggest_sql(
             import json
             
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-3.6-flash")
             
             # Simple context snippet
             schema_context = f"Columns: {', '.join(df.columns.tolist())}\n"

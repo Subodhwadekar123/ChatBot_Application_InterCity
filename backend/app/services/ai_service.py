@@ -227,7 +227,7 @@ Numeric Summary:
         import google.generativeai as genai
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         prompt = f"""You are a senior data scientist and business analyst. Analyze this dataset and provide:
 
@@ -265,7 +265,7 @@ Only return valid JSON, no markdown."""
         import google.generativeai as genai
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         prompt = f"""You are a helpful, advanced AI assistant (similar to ChatGPT or Gemini AI) with access to the user's dataset.
 
@@ -307,7 +307,7 @@ Only return valid JSON."""
             return AIService._refuse_out_of_scope(question)
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         prompt = f"""You are a Python data science expert and general coding assistant. Based on the following dataset context, write working Python code for the user's request.
 
