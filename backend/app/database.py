@@ -329,9 +329,23 @@ def _add_column_if_missing(conn, table: str, column: str, col_type: str):
 
 
 def init_db() -> None:
-    """Create all database tables and run migrations on existing databases."""
-    # Create all new tables
-    Base.metadata.create_all(bind=engine)
+    """Create all database tables and run migrations on existing databases with retry logic."""
+    import time
+    max_retries = 6
+    retry_delay = 5
+
+    # Attempt to connect and initialize database, retrying in case of container boot race conditions (e.g. Railway/PostgreSQL startup)
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"Connecting to database (attempt {attempt}/{max_retries})...")
+            Base.metadata.create_all(bind=engine)
+            break
+        except Exception as e:
+            if attempt == max_retries:
+                print(f"[ERROR] Database initialization failed after {max_retries} attempts: {e}")
+                raise e
+            print(f"[WARNING] Database connection failed, retrying in {retry_delay}s... Error: {e}")
+            time.sleep(retry_delay)
 
     # Graceful migration: add new columns to existing `users` table
     with engine.begin() as conn:
