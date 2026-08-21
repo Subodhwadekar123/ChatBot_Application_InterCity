@@ -62,7 +62,7 @@ class AIService:
         context = AIService._build_context(df, info)
 
         # Try Gemini first, fall back to rule-based
-        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your_gemini_api_key_here":
+        if settings.GEMINI_API_KEY:
             try:
                 result = AIService._gemini_insights(context, df, info)
                 analysis_cache.set(cache_key, result)
@@ -88,14 +88,14 @@ class AIService:
 
         # Detect code-generation intent and execute the code on real data
         if AIService._is_code_request(question):
-            if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your_gemini_api_key_here":
+            if settings.GEMINI_API_KEY:
                 try:
                     return AIService._gemini_code_answer(context, question, df)
                 except Exception as e:
                     logger.warning(f"Gemini code answer failed, using rule-based: {e}")
             return AIService._rule_based_code_answer_with_execution(question, df, info)
 
-        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your_gemini_api_key_here":
+        if settings.GEMINI_API_KEY:
             try:
                 return AIService._gemini_answer(context, question, df)
             except Exception as e:

@@ -219,7 +219,7 @@ def suggest_sql(
         })
 
     # 2. Gemini-powered suggestions if key is present
-    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your_gemini_api_key_here":
+    if settings.GEMINI_API_KEY:
         try:
             import google.generativeai as genai
             import json
