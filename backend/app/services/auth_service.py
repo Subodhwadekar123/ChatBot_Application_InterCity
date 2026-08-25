@@ -28,10 +28,12 @@ from app.services.audit_service import (
     log_password_changed, log_password_reset, log_account_locked,
     AuditAction, AuditSeverity
 )
-from app.services.email_service import (
-    send_verification_email_bg, send_password_reset_bg,
-    send_password_changed_bg, send_new_device_login_bg, send_account_locked_bg
-)
+# No-op email service wrappers (email service removed)
+def send_verification_email_bg(*args, **kwargs): pass
+def send_password_reset_bg(*args, **kwargs): pass
+def send_password_changed_bg(*args, **kwargs): pass
+def send_new_device_login_bg(*args, **kwargs): pass
+def send_account_locked_bg(*args, **kwargs): pass
 from app.utils.device_parser import parse_user_agent
 from app.utils.logger import setup_logger
 

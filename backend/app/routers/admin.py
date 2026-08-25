@@ -44,8 +44,7 @@ from sqlalchemy import desc, and_, or_
 from pydantic import BaseModel, EmailStr
 
 from app.database import (
-    get_db, UserRecord, SessionRecord, LoginHistory, AuditLog,
-    DatasetRecord, MLExperiment, IssueRecord
+    get_db, UserRecord, SessionRecord, LoginHistory, AuditLog
 )
 from app.routers.auth_deps import get_current_admin
 from app.services.audit_service import log_admin_action, log_event, AuditAction, AuditSeverity
@@ -216,9 +215,9 @@ async def get_stats(
         "unverified_users": db.query(UserRecord).filter(UserRecord.is_verified == False, UserRecord.is_deleted == False).count(),
         "suspended_users": db.query(UserRecord).filter(UserRecord.is_suspended == True).count(),
         "deleted_users": db.query(UserRecord).filter(UserRecord.is_deleted == True).count(),
-        "total_datasets": db.query(DatasetRecord).count(),
-        "total_experiments": db.query(MLExperiment).count(),
-        "total_issues": db.query(IssueRecord).count(),
+        "total_datasets": 0,
+        "total_experiments": 0,
+        "total_issues": 0,
         "active_sessions": db.query(SessionRecord).filter(SessionRecord.is_active == True).count(),
         "failed_logins_24h": db.query(LoginHistory).filter(
             LoginHistory.success == False,
@@ -862,26 +861,7 @@ async def list_all_datasets(
     admin: UserRecord = Depends(get_current_admin),
 ):
     """Queries details on all uploaded datasets."""
-    from app.database import DatasetRecord
-    records = db.query(DatasetRecord).order_by(DatasetRecord.created_at.desc()).all()
-    results = []
-    for r in records:
-        owner_email = None
-        if r.user_id:
-            owner = db.query(UserRecord).filter(UserRecord.id == r.user_id).first()
-            if owner:
-                owner_email = owner.email
-        results.append({
-            "id": r.id,
-            "original_filename": r.original_filename,
-            "file_size_bytes": r.file_size_bytes,
-            "rows": r.rows,
-            "columns": r.columns,
-            "status": r.status,
-            "created_at": r.created_at,
-            "owner_email": owner_email or "Global/Anonymous",
-        })
-    return results
+    return []
 
 
 @router.get("/issues", summary="List System Issues")
@@ -890,10 +870,7 @@ async def list_all_issues(
     admin: UserRecord = Depends(get_current_admin),
 ):
     """Retrieves all reported issues."""
-    issues = db.query(IssueRecord).order_by(IssueRecord.created_at.desc()).all()
-    return [{"id": i.id, "title": i.title, "category": i.category,
-             "description": i.description, "email": i.email,
-             "created_at": i.created_at} for i in issues]
+    return []
 
 
 @router.delete("/issues/{issue_id}", summary="Delete Issue")
@@ -902,9 +879,5 @@ async def delete_issue(
     db: Session = Depends(get_db),
     admin: UserRecord = Depends(get_current_admin),
 ):
-    issue = db.query(IssueRecord).filter(IssueRecord.id == issue_id).first()
-    if not issue:
-        raise HTTPException(status_code=404, detail="Issue not found.")
-    db.delete(issue)
-    db.commit()
-    return {"message": "Issue deleted."}
+    raise HTTPException(status_code=404, detail="Issue not found.")
+

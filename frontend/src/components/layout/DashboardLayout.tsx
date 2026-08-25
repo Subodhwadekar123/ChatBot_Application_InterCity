@@ -3,68 +3,13 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import AIChatWidget from '../chat/AIChatWidget';
 import InteractiveBackground from './InteractiveBackground';
 import { useStore } from '../../store/useStore';
-import { listDatasets, getDataset } from '../../services/api';
 
 const DashboardLayout: React.FC = () => {
-  const { sidebarCollapsed, datasets, activeDataset, addDataset, setActiveDataset } = useStore();
+  const { sidebarCollapsed } = useStore();
   const location = useLocation();
 
-  React.useEffect(() => {
-    const syncDatasets = async () => {
-      try {
-        const res = await listDatasets();
-        const backendList = res.datasets || [];
-        
-        // Load details for datasets not present in local store
-        for (const item of backendList) {
-          const alreadyStored = datasets.some(d => d.id === item.id);
-          if (!alreadyStored) {
-            try {
-              const fullDetails = await getDataset(item.id);
-              const mapped: any = {
-                id: fullDetails.dataset_id,
-                filename: fullDetails.filename,
-                file_size_mb: item.file_size_mb,
-                file_type: fullDetails.file_type,
-                dataset_info: fullDetails.dataset_info,
-                preview: fullDetails.preview,
-                uploaded_at: fullDetails.created_at,
-              };
-              addDataset(mapped);
-            } catch (err) {
-              console.error(`Failed to fetch details for dataset ${item.id}`, err);
-            }
-          }
-        }
-
-        // Set active dataset if not set and datasets are available
-        if (!activeDataset && backendList.length > 0) {
-          try {
-            const firstId = backendList[0].id;
-            const fullDetails = await getDataset(firstId);
-            const mapped: any = {
-              id: fullDetails.dataset_id,
-              filename: fullDetails.filename,
-              file_size_mb: backendList[0].file_size_mb,
-              file_type: fullDetails.file_type,
-              dataset_info: fullDetails.dataset_info,
-              preview: fullDetails.preview,
-              uploaded_at: fullDetails.created_at,
-            };
-            setActiveDataset(mapped);
-          } catch (err) {
-            console.error("Failed to auto-set active dataset", err);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to sync datasets list from backend", err);
-      }
-    };
-    syncDatasets();
-  }, []); // Run once on layout mount
 
   const mainMarginLeft = sidebarCollapsed ? 64 : 230;
 
@@ -103,9 +48,6 @@ const DashboardLayout: React.FC = () => {
       >
         {/* Header Bar */}
         <Header />
-
-        {/* Floating AI Assistant (global overlay) */}
-        <AIChatWidget />
 
         {/* Page Main Content */}
         <main

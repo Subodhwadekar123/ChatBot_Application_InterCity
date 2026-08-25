@@ -29,21 +29,9 @@ from slowapi import _rate_limit_exceeded_handler
 
 # ── Import All Routers ────────────────────────────────────────────────────────
 from app.routers import (
-    upload,
-    analysis,
-    cleaning,
-    statistics,
-    visualization,
-    ml,
-    ai_insights,
-    features,
-    reports,
     health,
-    issues,
     auth,
     admin,
-    sql,
-    admin_properties,
     chatbot,
 )
 
@@ -156,20 +144,8 @@ def create_app() -> FastAPI:
     API_PREFIX = "/api/v1"
 
     app.include_router(health.router, prefix=API_PREFIX, tags=["Health"])
-    app.include_router(upload.router, prefix=API_PREFIX, tags=["Upload"])
-    app.include_router(analysis.router, prefix=API_PREFIX, tags=["Analysis"])
-    app.include_router(cleaning.router, prefix=API_PREFIX, tags=["Cleaning"])
-    app.include_router(statistics.router, prefix=API_PREFIX, tags=["Statistics"])
-    app.include_router(visualization.router, prefix=API_PREFIX, tags=["Visualization"])
-    app.include_router(ml.router, prefix=API_PREFIX, tags=["Machine Learning"])
-    app.include_router(ai_insights.router, prefix=API_PREFIX, tags=["AI Insights"])
-    app.include_router(features.router, prefix=API_PREFIX, tags=["Feature Engineering"])
-    app.include_router(reports.router, prefix=API_PREFIX, tags=["Reports"])
-    app.include_router(issues.router, prefix=API_PREFIX, tags=["Issues"])
     app.include_router(auth.router, prefix=API_PREFIX, tags=["Authentication"])
     app.include_router(admin.router, prefix=API_PREFIX, tags=["Administration"])
-    app.include_router(sql.router, prefix=API_PREFIX, tags=["SQL"])
-    app.include_router(admin_properties.router, prefix=API_PREFIX, tags=["Administration"])
     app.include_router(chatbot.router, prefix=API_PREFIX, tags=["Chatbot"])
 
     # ── Root & Utility Endpoints ──────────────────────────────────────────────
@@ -216,17 +192,8 @@ def create_app() -> FastAPI:
             "endpoints": [
                 f"{API_PREFIX}/health",
                 f"{API_PREFIX}/auth",
-                f"{API_PREFIX}/upload",
-                f"{API_PREFIX}/analysis",
-                f"{API_PREFIX}/cleaning",
-                f"{API_PREFIX}/statistics",
-                f"{API_PREFIX}/visualization",
-                f"{API_PREFIX}/ml",
-                f"{API_PREFIX}/ai-insights",
-                f"{API_PREFIX}/features",
-                f"{API_PREFIX}/reports",
-                f"{API_PREFIX}/issues",
                 f"{API_PREFIX}/admin",
+                f"{API_PREFIX}/chatbot",
             ],
         }
 

@@ -1,7 +1,7 @@
 @echo off
-title AI Data Analyst - Dev Launcher
+title InterCity Property Chatbot - Dev Launcher
 echo ============================================
-echo  AI Data Analyst - Starting Dev Servers
+echo  InterCity Property Chatbot - Starting Dev Servers
 echo ============================================
 echo.
 

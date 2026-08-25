@@ -29,7 +29,8 @@ from app.database import (
     SessionRecord,
     AuditLog,
     PasswordResetToken,
-    EmailVerificationToken
+    EmailVerificationToken,
+    init_db
 )
 from app.services.security import hash_password, verify_password, create_access_token, verify_access_token
 
@@ -45,6 +46,8 @@ def run_tests():
     print("=" * 70)
     print("STARTING AUTHENTICATION & AUTHORIZATION SYSTEM VERIFICATION")
     print("=" * 70)
+
+    init_db()
 
     client = TestClient(app)
 

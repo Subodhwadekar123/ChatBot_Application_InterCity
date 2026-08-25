@@ -41,53 +41,18 @@ const navSections: NavSection[] = [
   {
     heading: 'Core',
     items: [
-      { icon: <Home size={17} />, label: 'Home', path: '/' },
-      { icon: <Database size={17} />, label: 'Overview', path: '/dashboard' },
-      { icon: <Upload size={17} />, label: 'Ingest Dataset', path: '/dashboard/upload' },
-    ],
-  },
-  {
-    heading: 'Data Suite',
-    items: [
-      { icon: <Layers size={17} />, label: 'EDA Studio', path: '/dashboard/eda' },
-      { icon: <Wand2 size={17} />, label: 'Data Cleaning', path: '/dashboard/cleaning' },
-      { icon: <BarChart2 size={17} />, label: 'Visualizations', path: '/dashboard/visualization' },
-      { icon: <FlaskConical size={17} />, label: 'Feature Engineering', path: '/dashboard/features' },
-      { icon: <TrendingUp size={17} />, label: 'Statistics', path: '/dashboard/statistics' },
-    ],
-  },
-  {
-    heading: 'AI & Intelligence',
-    items: [
-      { icon: <Brain size={17} />, label: 'AutoML Studio', path: '/dashboard/ml' },
-      { icon: <Database size={17} />, label: 'SQL Workplace', path: '/dashboard/sql' },
-      { icon: <Sparkles size={17} />, label: 'AI Executive Brief', path: '/dashboard/ai-insights' },
-      { icon: <MessageSquare size={17} />, label: 'Property AI Chat', path: '/dashboard/property-chat' },
-    ],
-  },
-  {
-    heading: 'Outputs & Config',
-    items: [
-      { icon: <FileText size={17} />, label: 'Reports & Export', path: '/dashboard/reports' },
-      { icon: <User size={17} />, label: 'Profile & Security', path: '/dashboard/profile' },
-      { icon: <Settings size={17} />, label: 'Settings', path: '/dashboard/settings' },
+      { icon: <MessageSquare size={17} />, label: 'Property AI Chat', path: '/' },
     ],
   },
 ];
 
+
 const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, setSidebarCollapsed, activeDataset, user, logout } = useStore();
+  const { sidebarCollapsed, setSidebarCollapsed, user, logout } = useStore();
+
   const navigate = useNavigate();
 
   const dynamicSections = [...navSections];
-  if (user?.is_admin) {
-    dynamicSections.push({
-      heading: 'Administration',
-      items: [
-        { icon: <Shield size={17} />, label: 'Admin Portal', path: '/admin' },
-      ],
-    });
-  }
 
   const width = sidebarCollapsed ? 64 : 230;
 
@@ -122,11 +87,11 @@ const Sidebar: React.FC = () => {
           minHeight: 60,
           justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
         }}
-        onClick={() => navigate('/dashboard')}
+        onClick={() => navigate('/')}
       >
         <img 
           src="/logo.jpg" 
-          alt="Infinitics AI" 
+          alt="InterCity AI" 
           style={{
             width: 30,
             height: 30,
@@ -153,7 +118,7 @@ const Sidebar: React.FC = () => {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Infinitics <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>AI</span>
+                InterCity <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>AI</span>
               </span>
             </motion.div>
           )}
@@ -189,7 +154,7 @@ const Sidebar: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path === '/dashboard' || item.path === '/'}
+                end={item.path === '/'}
                 className="sidebar-nav-link"
                 style={({ isActive }) => ({
                   display: 'flex',
@@ -266,59 +231,7 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      {/* Active Dataset Drawer */}
-      <AnimatePresence>
-        {activeDataset && !sidebarCollapsed && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              margin: '0 8px 8px',
-              padding: '8px 10px',
-              borderRadius: 8,
-              background: 'var(--bg-canvas)',
-              border: '1px solid var(--border-default)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--color-success)' }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    fontWeight: 700,
-                  }}
-                >
-                  Active Workspace
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {activeDataset.filename || 'Dataset'}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Active Dataset Drawer removed */}
 
       {/* User Profile & Sign Out Footer */}
       {!sidebarCollapsed && user && (

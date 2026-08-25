@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     """
 
     # ── Application ──────────────────────────────────────────────────────────
-    APP_NAME: str = "AI Data Analyst"
+    APP_NAME: str = "InterCity Property Chatbot"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
@@ -50,10 +50,11 @@ class Settings(BaseSettings):
         return self.MAX_FILE_SIZE_MB * 1024 * 1024
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str = "sqlite:///./ai_data_analyst.db"
+    DATABASE_URL: str = "sqlite:///./intercity_property.db"
 
     # ── AI / LLM ──────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
     # ── Security & JWT ────────────────────────────────────────────────────────
     SECRET_KEY: str = "change-this-in-production-please"
@@ -82,8 +83,8 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 1025                           # MailHog default
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "noreply@ai-data-analyst.com"
-    SMTP_FROM_NAME: str = "AI Data Analyst"
+    SMTP_FROM: str = "noreply@intercity.in"
+    SMTP_FROM_NAME: str = "InterCity Property Chatbot"
     SMTP_USE_TLS: bool = False                      # True for production SMTP
     SMTP_USE_SSL: bool = False
 
@@ -93,7 +94,7 @@ class Settings(BaseSettings):
     BACKGROUND_WORKERS: int = 4
 
     class Config:
-        env_file = ".env"
+        env_file = [".env", "../.env"]
         env_file_encoding = "utf-8"
         case_sensitive = True
 

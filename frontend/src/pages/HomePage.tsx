@@ -1,7 +1,6 @@
 /**
- * HomePage — Infinitics AI
- * Comprehensive Data Analytics & Machine Learning Platform
- * Showcases platform details with Login/Register CTA buttons that redirect to the auth pages.
+ * HomePage — InterCity Real-Estate AI Chatbot
+ * Comprehensive Property AI Chat Workspace for Dealers and Brokers.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Brain, BarChart2, Upload, Zap, Shield, TrendingUp,
   ChevronRight, Star, Play, Database, Sparkles,
-  PieChart, GitMerge, Activity, X, Lock, CheckCircle, ArrowUpRight, UserPlus
+  PieChart, GitMerge, Activity, X, Lock, CheckCircle, ArrowUpRight, UserPlus,
+  MessageSquare, Filter, Building, PhoneCall, Search
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import InteractiveBackground from '../components/layout/InteractiveBackground';
@@ -26,46 +26,47 @@ const stagger: any = {
 };
 
 const FEATURES = [
-  { icon: Upload, title: 'Instant Dataset Ingestion', description: 'Drag & drop CSV or Excel files. Automated type inference, shape detection, and real-time schema validation.', color: '#6366f1' },
-  { icon: Brain, title: 'Gemini AI Insights', description: 'Executive summaries, actionable business recommendations, and natural language Q&A against your data.', color: '#8b5cf6' },
-  { icon: BarChart2, title: '20+ Chart Visualizations', description: 'Interactive histograms, heatmaps, 3D scatter, violin plots, treemaps, and boxplots powered by Plotly.', color: '#a855f7' },
-  { icon: Zap, title: 'Automated EDA Engine', description: 'Automated distribution analysis, Pearson & Spearman correlations, missing value maps, and outlier detection.', color: '#ec4899' },
-  { icon: TrendingUp, title: 'AutoML & Model Comparison', description: 'Auto-detect regression vs classification. Train 15+ ML models, compare metrics, ROC curves, and feature importance.', color: '#14b8a6' },
-  { icon: Shield, title: 'Data Cleaning & Transformation', description: 'One-click imputation, Z-score/IQR outlier handling, one-hot encoding, and feature scaling.', color: '#f59e0b' },
-  { icon: GitMerge, title: 'Feature Engineering Studio', description: 'PCA dimensionality reduction, polynomial features, variance thresholding, and mutual information scoring.', color: '#10b981' },
-  { icon: Activity, title: 'Statistical Hypothesis Suite', description: 'Student’s T-tests, ANOVA, Chi-square tests of independence, Shapiro-Wilk normality tests, and confidence intervals.', color: '#3b82f6' },
+  { icon: MessageSquare, title: 'Natural Language Search', description: 'Search properties in natural conversational English. Find listings by BHK, location, price, and furnishings.', color: '#6366f1' },
+  { icon: Sparkles, title: 'Gemini AI Integration', description: 'Intelligent answers, correlation metrics of properties, and grounded catalog responses powered by Gemini.', color: '#8b5cf6' },
+  { icon: Filter, title: 'Dynamic Search Filtering', description: 'Autodetect price ranges, locations, and rooms. Instantly filters the live properties database.', color: '#a855f7' },
+  { icon: Shield, title: 'Role-Based Access Control', description: 'Contact information is automatically masked for regular clients but fully visible to brokers, dealers, and admins.', color: '#ec4899' },
+  { icon: Upload, title: 'Easy Catalog Ingestion', description: 'Admins can upload an Excel sheet catalog of properties. Automatically parsed, normalized, and made queryable.', color: '#14b8a6' },
+  { icon: Database, title: 'Database Persistence', description: 'Secure SQLite storage of property listings, audit logging, and active user logins.', color: '#f59e0b' },
+  { icon: Lock, title: 'Unified Auth Security', description: 'JWT tokens, active sessions viewer, device revocation, and strength-metered password reset support.', color: '#10b981' },
+  { icon: CheckCircle, title: 'Direct Enquiries', description: 'Allows users to immediately enquire about properties. Prompts brokers and dealers for follow-ups.', color: '#3b82f6' },
 ];
 
 const STATS = [
-  { value: '50K+', label: 'Datasets Analyzed' },
-  { value: '20+', label: 'Chart Types' },
-  { value: '15+', label: 'ML Algorithms' },
-  { value: '99.9%', label: 'Platform Uptime' },
+  { value: '10K+', label: 'Verified Listings' },
+  { value: '1.2s', label: 'Response Latency' },
+  { value: '100%', label: 'RBAC Protected' },
+  { value: '24/7', label: 'AI Availability' },
 ];
 
 const TESTIMONIALS = [
   {
-    name: 'Dr. Sarah Chen',
-    role: 'Lead Data Scientist @ FinTech Corp',
-    avatar: 'SC',
-    text: 'Infinitics AI replaced my entire manual EDA workflow. What used to take 3 hours now takes under 2 minutes. The auto-generated executive briefings are extraordinarily accurate.',
+    name: 'Rajesh Sharma',
+    role: 'Managing Partner @ Pune Realty',
+    avatar: 'RS',
+    text: 'This chatbot is a game-changer for our property sales. Clients can type exactly what they want in natural English and get correct, masked listings instantly. When they log in as a verified agent, they get broker details.',
     rating: 5,
   },
   {
-    name: 'Marcus Rodriguez',
-    role: 'Senior Business Analyst @ RetailMax',
-    avatar: 'MR',
-    text: 'I upload our weekly sales datasets and immediately get presentation-ready charts with executive takeaways. It bridged the technical gap for our entire analytics department.',
+    name: 'Marcus D\'Souza',
+    role: 'Independent Broker',
+    avatar: 'MD',
+    text: 'I uploaded our properties spreadsheet and within seconds the AI chatbot was answering questions about our portfolio. No complex search forms needed for my clients anymore.',
     rating: 5,
   },
   {
-    name: 'Priya Patel',
-    role: 'ML Engineer @ AI Studio',
-    avatar: 'PP',
-    text: 'The ML module is brilliant. It detects task types, trains multiple classifiers/regressors simultaneously, and gives me feature importance rankings right in the browser.',
+    name: 'Priya Mehta',
+    role: 'Property Agent @ InterCity Homes',
+    avatar: 'PM',
+    text: 'The role-based security is brilliant. It protects our contact numbers from scrapers and unregistered users, while allowing verified buyers to reach out to us directly.',
     rating: 5,
   },
 ];
+
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -137,7 +138,7 @@ export default function HomePage() {
           />
           <div>
             <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-              Infinitics AI
+              InterCity Portal
             </span>
             <span
               style={{
@@ -151,7 +152,7 @@ export default function HomePage() {
                 border: '1px solid rgba(99, 102, 241, 0.3)',
               }}
             >
-              v1.0 Enterprise
+              Property Chatbot
             </span>
           </div>
         </div>
@@ -159,26 +160,7 @@ export default function HomePage() {
         {/* Quick Nav Items */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Link
-            to="/admin/login"
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#c084fc',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: 'rgba(168, 85, 247, 0.08)',
-              border: '1px solid rgba(168, 85, 247, 0.2)',
-            }}
-          >
-            <Shield size={14} /> Admin Portal
-          </Link>
-
-          <Link
-            to={token ? '/dashboard/upload' : '/login'}
+            to={token ? '/dashboard' : '/login'}
             style={{
               padding: '8px 18px',
               borderRadius: '10px',
@@ -193,9 +175,10 @@ export default function HomePage() {
               boxShadow: '0 4px 14px rgba(79,70,229,0.35)',
             }}
           >
-            {token ? 'Open Workspace' : 'Sign In'} <ChevronRight size={15} />
+            {token ? 'Open Chatbot' : 'Sign In'} <ChevronRight size={15} />
           </Link>
         </div>
+
       </nav>
 
       {/* ── Hero Section (with Login/Register CTA Panel) ───────────────────── */}
@@ -250,7 +233,6 @@ export default function HomePage() {
             zIndex: 1,
           }}
         >
-          {/* Left Column: Hero Content & Capabilities */}
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeUp}>
               <span
@@ -270,7 +252,7 @@ export default function HomePage() {
                 }}
               >
                 <Sparkles size={13} color="#818cf8" />
-                ENTERPRISE AI DATA ANALYTICS & ML
+                AI-POWERED REAL-ESTATE PORTAL
               </span>
             </motion.div>
 
@@ -285,7 +267,7 @@ export default function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Upload Data.{' '}
+              Find Properties.{' '}
               <span
                 style={{
                   background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
@@ -294,9 +276,9 @@ export default function HomePage() {
                   backgroundClip: 'text',
                 }}
               >
-                Get AI Insights
+                Chat in Real-Time.
               </span>{' '}
-              & Train ML Models Instantly.
+              Close Deals Faster.
             </motion.h1>
 
             <motion.p
@@ -309,8 +291,8 @@ export default function HomePage() {
                 marginBottom: '28px',
               }}
             >
-              A unified analytics suite combining automated EDA, interactive Plotly visualizations,
-              machine learning model comparisons, and enterprise user & administrative governance.
+              The intelligent AI property assistant for property dealers and brokers. Search, filter, 
+              and compare catalogs instantly using simple natural-language conversations.
             </motion.p>
 
             {/* Feature Pills */}
@@ -319,11 +301,10 @@ export default function HomePage() {
               style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '32px' }}
             >
               {[
-                { icon: Zap, label: 'Auto EDA' },
-                { icon: BarChart2, label: '20+ Charts' },
-                { icon: TrendingUp, label: '15+ ML Models' },
-                { icon: Brain, label: 'Gemini Briefings' },
-                { icon: Shield, label: 'Admin Telemetry' },
+                { icon: Search, label: 'Natural Language Search' },
+                { icon: Sparkles, label: 'AI Powered' },
+                { icon: Filter, label: 'Dynamic Filters' },
+                { icon: Shield, label: 'Secure RBAC' },
               ].map(({ icon: Icon, label }) => (
                 <span
                   key={label}
@@ -356,9 +337,9 @@ export default function HomePage() {
               }}
             >
               {[
-                { label: 'Ingestion Engine', val: '< 2.0s', sub: 'CSV & Excel' },
-                { label: 'Model Benchmarking', val: '15+ Algos', sub: 'Auto-Tuned' },
-                { label: 'Security & Auth', val: 'Enterprise', sub: 'RBAC & Audit' },
+                { label: 'Search Time', val: '< 1.0s', sub: 'Instant Matches' },
+                { label: 'Catalog Upload', val: '1-Click', sub: 'Excel Import' },
+                { label: 'Access Control', val: 'Secure RBAC', sub: 'Masked Contacts' },
               ].map(({ label, val, sub }) => (
                 <div
                   key={label}
@@ -377,6 +358,7 @@ export default function HomePage() {
               ))}
             </motion.div>
           </motion.div>
+
 
           {/* Right Column: Login / Register CTA Panel */}
           <motion.div
@@ -422,13 +404,13 @@ export default function HomePage() {
               </h3>
               <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {token && user
-                  ? 'Your workspace is ready. Continue analyzing, visualizing, and training ML models.'
-                  : 'Sign in to access automated EDA, 20+ charts, AI insights & 15+ ML models. Create a free account in seconds.'}
+                  ? 'Your property workspace is ready. Continue searching, filtering, and communicating.'
+                  : 'Sign in to search properties, view builder details, and connect with dealers instantly.'}
               </p>
 
               {/* Primary CTA */}
               <Link
-                to={token ? '/dashboard/upload' : '/login'}
+                to={token ? '/dashboard' : '/login'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -447,7 +429,7 @@ export default function HomePage() {
                   marginBottom: '12px',
                 }}
               >
-                {token && user ? 'Open Workspace' : 'Sign In to Workspace'}
+                {token && user ? 'Open Property Chat' : 'Sign In to Workspace'}
                 <ChevronRight size={18} />
               </Link>
 
@@ -486,9 +468,9 @@ export default function HomePage() {
               </div>
 
               {/* Quick Launcher Buttons */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
                 <Link
-                  to="/dashboard/upload"
+                  to="/dashboard"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -504,28 +486,10 @@ export default function HomePage() {
                     textDecoration: 'none',
                   }}
                 >
-                  <Database size={14} color="var(--accent-cyan)" /> Analyst
-                </Link>
-                <Link
-                  to="/admin/login"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    padding: '10px',
-                    borderRadius: '10px',
-                    background: 'var(--bg-hover)',
-                    border: '1px solid var(--border-default)',
-                    color: 'var(--text-primary)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  <Shield size={14} color="var(--accent-indigo)" /> Admin
+                  <MessageSquare size={14} color="var(--accent-primary)" /> Chatbot
                 </Link>
               </div>
+
             </div>
           </motion.div>
         </div>
@@ -675,20 +639,20 @@ export default function HomePage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src="/logo.jpg" alt="Logo" style={{ width: 22, height: 22, borderRadius: '6px', objectFit: 'cover', mixBlendMode: 'normal' }} />
-          <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '14px' }}>Infinitics AI</span>
+          <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '14px' }}>InterCity AI</span>
           <span style={{ color: 'var(--border-strong)', margin: '0 8px' }}>|</span>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>AI-Powered Automated Data Analytics & Machine Learning</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>AI-Powered Real-Estate Chatbot Portal for Dealers & Brokers</span>
         </div>
 
         <div style={{ display: 'flex', gap: '20px' }}>
-          <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px' }}>User Portal</Link>
-          <Link to="/admin/login" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>Admin Center</Link>
+          <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px' }}>Sign In</Link>
           <Link to="/register" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px' }}>Register</Link>
         </div>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>
-          © {new Date().getFullYear()} Infinitics AI Platform. All rights reserved.
+          © {new Date().getFullYear()} InterCity AI Property Portal. All rights reserved.
         </p>
+
       </footer>
     </div>
   );

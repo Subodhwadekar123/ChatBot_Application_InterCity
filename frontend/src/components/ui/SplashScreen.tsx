@@ -78,7 +78,7 @@ const SplashScreen: React.FC = () => {
               boxShadow: '0 0 30px rgba(99, 102, 241, 0.5)'
             }}
           >
-            <img src="/logo.jpg" alt="Infinitics Logo" style={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'cover', mixBlendMode: 'screen' }} />
+            <img src="/logo.jpg" alt="InterCity Logo" style={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'cover', mixBlendMode: 'screen' }} />
           </motion.div>
         </div>
 
@@ -87,9 +87,9 @@ const SplashScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2 }}
-          style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.05em' }}
+          style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}
         >
-          Infinitics AI
+          InterCity AI
         </motion.h1>
         
         <motion.p
@@ -99,7 +99,7 @@ const SplashScreen: React.FC = () => {
           style={{ fontSize: '1.2rem', color: '#94a3b8', margin: '0 0 40px', display: 'flex', alignItems: 'center', gap: '8px' }}
         >
           <Sparkles size={18} color="#f59e0b" />
-          Loading the fully automated website just for you...
+          Connecting you to live real-estate listings...
         </motion.p>
 
         {/* Loading Bar */}

@@ -63,12 +63,8 @@ const LoginPage: React.FC = () => {
       setUser(res.user as AuthUser);
       toast.success(`Welcome back, ${res.user.full_name || res.user.email}!`);
 
-      // Route based on role
-      if (res.user.is_admin || res.user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      // Always route to dashboard
+      navigate('/dashboard');
     } catch (err: any) {
       const msg = err.message || 'Login failed. Please verify your credentials.';
       setError(msg);
@@ -290,22 +286,6 @@ const LoginPage: React.FC = () => {
 
         {/* Quick Footer Links */}
         <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <Link to="/admin/login" style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '12px',
-            color: '#a5b4fc',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            textDecoration: 'none',
-            fontWeight: 600,
-          }}>
-            <User size={13} /> Admin Portal
-          </Link>
-
-          <span style={{ color: '#334155' }}>•</span>
 
           <button
             type="button"

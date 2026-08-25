@@ -1,6 +1,7 @@
 /**
  * Chatbot & Properties API Service
- * Handles queries to the properties chatbot and admin property Excel ingestion.
+ * Handles queries to the live SQL Server property chatbot.
+ * No admin upload functions — data comes from the live database.
  */
 
 import axios from 'axios';
@@ -45,21 +46,7 @@ api.interceptors.response.use(
   }
 );
 
-// ── Ingestion (Admin) ───────────────────────────────────────────────────────
-
-export const uploadPropertiesExcel = (file: File): Promise<any> => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return api.post('/admin/properties/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-};
-
-export const getAdminPropertiesMetadata = (): Promise<any> => {
-  return api.get('/admin/properties/metadata');
-};
-
-// ── Chatbot (All Logged-in Users) ───────────────────────────────────────────
+// ── Chatbot (All Authenticated Users) ───────────────────────────────────────
 
 export const getPropertiesMetadata = (): Promise<any> => {
   return api.get('/properties/metadata');

@@ -1,7 +1,7 @@
 @echo off
-title AI Data Analyst - Stop Dev Servers
+title InterCity Property Chatbot - Stop Dev Servers
 echo ============================================
-echo  AI Data Analyst - Stopping Dev Servers
+echo  InterCity Property Chatbot - Stopping Dev Servers
 echo ============================================
 echo.
 
