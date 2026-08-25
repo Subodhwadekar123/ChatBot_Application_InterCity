@@ -65,8 +65,7 @@ KNOWN_LOCATIONS = [
 
 class PropertyService:
     """Handles chatbot queries against the live SQL Server property database."""
-
-    # Reverted back to Gemini
+    _gemini_active = True
 
     @staticmethod
     def _check_missing_basic_filters(filters: Dict[str, Any]) -> Dict[str, List[str]]:
@@ -337,8 +336,8 @@ class PropertyService:
         question: str, history: List[Dict[str, str]]
     ) -> Dict[str, Any]:
         """Parse natural language query into structured filters using Gemini or regex fallback."""
-        if not settings.GEMINI_API_KEY:
-            logger.info("Gemini key not configured. Using rule-based fallback.")
+        if not settings.GEMINI_API_KEY or not PropertyService._gemini_active:
+            logger.info("Gemini key not configured or marked inactive. Using rule-based fallback.")
             return PropertyService._fallback_parse_query(question)
 
         try:
@@ -410,7 +409,8 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
             data = json.loads(response.text.strip())
             return data
         except Exception as e:
-            logger.error(f"Gemini parse failed: {e}. Using fallback.")
+            logger.error(f"Gemini parse failed: {e}. Disabling Gemini parsing.")
+            PropertyService._gemini_active = False
             return PropertyService._fallback_parse_query(question)
 
     @staticmethod
@@ -954,7 +954,7 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
                 "increase the budget range, or try different BHK options."
             )
 
-        if not settings.GEMINI_API_KEY:
+        if not settings.GEMINI_API_KEY or not PropertyService._gemini_active:
             if missing_basics:
                 return f"I found multiple properties, but to help me narrow down, could you please specify: {', '.join(missing_basics)}?"
             elif varying_fields:
@@ -1045,8 +1045,16 @@ CRITICAL INSTRUCTIONS:
             response = model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            logger.error(f"Gemini response generation failed: {e}")
-            return PropertyService._fallback_generate_response(properties)
+            logger.error(f"Gemini response generation failed: {e}. Disabling Gemini response generation.")
+            PropertyService._gemini_active = False
+            if missing_basics:
+                return f"I found multiple properties, but to help me narrow down, could you please specify: {', '.join(missing_basics)}?"
+            elif varying_fields:
+                field = list(varying_fields.keys())[0]
+                options = ", ".join(varying_fields[field])
+                return f"I found several matching properties. To narrow this down to your exact needs, would you prefer a specific {field}? Options are: {options}."
+            else:
+                return PropertyService._fallback_generate_response(properties)
 
     @staticmethod
     def _fallback_generate_response(properties: List[Dict[str, Any]]) -> str:
