@@ -295,7 +295,7 @@ const PropertyChatPage: React.FC = () => {
               setChatMode(chatMode === 'bubble' ? 'fullscreen' : 'bubble');
               setIsMinimized(false);
             }}
-            title={chatMode === 'bubble' ? "Enter Fullscreen" : "Exit Fullscreen"}
+            title={chatMode === 'bubble' ? "Expand Chat" : "Restore Chat size"}
             style={{
               background: 'transparent',
               border: 'none',
@@ -387,17 +387,15 @@ const PropertyChatPage: React.FC = () => {
                     alignItems: isUser ? 'flex-end' : 'flex-start'
                   }}>
                     {/* Message Bubble */}
-                    <div style={{
-                      padding: '10px 14px',
-                      borderRadius: isUser ? '14px 14px 0 14px' : '0 14px 14px 14px',
-                      background: isUser ? 'var(--accent-primary)' : 'var(--bg-canvas)',
-                      color: isUser ? '#fff' : 'var(--text-primary)',
-                      border: isUser ? 'none' : '1px solid var(--border-default)',
-                      fontSize: '13px',
-                      lineHeight: 1.5,
-                      whiteSpace: 'pre-line',
-                      boxShadow: 'var(--shadow-xs)'
-                    }}>
+                    <div 
+                      className={isUser ? "premium-message-user" : "premium-message-bot"}
+                      style={{
+                        padding: '12px 16px',
+                        fontSize: '13.5px',
+                        lineHeight: 1.5,
+                        whiteSpace: 'pre-line'
+                      }}
+                    >
                       {msg.content}
                     </div>
 
@@ -424,6 +422,7 @@ const PropertyChatPage: React.FC = () => {
                         {msg.properties.map((prop) => (
                           <div
                             key={prop.id}
+                            className="premium-property-card"
                             style={{
                               background: 'var(--bg-surface)',
                               border: '1px solid var(--border-strong)',
@@ -927,6 +926,7 @@ const PropertyChatPage: React.FC = () => {
           animate={{ scale: 1, opacity: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          className="pulse-chat-btn"
           style={{
             position: 'absolute',
             bottom: '24px',
@@ -962,31 +962,24 @@ const PropertyChatPage: React.FC = () => {
         </motion.button>
       )}
 
-      {/* ── FLOATING / FULLSCREEN CHAT CONSOLE ── */}
+      {/* ── FLOATING / EXPANDED OVERLAY CHAT CONSOLE ── */}
       {isOpen && (
         <AnimatePresence>
           {chatMode === 'fullscreen' ? (
-            /* Fullscreen Mode Panel */
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'var(--bg-app)',
-                zIndex: 1010,
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: 'var(--shadow-2xl)'
-              }}
-            >
-              {renderChatHeader()}
-              {renderChatBody()}
-            </motion.div>
+            /* Centered Overlay Modal Mode (Less than Fullscreen) */
+            <div className="premium-chat-backdrop" onClick={() => setIsOpen(false)}>
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+                className="premium-chat-modal"
+                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking modal itself
+              >
+                {renderChatHeader()}
+                {renderChatBody()}
+              </motion.div>
+            </div>
           ) : (
             /* Floating Dialog Mode */
             <motion.div
@@ -994,23 +987,7 @@ const PropertyChatPage: React.FC = () => {
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 80, opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              style={{
-                position: 'absolute',
-                bottom: '24px',
-                right: '24px',
-                width: '400px',
-                height: isMinimized ? '52px' : '580px',
-                maxHeight: '80vh',
-                backgroundColor: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '16px',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-                zIndex: 1010,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                transition: 'height 0.25s ease'
-              }}
+              className="premium-chat-floating"
             >
               {renderChatHeader()}
               {!isMinimized && renderChatBody()}
