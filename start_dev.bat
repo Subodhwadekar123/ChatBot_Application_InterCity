@@ -9,7 +9,7 @@ cd /d "%~dp0"
 
 REM --- Start Backend in its own window ---
 echo Starting Backend (http://127.0.0.1:8000)...
-start "AI-Data-Analyst-Backend" cmd /k "cd /d "%~dp0" && python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000"
+start "AI-Data-Analyst-Backend" cmd /k "cd /d "%~dp0" && python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload"
 
 REM --- Start Frontend in its own window ---
 echo Starting Frontend (http://localhost:3000)...

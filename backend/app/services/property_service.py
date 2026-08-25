@@ -529,14 +529,17 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
                 break
 
         if not matched_loc:
-            loc_match = re.search(r"(?:in|near|at|around)\s+([a-zA-Z]+)", q_lower)
+            loc_match = re.search(r"(?:in|near|at|around)\s+([a-zA-Z\s]+)", q_lower)
             if loc_match:
-                loc_candidate = loc_match.group(1).strip().capitalize()
+                loc_candidate = loc_match.group(1).strip().title()
                 known_cities = ["pune", "mumbai", "nashik", "nagpur", "thane"]
                 if loc_candidate.lower() in known_cities:
                     filters["city"] = loc_candidate
                 else:
                     filters["location"] = loc_candidate
+            else:
+                if not general_query and question.strip():
+                    filters["location"] = question.strip()
 
         return {
             "filters": filters,
