@@ -335,11 +335,6 @@ const PropertyChatPage: React.FC = () => {
   };
 
   const renderChatBody = () => {
-    const lastMessage = messages[messages.length - 1];
-    const activeSuggestions = (lastMessage && lastMessage.role === 'assistant' && !loading)
-      ? (lastMessage.suggestions || [])
-      : [];
-
     return (
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         {/* Subheader Metadata Freshness Bar */}
@@ -398,6 +393,41 @@ const PropertyChatPage: React.FC = () => {
                     >
                       {msg.content}
                     </div>
+
+                    {/* Dynamic Suggestions Chips (Just below the Answer Bubble) */}
+                    {!isUser && index === messages.length - 1 && !loading && msg.suggestions && msg.suggestions.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px', marginBottom: '4px', width: '100%' }}>
+                        {msg.suggestions.map((s, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSend(s)}
+                            style={{
+                              background: 'var(--bg-surface)',
+                              border: '1px solid var(--border-default)',
+                              borderRadius: '999px',
+                              padding: '6px 12px',
+                              fontSize: '11.5px',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              boxShadow: 'var(--shadow-xs)',
+                              transition: 'all 0.2s',
+                              outline: 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              e.currentTarget.style.color = 'var(--accent-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'var(--border-default)';
+                              e.currentTarget.style.color = 'var(--text-secondary)';
+                            }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Timestamp */}
                     <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -659,39 +689,6 @@ const PropertyChatPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Dynamic Suggestions Chips */}
-        {activeSuggestions.length > 0 && (
-          <div style={{ padding: '0 16px', display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-            {activeSuggestions.map((s, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSend(s)}
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: '999px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  boxShadow: 'var(--shadow-xs)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-default)';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-                }}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Input Form Bar */}
         <div style={{
