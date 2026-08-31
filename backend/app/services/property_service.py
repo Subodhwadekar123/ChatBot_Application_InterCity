@@ -58,89 +58,175 @@ KNOWN_LOCATIONS = [
     "kondhwa", "undri", "wagholi", "hinjawadi", "hinjewadi", "wakad", "kharadi", 
     "hadapsar", "ravet", "baner", "kothrud", "dhayari", "dhanori", "lohegaon", 
     "moshi", "katraj", "balewadi", "warje", "punawale", "pimple java", "pimple saudagar", 
-    "wanowrie", "bavdhan", "ambegaon budruk", "aundh", "pisoli", "narhe", 
-    "viman nagar", "rahatani", "charholi budruk"
+    "wanowrie", "wanwori", "bavdhan", "ambegaon", "ambegaon budruk", "aundh", "pisoli", "narhe", 
+    "viman nagar", "rahatani", "charholi", "charholi budruk", "sus", "pashan", "sangvi",
+    "nigdi", "nanded", "tathawade", "tathavade", "magarpatta", "akurdi", "saswad",
+    "bibvewadi", "bibwewadi", "yerwada", "yerawada", "kalyani nagar", "swargate",
+    "shivajinagar", "deccan", "chinchwad", "pimpri"
 ]
+
+# Comprehensive spelling alias mappings for maximum search recall across Pune database
+LOCATION_ALIASES = {
+    # Hinjewadi / Hinjawadi
+    "hinjewadi": ["hinjewadi", "hinjawadi", "hinjwadi", "hinjewasi", "hinjewdi", "hinjiewadi", "hinj"],
+    "hinjawadi": ["hinjewadi", "hinjawadi", "hinjwadi", "hinjewasi", "hinjewdi", "hinjiewadi", "hinj"],
+    "hinjawad": ["hinjewadi", "hinjawadi", "hinjwadi", "hinjawad", "hinj"],
+    
+    # Wakad
+    "wakad": ["wakad", "wakada", "wakade"],
+    "wakada": ["wakad", "wakada"],
+
+    # Pimple Areas
+    "pimple saudagar": ["pimple saudagar", "pimpale saudagar", "pimple", "saudagar"],
+    "pimple gurav": ["pimple gurav", "pimpale gurav", "pimple"],
+    "pimple nilakh": ["pimple nilakh", "pimpale nilakh", "pimple"],
+    "pimple java": ["pimple java", "pimple"],
+    "pimple": ["pimple saudagar", "pimple gurav", "pimple nilakh", "pimple java", "pimple"],
+
+    # Pimpri Chinchwad
+    "chinchwad": ["chinchwad", "chinjawad", "chinjwad", "chinchwadgaon", "chinj"],
+    "pimpri": ["pimpri", "pimpri chinchwad", "pimpri-chinchwad"],
+    "pimpri chinchwad": ["pimpri", "chinchwad", "chinjawad", "pimpri chinchwad"],
+
+    # Kharadi
+    "kharadi": ["kharadi", "khara", "kharadi rd"],
+    "khara": ["kharadi", "khara"],
+
+    # Hadapsar
+    "hadapsar": ["hadapsar", "hadapsar rd", "hadapsar gaon"],
+
+    # Kondhwa
+    "kondhwa": ["kondhwa", "kondwa", "kondhwa bk", "kondhwa khurd"],
+    "kondwa": ["kondhwa", "kondwa"],
+
+    # Wagholi / Nagar Road
+    "wagholi": ["wagholi", "wagaonsheri", "wag", "wagholi rd"],
+    "wagaonsheri": ["wagaonsheri", "viman nagar", "wagholi"],
+
+    # Viman Nagar
+    "viman nagar": ["viman nagar", "viman", "vimannagar"],
+    "viman": ["viman nagar", "vimannagar", "viman"],
+
+    # Kothrud
+    "kothrud": ["kothrud", "kothrud depot", "kothrud bus stand"],
+
+    # Baner / Balewadi
+    "baner": ["baner", "baner rd", "baner pashan"],
+    "balewadi": ["balewadi", "balewadi high street", "balewadi phata"],
+
+    # Aundh
+    "aundh": ["aundh", "aundh rd", "aundh gaon"],
+
+    # Bavdhan
+    "bavdhan": ["bavdhan", "bavdhan bk", "bavdhan khurd"],
+
+    # Undri
+    "undri": ["undri", "undri chowk", "undri pisoli"],
+
+    # Ravet / Punawale
+    "ravet": ["ravet", "ravet pradhikaran"],
+    "punawale": ["punawale", "punawal"],
+    "punawal": ["punawale", "punawal"],
+
+    # Dhayari / Narhe
+    "dhayari": ["dhayari", "dhayari phata"],
+    "narhe": ["narhe", "narhe ambegaon"],
+
+    # Dhanori / Lohegaon
+    "dhanori": ["dhanori", "dhanori lohegaon"],
+    "lohegaon": ["lohegaon", "lohegaon rd"],
+
+    # Moshi
+    "moshi": ["moshi", "moshi pradhikaran"],
+
+    # Katraj
+    "katraj": ["katraj", "katraj ghat", "katraj kondhwa"],
+
+    # Warje
+    "warje": ["warje", "warje malwadi"],
+
+    # Wanowrie
+    "wanowrie": ["wanowrie", "wanwori", "wanowri"],
+    "wanwori": ["wanowrie", "wanwori"],
+
+    # Ambegaon
+    "ambegaon": ["ambegaon", "ambegaon budruk", "ambegaon bk"],
+    "ambegaon budruk": ["ambegaon", "ambegaon budruk", "ambegaon bk"],
+
+    # Pisoli
+    "pisoli": ["pisoli", "pisoli rd"],
+
+    # Rahatani
+    "rahatani": ["rahatani", "rahatni"],
+
+    # Charholi
+    "charholi": ["charholi", "charholi budruk", "charholi bk"],
+    "charholi budruk": ["charholi", "charholi budruk", "charholi bk"],
+
+    # Sus / Pashan
+    "sus": ["sus", "sus road", "sus gaon"],
+    "pashan": ["pashan", "pashan rd"],
+
+    # Tathawade
+    "tathawade": ["tathawade", "tathavade"],
+    "tathavade": ["tathawade", "tathavade"],
+
+    # Magarpatta / Kalyani Nagar
+    "magarpatta": ["magarpatta", "magarpatta city"],
+    "kalyani nagar": ["kalyani nagar", "kalyaninagar"],
+
+    # Akurdi / Nigdi
+    "akurdi": ["akurdi", "akurdi station"],
+    "nigdi": ["nigdi", "nigdi pradhikaran"],
+
+    # Bibvewadi / Yerwada / Swargate
+    "bibvewadi": ["bibvewadi", "bibwewadi"],
+    "yerwada": ["yerwada", "yerawada"],
+    "swargate": ["swargate", "swargate bus stand"],
+    "shivajinagar": ["shivajinagar", "shivaji nagar"],
+}
 
 
 class PropertyService:
     """Handles chatbot queries against the live SQL Server property database."""
-    _gemini_active = True
+    _gemini_active = False
+    
+    # Gemini is permanently disabled as per user request to force rule-based logic and improve speed.
 
     @staticmethod
-    def _check_missing_basic_filters(filters: Dict[str, Any]) -> Dict[str, List[str]]:
+    def _check_missing_basic_filters(filters: Dict[str, Any]) -> List[str]:
         """
-        Check Stage 1 (Core Intent) and Stage 2 (Preferences) parameters.
-        Returns a dict indicating which stage has missing parameters, and the list of missing fields.
+        Check for missing basic parameters in a strict sequence:
+        1. Location
+        2. Estate Type (Residential/Commercial)
+        3. BHK
+        4. Budget (Price)
+        Returns a list with ONLY the FIRST missing parameter, to ensure questions are asked one by one.
         """
-        stage1_missing = []
-        
-        # Location/Area
+        # 1. Location
         loc = filters.get("location")
         city = filters.get("city")
         if not loc and not city:
-            stage1_missing.append("location")
-        elif str(loc).lower() == "any" or str(city).lower() == "any":
-            pass # Provided as Any
+            return ["location"]
             
-        # Dealing Type
-        dt = filters.get("dealing_type")
-        if not dt:
-            stage1_missing.append("rent or sale preference")
-        elif str(dt).lower() in ["any", "none"]:
-            pass
-            
-        # Property Type / Estate Type
+        # 2. Estate Type / Category
         et = filters.get("estate_type")
         pt = filters.get("property_type")
         if not et and not pt:
-            stage1_missing.append("residential or commercial category")
-        elif str(et).lower() in ["any", "none"] or str(pt).lower() in ["any", "none"]:
-            pass
+            return ["residential or commercial category"]
             
-        # BHK Type (only for residential or when category is not commercial)
-        if et is None or str(et).lower() != "commercial":
-            bhk = filters.get("bhk")
-            if bhk is None:
-                stage1_missing.append("BHK requirement")
-            elif bhk == -1 or str(bhk).lower() == "any":
-                pass
-                
-        if stage1_missing:
-            return {"stage": 1, "missing": stage1_missing}
+        # 3. BHK Type
+        bhk = filters.get("bhk")
+        if bhk is None:
+            return ["BHK requirement"]
             
-        # Stage 2: Budget/Amount, Parking, Furnishing, Amenities
-        stage2_missing = []
-        
+        # 4. Budget / Price Range
         min_p = filters.get("min_price")
         max_p = filters.get("max_price")
         if min_p is None and max_p is None:
-            stage2_missing.append("budget (price range)")
-        elif min_p == -1 or max_p == -1 or str(min_p).lower() == "any" or str(max_p).lower() == "any":
-            pass
+            return ["budget (price range)"]
             
-        pk = filters.get("parking")
-        if not pk:
-            stage2_missing.append("parking preference")
-        elif str(pk).lower() in ["any", "none"]:
-            pass
-            
-        fn = filters.get("furnishing")
-        if not fn:
-            stage2_missing.append("furnishing status")
-        elif str(fn).lower() in ["any", "none"]:
-            pass
-            
-        am = filters.get("amenities")
-        if not am:
-            stage2_missing.append("amenities / facilities")
-        elif str(am).lower() in ["any", "none"]:
-            pass
-            
-        if stage2_missing:
-            return {"stage": 2, "missing": stage2_missing}
-            
-        return {"stage": 0, "missing": []}
+        return []
 
     @staticmethod
     def _get_varying_fields(properties: List[Dict[str, Any]]) -> Dict[str, List[str]]:
@@ -224,33 +310,31 @@ class PropertyService:
         # 5. Dialog Flow Routing
         N = len(safe_properties)
         missing_basics = []
-        varying_fields = {}
         show_properties = False
+        force_show = parsed.get("force_show", False)
+        ask_for_parking = False
 
         if is_general:
             # General query, don't show properties, just chat
             show_properties = False
-        elif N <= 20:
-            # Precise result: show directly
+        elif force_show or N <= 30:
+            # Override to show directly or Results are <= 30
             show_properties = True
         else:
-            # Broad search: check parameters
+            # Broad search (> 30 properties): STRICT 4-step parameter check
             filters = parsed.get("filters", {})
-            check_result = PropertyService._check_missing_basic_filters(filters)
-            missing_basics = check_result["missing"]
+            missing_basics = PropertyService._check_missing_basic_filters(filters)
             
             if missing_basics:
-                # Missing Core or Preference parameters: ask for them and hide listings
+                # Any of the 4 basic parameters are missing: ask for the next one
                 show_properties = False
             else:
-                # Core parameters present, check varying attributes
-                varying_fields = PropertyService._get_varying_fields(safe_properties)
-                if varying_fields:
-                    # Can narrow down further
-                    show_properties = False
-                else:
-                    # Cannot narrow down further: display properties
-                    show_properties = True
+                # All 4 basic parameters are present
+                show_properties = True
+                if N > 50:
+                    # Optional: ask for parking/amenities if they aren't provided
+                    if not filters.get("parking") and not filters.get("amenities"):
+                        ask_for_parking = True
 
         # 6. Generate conversational response grounded in results and dialog state
         answer = PropertyService._generate_grounded_response(
@@ -258,47 +342,36 @@ class PropertyService:
             properties=safe_properties, 
             history=history,
             missing_basics=missing_basics,
-            varying_fields=varying_fields
+            ask_for_parking=ask_for_parking
         )
 
         # 7. Build suggestion chips
         suggestions = []
         if not is_general:
+            filters = parsed.get("filters", {})
+            target_place = filters.get("location") or filters.get("city")
+            loc_suffix = f" in {target_place.title()}" if target_place else ""
+
             if missing_basics:
                 next_missing = missing_basics[0]
                 if "location" in next_missing:
                     suggestions = ["In Wakad", "In Hinjewadi", "In Kharadi", "In Baner"]
                 elif "dealing" in next_missing:
-                    suggestions = ["For Rent", "For Sale", "Any dealing type is fine"]
+                    suggestions = [f"For Rent{loc_suffix}", f"For Sale{loc_suffix}", f"Any dealing type{loc_suffix}"]
                 elif "category" in next_missing or "residential" in next_missing:
-                    suggestions = ["Residential Flat", "Commercial Shop", "Commercial Office"]
+                    suggestions = [f"Residential Flat{loc_suffix}", f"Commercial Shop{loc_suffix}", f"Commercial Office{loc_suffix}"]
                 elif "BHK" in next_missing:
-                    suggestions = ["1 BHK Flat", "2 BHK Flat", "3 BHK Flat", "Any BHK"]
+                    suggestions = [f"1 BHK Flat{loc_suffix}", f"2 BHK Flat{loc_suffix}", f"3 BHK Flat{loc_suffix}", f"Any BHK{loc_suffix}"]
                 elif "budget" in next_missing or "price" in next_missing:
-                    suggestions = ["Under 30k (Rent)", "Under 50 Lakhs", "Between 50 to 80 Lakhs", "Any budget"]
+                    suggestions = [f"Under 30k (Rent){loc_suffix}", f"Under 50 Lakhs{loc_suffix}", f"Between 50 to 80 Lakhs{loc_suffix}", f"Any budget{loc_suffix}"]
                 elif "parking" in next_missing:
-                    suggestions = ["Need Covered Parking", "Open Parking is fine", "No parking needed", "Any parking"]
+                    suggestions = [f"Need Covered Parking{loc_suffix}", f"Open Parking is fine{loc_suffix}", f"No parking needed{loc_suffix}", f"Any parking{loc_suffix}"]
                 elif "furnishing" in next_missing:
-                    suggestions = ["Fully Furnished", "Semi-Furnished", "Unfurnished", "Any furnishing"]
+                    suggestions = [f"Fully Furnished{loc_suffix}", f"Semi-Furnished{loc_suffix}", f"Unfurnished{loc_suffix}", f"Any furnishing{loc_suffix}"]
                 elif "amenities" in next_missing:
-                    suggestions = ["With Swimming Pool", "Need elevator / lift", "With Gym", "No specific amenities"]
-            elif varying_fields:
-                first_field = list(varying_fields.keys())[0]
-                options = varying_fields[first_field]
-                if first_field == "bhk_type":
-                    suggestions = [f"Show {o}" for o in options[:3]]
-                elif first_field == "furnishing":
-                    suggestions = [f"Show {o} properties" for o in options[:3]]
-                elif first_field == "property_status":
-                    suggestions = [f"Show {o} properties" for o in options[:2]]
-                elif first_field == "property_type":
-                    suggestions = [f"Show {o}" for o in options[:3]]
-                elif first_field == "door_direction":
-                    suggestions = [f"Show {o} facing" for o in options[:3]]
-                elif first_field == "vastu_compliant":
-                    suggestions = [f"Show Vastu compliant" if o.lower() == "yes" else f"Any Vastu status" for o in options[:2]]
-                elif first_field == "amenities":
-                    suggestions = [f"With {o}" for o in options[:3]]
+                    suggestions = [f"With Swimming Pool{loc_suffix}", f"Need elevator / lift{loc_suffix}", f"With Gym{loc_suffix}", f"No specific amenities{loc_suffix}"]
+            elif ask_for_parking:
+                suggestions = [f"Need Covered Parking{loc_suffix}", f"Open Parking is fine{loc_suffix}", f"With Swimming Pool{loc_suffix}", f"With Gym{loc_suffix}", f"Show Results Directly"]
                     
         # Fallback to standard suggestions if needed
         if not suggestions:
@@ -338,7 +411,41 @@ class PropertyService:
         """Parse natural language query into structured filters using Gemini or regex fallback."""
         if not settings.GEMINI_API_KEY or not PropertyService._gemini_active:
             logger.info("Gemini key not configured or marked inactive. Using rule-based fallback.")
-            return PropertyService._fallback_parse_query(question)
+            
+            # Merge filters from history to maintain conversational state
+            cumulative_filters = {}
+            
+            # Find the index of the last "new search" message (optional, but keep it simple)
+            start_idx = 0
+            
+            # Parse past messages (from the last reset point onwards)
+            for msg in history[start_idx:]:
+                if msg.get("role") == "user":
+                    past_parsed = PropertyService._fallback_parse_query(msg.get("content", ""))
+                    for k, v in past_parsed.get("filters", {}).items():
+                        if v is not None:
+                            cumulative_filters[k] = v
+            
+            # Parse current question
+            current_parsed = PropertyService._fallback_parse_query(question)
+            current_filters = current_parsed.get("filters", {})
+            
+            # If current query specifies a location/city, and it differs from past location, reset context
+            current_loc = current_filters.get("location") or current_filters.get("city")
+            past_loc = cumulative_filters.get("location") or cumulative_filters.get("city")
+            
+            if current_loc and past_loc and current_loc.lower() != past_loc.lower():
+                logger.info(f"Location changed from {past_loc} to {current_loc}. Resetting past context filters.")
+                cumulative_filters = {}
+                
+            # Merge current into cumulative (current overrides past)
+            for k, v in current_filters.items():
+                if v is not None:
+                    cumulative_filters[k] = v
+                    
+            # The final parsed object uses cumulative filters, but current question's flags
+            current_parsed["filters"] = cumulative_filters
+            return current_parsed
 
         try:
             import google.generativeai as genai
@@ -405,6 +512,7 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
             response = model.generate_content(
                 prompt,
                 generation_config={"response_mime_type": "application/json"},
+                request_options={"timeout": 5.0}
             )
             data = json.loads(response.text.strip())
             return data
@@ -436,6 +544,7 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
         }
         sorting = None
         general_query = False
+        force_show = False
 
         # Greetings
         if any(
@@ -443,6 +552,13 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
             for k in ["hi", "hello", "hey", "greetings", "who are you", "help"]
         ):
             general_query = True
+            
+        # Force Show Keywords
+        if any(
+            k in q_lower
+            for k in ["show properties", "show results", "display properties", "skip", "show me properties", "show cards"]
+        ):
+            force_show = True
 
         # BHK
         bhk_match = re.search(r"(\d+)\s*(?:bhk|bedroom|rooms|bed)", q_lower)
@@ -537,15 +653,58 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
                     filters["city"] = loc_candidate
                 else:
                     filters["location"] = loc_candidate
-            else:
-                if not general_query and question.strip():
-                    filters["location"] = question.strip()
 
         return {
             "filters": filters,
             "sorting": sorting,
             "general_query": general_query,
+            "force_show": force_show,
         }
+
+    @staticmethod
+    def _generate_location_aliases(raw_loc: str) -> List[str]:
+        """
+        Generates all possible spelling variants, phonetic forms, token splits, 
+        and root stems for EVERY location word automatically.
+        """
+        if not raw_loc:
+            return []
+            
+        loc_clean = raw_loc.strip().lower()
+        aliases = set()
+        aliases.add(loc_clean)
+        
+        # 1. Check explicit alias map
+        if loc_clean in LOCATION_ALIASES:
+            for a in LOCATION_ALIASES[loc_clean]:
+                aliases.add(a.lower())
+                
+        # 2. Tokenize multi-word locations (e.g. "viman nagar" -> "viman", "nagar")
+        words = [w for w in re.split(r"[\s\-_,]+", loc_clean) if len(w) >= 3]
+        for w in words:
+            aliases.add(w)
+            
+            # Phonetic v/w substitution (e.g. Tathawade <-> Tathavade, Bavdhan <-> Bawdhan)
+            if "v" in w:
+                aliases.add(w.replace("v", "w"))
+            if "w" in w:
+                aliases.add(w.replace("w", "v"))
+                
+            # Phonetic e/a substitution (e.g. Hinjewadi <-> Hinjawadi)
+            if "e" in w:
+                aliases.add(w.replace("e", "a"))
+            if "a" in w:
+                aliases.add(w.replace("a", "e"))
+                
+            # Silent 'h' removal (e.g. Kondhwa -> Kondwa, Dhayari -> Dayari)
+            if "h" in w:
+                aliases.add(w.replace("h", ""))
+                
+            # Root stem (first 4 characters if word length >= 4)
+            if len(w) >= 4:
+                aliases.add(w[:4])
+                
+        return [a for a in aliases if len(a) >= 3]
 
     # ── Database Query ───────────────────────────────────────────────────────
 
@@ -619,6 +778,7 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
                 PossessionTypeModel.Name.label("possession_type_name"),
                 PropertyStatusTypeModel.Name.label("property_status_name"),
             )
+            .select_from(PropertyMasterModel)
             .join(
                 PropertyDetailsModel,
                 PropertyDetailsModel.PropMasterId == PropertyMasterModel.Id,
@@ -668,17 +828,21 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
             )
 
         if filters.get("location"):
-            loc = f"%{filters['location']}%"
-            conditions.append(
-                or_(
-                    PropertyDetailsModel.Area.ilike(loc),
-                    PropertyDetailsModel.LandMark.ilike(loc),
-                    PropertyDetailsModel.PropertyName.ilike(loc),
-                    PropertyDetailsModel.PropDesc.ilike(loc),
-                    PropertyDetailsModel.City.ilike(loc),
-                    PropertyDetailsModel.State.ilike(loc),
-                )
-            )
+            raw_loc = filters["location"].strip()
+            aliases = PropertyService._generate_location_aliases(raw_loc)
+            
+            loc_conditions = []
+            for alias in aliases:
+                loc_pat = f"%{alias}%"
+                loc_conditions.extend([
+                    PropertyDetailsModel.Area.ilike(loc_pat),
+                    PropertyDetailsModel.LandMark.ilike(loc_pat),
+                    PropertyDetailsModel.PropertyName.ilike(loc_pat),
+                    PropertyDetailsModel.PropDesc.ilike(loc_pat),
+                    PropertyDetailsModel.City.ilike(loc_pat),
+                    PropertyDetailsModel.State.ilike(loc_pat),
+                ])
+            conditions.append(or_(*loc_conditions))
 
         if filters.get("landmark"):
             conditions.append(
@@ -942,128 +1106,40 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
         properties: List[Dict[str, Any]],
         history: List[Dict[str, str]],
         missing_basics: List[str] = [],
-        varying_fields: Dict[str, List[str]] = {},
+        ask_for_parking: bool = False,
     ) -> str:
-        """Generate Gemini-powered or fallback response grounded in query results."""
+        """Generate rule-based response grounded in query results following the strict 4-step sequence."""
         # Check for greetings first
         greeting_resp = PropertyService._is_greeting_or_about(question)
         if greeting_resp:
             return greeting_resp
 
-        if not properties:
+        count = len(properties)
+        
+        if count == 0:
             return (
-                "I couldn't find any properties matching your requirements. "
+                "I couldn't find any properties matching your exact requirements. "
                 "Try broadening your search — for example, search by a different area, "
                 "increase the budget range, or try different BHK options."
             )
 
-        if not settings.GEMINI_API_KEY or not PropertyService._gemini_active:
-            if missing_basics:
-                return f"I found multiple properties, but to help me narrow down, could you please specify: {', '.join(missing_basics)}?"
-            elif varying_fields:
-                field = list(varying_fields.keys())[0]
-                options = ", ".join(varying_fields[field])
-                return f"I found several matching properties. To narrow this down to your exact needs, would you prefer a specific {field}? Options are: {options}."
+        if missing_basics:
+            missing_item = missing_basics[0]
+            if count > 0:
+                return f"I found **{count}** matching properties, but to help me narrow down, could you please specify your {missing_item}?"
             else:
-                return PropertyService._fallback_generate_response(properties)
-
-        try:
-            import google.generativeai as genai
-
-            genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-
-            props_text = ""
-            for idx, p in enumerate(properties[:15]):
-                props_text += (
-                    f"[{idx + 1}] {p.get('property_name', 'N/A')} — "
-                    f"{p.get('bhk_type', 'N/A')}, {p.get('property_type', 'N/A')}, "
-                    f"Location: {p.get('location', 'N/A')}, {p.get('city', 'N/A')}, "
-                    f"Price: {p.get('price_display', 'N/A')}, "
-                    f"Area: {p.get('carpet_area', 0)} {p.get('area_unit', 'Sq Ft')}, "
-                    f"Furnishing: {p.get('furnishing', 'N/A')} (Type: {p.get('type_of_furnished', 'N/A')}), "
-                    f"Parking: {p.get('parking_type', 'N/A')}, "
-                    f"Status: {p.get('property_status', 'N/A')}, "
-                    f"For: {p.get('dealing_type', 'N/A')}, "
-                    f"Type: {p.get('estate_type', 'N/A')}, "
-                    f"Balconies: {p.get('balconies', 'N/A')}, Floor: {p.get('floor', 'N/A')}, Vastu: {p.get('vastu_compliant', 'N/A')}, "
-                    f"Available For: {p.get('available_for', 'N/A')}\n"
-                )
-                if p.get("estate_type") == "Commercial" or p.get("cabin_count") or p.get("workstation"):
-                    props_text += (
-                        f"  Commercial Details: Cabins: {p.get('cabin_count', 'N/A')}, "
-                        f"Workstations: {p.get('workstation', 'N/A')}, "
-                        f"Conference Rooms: {p.get('conference_count', 'N/A')}, "
-                        f"Seaters: {p.get('seaters_count', 'N/A')}, "
-                        f"Pantry: {p.get('pantry_count', 'N/A')}, "
-                        f"Toilets: {p.get('toilet_count', 'N/A')}, "
-                        f"Suitable For: {p.get('suitable_for', 'N/A')}\n"
-                    )
-                if p.get("floor_count") or p.get("parking_count") or p.get("lift_count"):
-                    props_text += (
-                        f"  Building Details: Floors: {p.get('floor_count', 'N/A')}, "
-                        f"Parking Count: {p.get('parking_count', 'N/A')}, "
-                        f"Lifts: {p.get('lift_count', 'N/A')}\n"
-                    )
-
-            # Construct system instruction based on dialog state
-            if len(properties) <= 20:
-                flow_instruction = f"""THE RESULTS ARE PRECISE ({len(properties)} properties found).
-You MUST show/display these results to the user.
-Your response MUST start with an impressive, engaging, and clear summary statement giving absolute clarity of the search results (e.g. 'I've searched our database and found exactly {len(properties)} fantastic properties matching your requirements!').
-Provide a short, lively summary highlighting price ranges, BHK options, or top amenities of these properties, and guide them to check the cards below."""
-            elif missing_basics:
-                flow_instruction = f"""THE RESULTS ARE BROAD ({len(properties)} properties match), AND the user has not specified all reasonable core requirements.
-The missing requirements are: {', '.join(missing_basics)}.
-You MUST politely ask the user to provide details for these missing requirements.
-Start your response with an impressive, clear summary statement (e.g., 'I found {len(properties)} properties matching your criteria, but I need a few more details to find the perfect one for you!').
-DO NOT list or summarize properties in your text response. Ask for the missing details."""
-            else:
-                varying_text = "\n".join([f"- {field}: Options are {', '.join(options)}" for field, options in varying_fields.items()])
-                flow_instruction = f"""THE USER HAS SPECIFIED CORE REQUIREMENTS, BUT there are still {len(properties)} matching properties. We need to narrow this down.
-Here are the varying attributes among the properties:
-{varying_text}
-You MUST pick ONE of these varying attributes (from the database) and ask a follow-up question to help the user choose (for example: 'Would you prefer a 2 BHK or 3 BHK?', or 'Should the property be Furnished or Semi-Furnished?').
-Start your response with an impressive, clear summary statement (e.g., 'I've found {len(properties)} properties! To refine this down to your perfect match...').
-DO NOT list or summarize properties in your text response. Ask the follow-up question."""
-
-            prompt = f"""You are the InterCity Real-Estate AI Assistant.
-
-User Question: {question}
-
-Matching Properties:
-{props_text}
-
-Dialog State Instructions:
-{flow_instruction}
-
-CRITICAL INSTRUCTIONS:
-1. THE MATCHING PROPERTIES ARE DISPLAYED TO THE USER AS CARDS BELOW YOUR CHAT BUBBLE (only when results are precise, i.e. <= 20).
-2. Keep the response conversational, polite, and extremely concise (maximum 3-4 sentences).
-3. Under no circumstances should you invent properties that are not in the list.
-4. All options, follow-up questions, and suggestions MUST match the actual properties in the database (e.g. if options is 2 BHK or 3 BHK, it is because those exist in the data).
-5. Never mention contact phone numbers or emails in your text.
-"""
-
-            response = model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            logger.error(f"Gemini response generation failed: {e}. Disabling Gemini response generation.")
-            PropertyService._gemini_active = False
-            if missing_basics:
-                return f"I found multiple properties, but to help me narrow down, could you please specify: {', '.join(missing_basics)}?"
-            elif varying_fields:
-                field = list(varying_fields.keys())[0]
-                options = ", ".join(varying_fields[field])
-                return f"I found several matching properties. To narrow this down to your exact needs, would you prefer a specific {field}? Options are: {options}."
-            else:
-                return PropertyService._fallback_generate_response(properties)
-
-    @staticmethod
-    def _fallback_generate_response(properties: List[Dict[str, Any]]) -> str:
-        """Rule-based response when Gemini is unavailable."""
-        count = len(properties)
-        return f"I found **{count}** matching properties. Please check the property cards below for details."
+                return f"Could you please specify your {missing_item}?"
+        else:
+            response = f"I found **{count}** matching properties."
+            if ask_for_parking:
+                response += " To narrow this down further, do you have any specific **parking** or **amenities** preference?"
+            response += " Please check the property cards below for details."
+            
+            # Add "Anything else" if we are showing results without follow-up questions
+            if not ask_for_parking:
+                response += "\n\nIs there anything else you would like to search for?"
+                
+            return response
 
     @staticmethod
     def _is_greeting_or_about(question: str) -> Optional[str]:
@@ -1098,6 +1174,48 @@ CRITICAL INSTRUCTIONS:
         suggestions = []
         filters = parsed.get("filters", {})
 
+        location = filters.get("location")
+        city = filters.get("city")
+        target_place = location or city
+
+        # If a location/city is specified, ensure ALL suggestions are strictly inside that location
+        if target_place:
+            target_place = target_place.title()
+            dealing = filters.get("dealing_type")
+            bhk = filters.get("bhk")
+            estate = filters.get("estate_type")
+            
+            # Formulate relevant choices for this location
+            if not bhk:
+                suggestions.append(f"2 BHK in {target_place}")
+                suggestions.append(f"3 BHK in {target_place}")
+            else:
+                suggestions.append(f"1 BHK in {target_place}")
+                
+            if not dealing:
+                suggestions.append(f"For Rent in {target_place}")
+                suggestions.append(f"For Sale in {target_place}")
+            else:
+                opposite = "Sale" if str(dealing).lower() == "rent" else "Rent"
+                suggestions.append(f"For {opposite} in {target_place}")
+                
+            if not estate:
+                suggestions.append(f"Commercial properties in {target_place}")
+                suggestions.append(f"Residential flats in {target_place}")
+            else:
+                suggestions.append(f"Furnished properties in {target_place}")
+                
+            suggestions.append(f"Cheapest property in {target_place}")
+            
+            seen = set()
+            unique_suggs = []
+            for s in suggestions:
+                if s.lower() not in seen:
+                    seen.add(s.lower())
+                    unique_suggs.append(s)
+            return unique_suggs[:5]
+
+        # Fallback if no location is specified
         if not properties:
             selected_other = random.sample(KNOWN_LOCATIONS, 4)
             return [
@@ -1107,18 +1225,11 @@ CRITICAL INSTRUCTIONS:
                 f"Cheapest flat in {selected_other[3].title()}"
             ]
 
-        location = filters.get("location") or (
-            properties[0].get("location") if properties else None
-        )
-        city = filters.get("city") or (
-            properties[0].get("city") if properties else None
-        )
-
+        # If properties exist but no filters target a specific place
+        location = properties[0].get("location") or properties[0].get("city")
         if location:
             suggestions.append(f"Cheapest property in {location}")
-        if city:
-            suggestions.append(f"Commercial properties in {city}")
-
+        
         bhk = filters.get("bhk")
         if bhk:
             suggestions.append(f"Show {bhk + 1} BHK options")

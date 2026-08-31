@@ -729,6 +729,7 @@ body {
 }
 
 .premium-chat-modal {
+  position: relative;
   width: 90%;
   max-width: 850px;
   height: 650px;
@@ -742,7 +743,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 [data-theme="light"] .premium-chat-modal,
@@ -753,12 +754,13 @@ body {
 }
 
 .premium-chat-floating {
-  position: absolute;
+  position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 400px;
-  height: 580px;
-  max-height: 80vh;
+  width: 440px;
+  height: 600px;
+  max-height: 90vh;
+  max-width: 95vw;
   background: rgba(30, 41, 59, 0.75) !important;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
@@ -769,7 +771,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 [data-theme="light"] .premium-chat-floating,

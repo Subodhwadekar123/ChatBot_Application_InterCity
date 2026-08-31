@@ -102,6 +102,106 @@ const PropertyChatPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [chatMode, setChatMode] = useState<'bubble' | 'fullscreen'>('bubble');
   const [isMinimized, setIsMinimized] = useState(false);
+  const [activePageMap, setActivePageMap] = useState<Record<number, number>>({});
+
+  // Multi-direction Resizing State & Handlers
+  const isResizingRef = useRef(false);
+  const [floatingSize, setFloatingSize] = useState<{ width: number; height: number }>({ width: 440, height: 600 });
+  const [modalSize, setModalSize] = useState<{ width: number; height: number }>({ width: 850, height: 650 });
+
+  const startResizing = (e: React.MouseEvent, dir: string, mode: 'bubble' | 'fullscreen') => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizingRef.current = true;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialSize = mode === 'bubble' ? floatingSize : modalSize;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      let newWidth = initialSize.width;
+      let newHeight = initialSize.height;
+
+      // Handling width change
+      if (dir.includes('left')) {
+        newWidth = Math.max(320, Math.min(window.innerWidth - 40, initialSize.width - deltaX));
+      } else if (dir.includes('right')) {
+        newWidth = Math.max(320, Math.min(window.innerWidth - 40, initialSize.width + deltaX));
+      }
+
+      // Handling height change
+      if (dir.includes('top')) {
+        newHeight = Math.max(300, Math.min(window.innerHeight - 40, initialSize.height - deltaY));
+      } else if (dir.includes('bottom')) {
+        newHeight = Math.max(300, Math.min(window.innerHeight - 40, initialSize.height + deltaY));
+      }
+
+      if (mode === 'bubble') {
+        setFloatingSize({ width: newWidth, height: newHeight });
+      } else {
+        setModalSize({ width: newWidth, height: newHeight });
+      }
+    };
+
+    const onMouseUp = () => {
+      setTimeout(() => {
+        isResizingRef.current = false;
+      }, 150);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const renderResizeHandles = (mode: 'bubble' | 'fullscreen') => (
+    <>
+      {/* Top Edge */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'top', mode)}
+        style={{ position: 'absolute', top: 0, left: 12, right: 12, height: 8, cursor: 'ns-resize', zIndex: 1050 }}
+      />
+      {/* Bottom Edge */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'bottom', mode)}
+        style={{ position: 'absolute', bottom: 0, left: 12, right: 12, height: 8, cursor: 'ns-resize', zIndex: 1050 }}
+      />
+      {/* Left Edge */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'left', mode)}
+        style={{ position: 'absolute', top: 12, bottom: 12, left: 0, width: 8, cursor: 'ew-resize', zIndex: 1050 }}
+      />
+      {/* Right Edge */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'right', mode)}
+        style={{ position: 'absolute', top: 12, bottom: 12, right: 0, width: 8, cursor: 'ew-resize', zIndex: 1050 }}
+      />
+      {/* Top-Left Corner */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'top-left', mode)}
+        style={{ position: 'absolute', top: 0, left: 0, width: 14, height: 14, cursor: 'nwse-resize', zIndex: 1051 }}
+      />
+      {/* Top-Right Corner */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'top-right', mode)}
+        style={{ position: 'absolute', top: 0, right: 0, width: 14, height: 14, cursor: 'nesw-resize', zIndex: 1051 }}
+      />
+      {/* Bottom-Left Corner */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'bottom-left', mode)}
+        style={{ position: 'absolute', bottom: 0, left: 0, width: 14, height: 14, cursor: 'nesw-resize', zIndex: 1051 }}
+      />
+      {/* Bottom-Right Corner */}
+      <div
+        onMouseDown={(e) => startResizing(e, 'bottom-right', mode)}
+        style={{ position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, cursor: 'nwse-resize', zIndex: 1051 }}
+      />
+    </>
+  );
 
   const [loaderText, setLoaderText] = useState(LOADER_MESSAGES[0]);
 
@@ -364,6 +464,17 @@ const PropertyChatPage: React.FC = () => {
           <AnimatePresence>
             {messages.map((msg, index) => {
               const isUser = msg.role === 'user';
+
+              // ── 20 Cards Per Page Pagination Math ──
+              const CARDS_PER_PAGE = 20;
+              const currentPage = activePageMap[index] || 1;
+              const totalCards = msg.properties ? msg.properties.length : 0;
+              const totalPages = Math.ceil(totalCards / CARDS_PER_PAGE);
+              const startIndex = (currentPage - 1) * CARDS_PER_PAGE;
+              const visibleProperties = msg.properties
+                ? msg.properties.slice(startIndex, startIndex + CARDS_PER_PAGE)
+                : [];
+
               return (
                 <motion.div
                   key={index}
@@ -394,41 +505,6 @@ const PropertyChatPage: React.FC = () => {
                       {msg.content}
                     </div>
 
-                    {/* Dynamic Suggestions Chips (Just below the Answer Bubble) */}
-                    {!isUser && index === messages.length - 1 && !loading && msg.suggestions && msg.suggestions.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px', marginBottom: '4px', width: '100%' }}>
-                        {msg.suggestions.map((s, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => handleSend(s)}
-                            style={{
-                              background: 'var(--bg-surface)',
-                              border: '1px solid var(--border-default)',
-                              borderRadius: '999px',
-                              padding: '6px 12px',
-                              fontSize: '11.5px',
-                              color: 'var(--text-secondary)',
-                              cursor: 'pointer',
-                              fontWeight: 600,
-                              boxShadow: 'var(--shadow-xs)',
-                              transition: 'all 0.2s',
-                              outline: 'none'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.color = 'var(--accent-primary)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = 'var(--border-default)';
-                              e.currentTarget.style.color = 'var(--text-secondary)';
-                            }}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
                     {/* Timestamp */}
                     <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       {msg.timestamp}
@@ -449,7 +525,7 @@ const PropertyChatPage: React.FC = () => {
                           minWidth: (chatMode === 'fullscreen' && msg.properties.length > 1) ? '600px' : 'auto'
                         }}
                       >
-                        {msg.properties.map((prop) => (
+                        {visibleProperties.map((prop) => (
                           <div
                             key={prop.id}
                             className="premium-property-card"
@@ -637,6 +713,112 @@ const PropertyChatPage: React.FC = () => {
                         ))}
                       </motion.div>
                     )}
+
+                    {/* Pagination Bar (Centered, Bold Tabs: 1, 2, 3, 4, 5...) */}
+                    {!isUser && msg.properties && totalPages > 1 && (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        marginTop: '16px',
+                        marginBottom: '10px',
+                        width: '100%'
+                      }}>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          Showing <strong>{startIndex + 1}–{Math.min(startIndex + CARDS_PER_PAGE, totalCards)}</strong> of <strong>{totalCards}</strong> properties
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border-default)',
+                          borderRadius: '12px',
+                          padding: '6px 12px',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}>
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                            const isActive = pageNum === currentPage;
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setActivePageMap(prev => ({ ...prev, [index]: pageNum }))}
+                                style={{
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  borderRadius: '8px',
+                                  border: isActive ? 'none' : '1px solid var(--border-default)',
+                                  background: isActive ? 'var(--accent-primary)' : 'var(--bg-canvas)',
+                                  color: isActive ? '#ffffff' : 'var(--text-primary)',
+                                  fontSize: '15px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: isActive ? '0 4px 12px rgba(var(--accent-primary-rgb), 0.3)' : 'none',
+                                  transition: 'all 0.15s ease',
+                                  outline: 'none'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isActive) {
+                                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                    e.currentTarget.style.color = 'var(--accent-primary)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isActive) {
+                                    e.currentTarget.style.borderColor = 'var(--border-default)';
+                                    e.currentTarget.style.color = 'var(--text-primary)';
+                                  }
+                                }}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Suggestions Chips (Placed BELOW Card Results) */}
+                    {!isUser && index === messages.length - 1 && !loading && msg.suggestions && msg.suggestions.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', marginBottom: '4px', width: '100%' }}>
+                        {msg.suggestions.map((s, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSend(s)}
+                            style={{
+                              background: 'var(--bg-surface)',
+                              border: '1px solid var(--border-default)',
+                              borderRadius: '999px',
+                              padding: '6px 12px',
+                              fontSize: '11.5px',
+                              color: 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              boxShadow: 'var(--shadow-xs)',
+                              transition: 'all 0.2s',
+                              outline: 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              e.currentTarget.style.color = 'var(--accent-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'var(--border-default)';
+                              e.currentTarget.style.color = 'var(--text-secondary)';
+                            }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -700,26 +882,6 @@ const PropertyChatPage: React.FC = () => {
           alignItems: 'center',
           flexShrink: 0
         }}>
-          <button
-            onClick={clearHistory}
-            title="Clear Conversation History"
-            style={{
-              background: 'rgba(239, 68, 68, 0.05)',
-              border: '1px solid rgba(239, 68, 68, 0.1)',
-              color: 'var(--color-danger)',
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0
-            }}
-          >
-            <Trash2 size={14} />
-          </button>
-
           <form
             onSubmit={(e) => { e.preventDefault(); handleSend(input); }}
             style={{ display: 'flex', gap: '8px', flex: 1, position: 'relative' }}
@@ -964,15 +1126,24 @@ const PropertyChatPage: React.FC = () => {
         <AnimatePresence>
           {chatMode === 'fullscreen' ? (
             /* Centered Overlay Modal Mode (Less than Fullscreen) */
-            <div className="premium-chat-backdrop" onClick={() => setIsOpen(false)}>
+            <div
+              className="premium-chat-backdrop"
+              onClick={() => {
+                if (!isResizingRef.current) {
+                  setIsOpen(false);
+                }
+              }}
+            >
               <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 30, scale: 0.95 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 220 }}
                 className="premium-chat-modal"
+                style={{ width: modalSize.width, height: modalSize.height, maxWidth: '95vw', maxHeight: '95vh' }}
                 onClick={(e) => e.stopPropagation()} // Prevent closing when clicking modal itself
               >
+                {renderResizeHandles('fullscreen')}
                 {renderChatHeader()}
                 {renderChatBody()}
               </motion.div>
@@ -985,7 +1156,9 @@ const PropertyChatPage: React.FC = () => {
               exit={{ y: 80, opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="premium-chat-floating"
+              style={{ width: floatingSize.width, height: isMinimized ? 'auto' : floatingSize.height }}
             >
+              {renderResizeHandles('bubble')}
               {renderChatHeader()}
               {!isMinimized && renderChatBody()}
             </motion.div>
