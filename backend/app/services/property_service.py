@@ -190,6 +190,7 @@ LOCATION_ALIASES = {
 class PropertyService:
     """Handles chatbot queries against the live SQL Server property database."""
     _gemini_active = False
+    _gemini_active = True
     
     # Gemini is permanently disabled as per user request to force rule-based logic and improve speed.
 
@@ -208,25 +209,22 @@ class PropertyService:
         city = filters.get("city")
         if not loc and not city:
             return ["location"]
-            
+
         # 2. Estate Type / Category
         et = filters.get("estate_type")
         pt = filters.get("property_type")
         if not et and not pt:
             return ["residential or commercial category"]
-            
+
         # 3. BHK Type
         bhk = filters.get("bhk")
         if bhk is None:
             return ["BHK requirement"]
-            
+
         # 4. Budget / Price Range
         min_p = filters.get("min_price")
         max_p = filters.get("max_price")
-        if min_p is None and max_p is None:
-            return ["budget (price range)"]
-            
-        return []
+        return ["budget (price range)"] if min_p is None and max_p is None else []
 
     @staticmethod
     def _get_varying_fields(properties: List[Dict[str, Any]]) -> Dict[str, List[str]]:
@@ -251,26 +249,21 @@ class PropertyService:
                     vals.add(str(val).strip())
             if len(vals) > 1:
                 varying[field] = sorted(list(vals))
-                
+
         # Amenities check
         all_amenities = {}
         for p in properties:
-            am_str = p.get("amenities", "")
-            if am_str:
+            if am_str := p.get("amenities", ""):
                 for am in am_str.split(","):
-                    am_clean = am.strip().title()
-                    if am_clean:
+                    if am_clean := am.strip().title():
                         all_amenities[am_clean] = all_amenities.get(am_clean, 0) + 1
-                        
-        varying_amenities = []
+
         total_props = len(properties)
-        for am, count in all_amenities.items():
-            if 0 < count < total_props:
-                varying_amenities.append(am)
-                
-        if varying_amenities:
+        if varying_amenities := [
+            am for am, count in all_amenities.items() if 0 < count < total_props
+        ]:
             varying["amenities"] = varying_amenities[:5]
-            
+
         return varying
 
     @staticmethod
@@ -306,7 +299,7 @@ class PropertyService:
 
         # 4. Check if this is a general query or greeting
         is_general = parsed.get("general_query", False)
-        
+
         # 5. Dialog Flow Routing
         N = len(safe_properties)
         missing_basics = []
@@ -324,7 +317,7 @@ class PropertyService:
             # Broad search (> 30 properties): STRICT 4-step parameter check
             filters = parsed.get("filters", {})
             missing_basics = PropertyService._check_missing_basic_filters(filters)
-            
+
             if missing_basics:
                 # Any of the 4 basic parameters are missing: ask for the next one
                 show_properties = False
@@ -371,8 +364,14 @@ class PropertyService:
                 elif "amenities" in next_missing:
                     suggestions = [f"With Swimming Pool{loc_suffix}", f"Need elevator / lift{loc_suffix}", f"With Gym{loc_suffix}", f"No specific amenities{loc_suffix}"]
             elif ask_for_parking:
-                suggestions = [f"Need Covered Parking{loc_suffix}", f"Open Parking is fine{loc_suffix}", f"With Swimming Pool{loc_suffix}", f"With Gym{loc_suffix}", f"Show Results Directly"]
-                    
+                suggestions = [
+                    f"Need Covered Parking{loc_suffix}",
+                    f"Open Parking is fine{loc_suffix}",
+                    f"With Swimming Pool{loc_suffix}",
+                    f"With Gym{loc_suffix}",
+                    "Show Results Directly",
+                ]
+
         # Fallback to standard suggestions if needed
         if not suggestions:
             suggestions = PropertyService._generate_suggestions(parsed, safe_properties if show_properties else [])
@@ -408,44 +407,10 @@ class PropertyService:
     def _nlp_parse_query(
         question: str, history: List[Dict[str, str]]
     ) -> Dict[str, Any]:
-        """Parse natural language query into structured filters using Gemini or regex fallback."""
-        if not settings.GEMINI_API_KEY or not PropertyService._gemini_active:
-            logger.info("Gemini key not configured or marked inactive. Using rule-based fallback.")
-            
-            # Merge filters from history to maintain conversational state
-            cumulative_filters = {}
-            
-            # Find the index of the last "new search" message (optional, but keep it simple)
-            start_idx = 0
-            
-            # Parse past messages (from the last reset point onwards)
-            for msg in history[start_idx:]:
-                if msg.get("role") == "user":
-                    past_parsed = PropertyService._fallback_parse_query(msg.get("content", ""))
-                    for k, v in past_parsed.get("filters", {}).items():
-                        if v is not None:
-                            cumulative_filters[k] = v
-            
-            # Parse current question
-            current_parsed = PropertyService._fallback_parse_query(question)
-            current_filters = current_parsed.get("filters", {})
-            
-            # If current query specifies a location/city, and it differs from past location, reset context
-            current_loc = current_filters.get("location") or current_filters.get("city")
-            past_loc = cumulative_filters.get("location") or cumulative_filters.get("city")
-            
-            if current_loc and past_loc and current_loc.lower() != past_loc.lower():
-                logger.info(f"Location changed from {past_loc} to {current_loc}. Resetting past context filters.")
-                cumulative_filters = {}
-                
-            # Merge current into cumulative (current overrides past)
-            for k, v in current_filters.items():
-                if v is not None:
-                    cumulative_filters[k] = v
-                    
-            # The final parsed object uses cumulative filters, but current question's flags
-            current_parsed["filters"] = cumulative_filters
-            return current_parsed
+        """Parse natural language query into structured filters using ONLY Gemini AI."""
+        if not settings.GEMINI_API_KEY:
+            logger.error("GEMINI_API_KEY is missing. Gemini AI cannot parse query.")
+            return {"filters": {}, "sorting": None, "general_query": True, "force_show": False}
 
         try:
             import google.generativeai as genai
@@ -512,14 +477,13 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
             response = model.generate_content(
                 prompt,
                 generation_config={"response_mime_type": "application/json"},
-                request_options={"timeout": 5.0}
+                request_options={"timeout": 10.0}
             )
             data = json.loads(response.text.strip())
             return data
         except Exception as e:
-            logger.error(f"Gemini parse failed: {e}. Disabling Gemini parsing.")
-            PropertyService._gemini_active = False
-            return PropertyService._fallback_parse_query(question)
+            logger.error(f"Gemini parse failed: {e}.")
+            return {"filters": {}, "sorting": None, "general_query": True, "force_show": False}
 
     @staticmethod
     def _fallback_parse_query(question: str) -> Dict[str, Any]:
@@ -1108,38 +1072,67 @@ Provide ONLY valid JSON. No markdown blocks or headers."""
         missing_basics: List[str] = [],
         ask_for_parking: bool = False,
     ) -> str:
-        """Generate rule-based response grounded in query results following the strict 4-step sequence."""
-        # Check for greetings first
-        greeting_resp = PropertyService._is_greeting_or_about(question)
-        if greeting_resp:
-            return greeting_resp
+        """Generate response grounded in query results using Gemini AI."""
+        if not settings.GEMINI_API_KEY:
+            logger.error("GEMINI_API_KEY is not configured.")
+            return f"I found **{len(properties)}** matching properties."
 
-        count = len(properties)
-        
-        if count == 0:
-            return (
-                "I couldn't find any properties matching your exact requirements. "
-                "Try broadening your search — for example, search by a different area, "
-                "increase the budget range, or try different BHK options."
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+
+            history_text = ""
+            for item in history[-4:]:
+                role = "User" if item.get("role") == "user" else "Assistant"
+                content = item.get("content", "")
+                history_text += f"{role}: {content}\n"
+
+            sample_props = []
+            for p in properties[:5]:
+                sample_props.append({
+                    "name": p.get("property_name"),
+                    "location": p.get("location"),
+                    "city": p.get("city"),
+                    "price": p.get("price_display"),
+                    "bhk": p.get("bhk_type"),
+                    "estate_type": p.get("estate_type"),
+                    "dealing_type": p.get("dealing_type")
+                })
+
+            prompt = f"""You are the official InterCity Real-Estate AI Assistant.
+User Question: {question}
+
+Recent Conversation History:
+{history_text}
+
+Search Results Summary:
+- Total Matching Properties Found: {len(properties)}
+- Sample Properties Data: {json.dumps(sample_props, indent=2)}
+- Missing Basic Filter (if any): {missing_basics}
+- Ask for Parking/Amenities: {ask_for_parking}
+
+Instructions:
+1. If the user is greeting or asking who you are, welcome them politely as the InterCity Real-Estate AI Assistant and mention how you can help.
+2. If properties were found, mention the count ({len(properties)}) and briefly summarize top options. Inform them that full details are available in the property cards below.
+3. If {missing_basics} is specified, politely ask the user for that missing parameter (e.g. location, budget, or BHK) to help narrow down the options.
+4. Keep your answer clear, concise, professional, and formatted in clean markdown.
+"""
+
+            response = model.generate_content(
+                prompt,
+                request_options={"timeout": 8.0}
             )
+            if response.text:
+                return response.text.strip()
+        except Exception as e:
+            logger.error(f"Gemini response generation failed: {e}")
 
-        if missing_basics:
-            missing_item = missing_basics[0]
-            if count > 0:
-                return f"I found **{count}** matching properties, but to help me narrow down, could you please specify your {missing_item}?"
-            else:
-                return f"Could you please specify your {missing_item}?"
-        else:
-            response = f"I found **{count}** matching properties."
-            if ask_for_parking:
-                response += " To narrow this down further, do you have any specific **parking** or **amenities** preference?"
-            response += " Please check the property cards below for details."
-            
-            # Add "Anything else" if we are showing results without follow-up questions
-            if not ask_for_parking:
-                response += "\n\nIs there anything else you would like to search for?"
-                
-            return response
+        # Fallback summary if Gemini fails or times out
+        count = len(properties)
+        if count == 0:
+            return "I couldn't find any properties matching your exact criteria. Try broadening your search or adjusting location/budget."
+        return f"I found **{count}** matching properties. Please view the property cards below for details."
 
     @staticmethod
     def _is_greeting_or_about(question: str) -> Optional[str]:
