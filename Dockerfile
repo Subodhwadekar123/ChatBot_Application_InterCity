@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     g++ \
     libgomp1 \
     curl \
+    unixodbc \
+    unixodbc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements first for caching
